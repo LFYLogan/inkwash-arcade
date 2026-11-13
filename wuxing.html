@@ -1,0 +1,1817 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五行医馆 · 卷二 | 墨戏三卷</title>
+<meta name="description" content="一季十五日，游方郎中坐诊青囊镇。以木火土金水、相生相克之理配方，照见自己的体质。纯前端离线可玩。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23c9a86a' stroke-width='2'/%3E%3Ccircle cx='32' cy='13' r='4' fill='%23b8473c'/%3E%3Ccircle cx='50' cy='27' r='4' fill='%23c9a86a'/%3E%3Ccircle cx='43' cy='49' r='4' fill='%236fa89a'/%3E%3Ccircle cx='21' cy='49' r='4' fill='%236c8fc4'/%3E%3Ccircle cx='14' cy='27' r='4' fill='%238a744c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/theme.css">
+<style>
+  /* ---------- 页内版式 ---------- */
+  .game { max-width: 900px; margin: 0 auto; padding: 30px 0 0; }
+
+  /* ---------- 状态栏 ---------- */
+  .status {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr 0.85fr;
+    gap: 10px;
+    padding: 15px 18px;
+    margin-bottom: 18px;
+  }
+  .status__cell { min-width: 0; }
+  .status__lab {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11px; letter-spacing: 0.2em; color: var(--text-faint);
+    margin-bottom: 5px;
+  }
+  .status__val {
+    display: flex; align-items: baseline; gap: 6px;
+    font-family: var(--font-serif); color: var(--text);
+    line-height: 1.2; margin-bottom: 8px;
+  }
+  .status__val b { font-weight: 600; font-size: 21px; letter-spacing: 0.04em; }
+  .status__sub { font-size: 11px; color: var(--text-faint); }
+  .status__cell--silver .status__val b { color: var(--gold-bright); font-family: var(--font-num); }
+  .status__cell--rep .meter > i { background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright)); }
+  .status__cell--qi .meter > i { background: linear-gradient(90deg, #4f7d71, var(--jade-bright)); }
+  .status .tag { padding: 1px 8px; font-size: 10px; letter-spacing: 0.12em; }
+
+  .tag--cinnabar {
+    color: var(--cinnabar-bright);
+    border-color: rgba(184, 71, 60, 0.45);
+    background: rgba(184, 71, 60, 0.1);
+  }
+
+  /* ---------- 诊台布局 ---------- */
+  .clinic { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .wheel-panel { padding: 16px 16px 13px; }
+  .wheel-panel .eyebrow { margin-bottom: 6px; }
+  .wheel-wrap { width: 100%; max-width: 360px; margin: 0 auto; }
+  .wheel-svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+
+  .wx-node { cursor: pointer; }
+  .wx-node:focus { outline: none; }
+  .wx-node__glyph {
+    font-family: var(--font-serif); font-size: 19px; letter-spacing: 0.04em;
+    fill: currentColor; pointer-events: none;
+  }
+  .wx-node__organ {
+    font-family: var(--font-sans); font-size: 9.6px; letter-spacing: 0.1em;
+    fill: var(--text-dim); pointer-events: none;
+  }
+  .wx-body { transition: stroke-width 0.18s ease, fill 0.18s ease; }
+  .wx-halo { fill: none; opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
+
+  .wx-node--wood { color: #7fb3a5; }
+  .wx-node--wood .wx-body { fill: rgba(127, 179, 165, 0.11); stroke: #7fb3a5; }
+  .wx-node--fire { color: #d1604f; }
+  .wx-node--fire .wx-body { fill: rgba(209, 96, 79, 0.12); stroke: #d1604f; }
+  .wx-node--earth { color: #c9a86a; }
+  .wx-node--earth .wx-body { fill: rgba(201, 168, 106, 0.12); stroke: #c9a86a; }
+  .wx-node--metal { color: #d7d9dc; }
+  .wx-node--metal .wx-body { fill: rgba(215, 217, 220, 0.1); stroke: #d7d9dc; }
+  .wx-node--water { color: #7d9ed1; }
+  .wx-node--water .wx-body { fill: rgba(125, 158, 209, 0.12); stroke: #7d9ed1; }
+
+  .wx-node:hover .wx-body { stroke-width: 2.6; }
+  .wx-node.is-active .wx-body { stroke-width: 3; }
+  .wx-node.is-active .wx-node__glyph { fill: var(--gold-bright); }
+  .wx-node:focus-visible .wx-halo { opacity: 0.6; stroke: var(--gold-bright); stroke-dasharray: 2 3; }
+
+  /* 亢者描红 / 虚者描淡 */
+  .wx-node.is-ex .wx-body {
+    stroke: var(--cinnabar-bright);
+    stroke-width: 2.4;
+    fill: rgba(224, 96, 79, 0.14);
+  }
+  .wx-node.is-ex .wx-halo {
+    opacity: 1; stroke: var(--cinnabar-bright); stroke-width: 2;
+    filter: drop-shadow(0 0 6px rgba(224, 96, 79, 0.65));
+  }
+  .wx-node.is-ex .wx-node__glyph { fill: var(--cinnabar-bright); }
+  .wx-node.is-def .wx-body {
+    stroke: rgba(230, 226, 216, 0.55);
+    stroke-dasharray: 4 4;
+    fill: rgba(230, 226, 216, 0.045);
+    opacity: 0.8;
+  }
+  .wx-node.is-def .wx-halo {
+    opacity: 0.8; stroke: rgba(230, 226, 216, 0.6);
+    stroke-width: 1.2; stroke-dasharray: 3 6;
+  }
+  .wx-node.is-def .wx-node__glyph { fill: rgba(230, 226, 216, 0.62); }
+
+  .wx-link--sheng { stroke: rgba(201, 168, 106, 0.62); stroke-width: 1.15; fill: none; }
+  .wx-link--ke { stroke: rgba(184, 71, 60, 0.38); stroke-width: 1; fill: none; stroke-dasharray: 5 7; }
+
+  .wx-legend {
+    display: flex; flex-wrap: wrap; gap: 6px 14px;
+    justify-content: center; margin-top: 2px;
+    font-size: 11px; color: var(--text-faint); letter-spacing: 0.06em;
+  }
+  .wx-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lg { display: inline-block; width: 18px; height: 0; border-top: 1.5px solid transparent; }
+  .lg--sheng { border-top-color: rgba(201, 168, 106, 0.8); }
+  .lg--ke { border-top-style: dashed; border-top-color: rgba(184, 71, 60, 0.8); }
+  .lg--ex { width: 12px; height: 12px; border: 2px solid var(--cinnabar-bright); border-radius: 50%; }
+  .lg--def { width: 12px; height: 12px; border: 1px dashed rgba(230, 226, 216, 0.65); border-radius: 50%; }
+
+  .wx-read {
+    border-top: 1px solid var(--line-soft);
+    margin-top: 10px; padding-top: 10px; min-height: 74px;
+  }
+  .wx-read__head {
+    display: flex; align-items: baseline; gap: 8px;
+    font-family: var(--font-serif); font-size: 15px; color: var(--text);
+    margin-bottom: 3px;
+  }
+  .wx-read__head span { font-family: var(--font-sans); font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; }
+  .wx-read__row { display: flex; gap: 8px; font-size: 12.5px; line-height: 1.65; color: var(--text-dim); }
+  .wx-read__row b { color: var(--gold); font-weight: 500; min-width: 32px; letter-spacing: 0.08em; }
+  .wheel-caption { font-size: 11.5px; color: var(--text-faint); margin: 8px 0 0; text-align: center; letter-spacing: 0.04em; }
+
+  /* ---------- 病人卡 ---------- */
+  .patient { padding: 22px 22px 20px; }
+  .patient .eyebrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .patient__head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .patient__name { margin: 0; font-size: 27px; letter-spacing: 0.08em; }
+  .patient__age { font-size: 12px; color: var(--text-faint); letter-spacing: 0.1em; }
+  .patient__row { display: flex; gap: 10px; margin-top: 12px; }
+  .patient__label { flex: none; font-size: 12px; color: var(--gold-dim); letter-spacing: 0.2em; padding-top: 2px; }
+  .patient__complaint { color: var(--text); font-family: var(--font-serif); font-size: 16.5px; line-height: 1.65; }
+
+  .pulse {
+    display: grid; grid-template-columns: auto 1fr; gap: 2px 12px;
+    margin-top: 13px; padding: 10px 12px;
+    border: 1px solid var(--line-soft); border-left: 2px solid var(--jade);
+    border-radius: 8px; background: rgba(111, 168, 154, 0.05);
+  }
+  .pulse__lab { grid-row: span 2; font-size: 11px; color: var(--jade-bright); letter-spacing: 0.18em; padding-top: 3px; }
+  .pulse__txt { font-size: 14px; color: var(--text); letter-spacing: 0.04em; }
+  .pulse__hint { font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; }
+
+  .sx { margin-top: 14px; }
+  .sx__lab { font-size: 11px; color: var(--gold-dim); letter-spacing: 0.24em; margin-bottom: 4px; }
+  .sx__list { margin: 0; padding: 0; list-style: none; counter-reset: sx; }
+  .sx__list li {
+    position: relative; padding: 4px 0 4px 24px;
+    font-size: 14.5px; color: var(--text-dim); line-height: 1.6;
+    counter-increment: sx;
+  }
+  .sx__list li::before {
+    content: counter(sx); position: absolute; left: 0; top: 5px;
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1px solid var(--line); color: var(--gold-dim);
+    font-size: 9.5px; line-height: 14px; text-align: center;
+    font-family: var(--font-num);
+  }
+
+  .meds-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 18px; }
+  .meds-head .eyebrow { margin: 0; }
+  .kbd-hint { font-size: 11px; color: var(--text-faint); letter-spacing: 0.08em; }
+  .meds { display: grid; grid-template-columns: repeat(5, 1fr); gap: 9px; margin-top: 10px; }
+
+  .med {
+    --el: var(--gold);
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 12px 5px 11px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid var(--el);
+    border-radius: 11px;
+    background: linear-gradient(180deg, var(--el-soft, rgba(201, 168, 106, 0.1)), rgba(10, 14, 21, 0.62));
+    color: var(--text); cursor: pointer; font-family: var(--font-sans);
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.2s ease, opacity 0.18s ease;
+    overflow: hidden;
+  }
+  .med:hover { transform: translateY(-2px); border-color: var(--el); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38), inset 0 0 22px var(--el-soft, transparent); }
+  .med:focus-visible { outline: 2px solid var(--el); outline-offset: 2px; }
+  .med[disabled] { opacity: 0.4; cursor: default; transform: none; box-shadow: none; }
+  .med.is-picked { opacity: 1; border-color: var(--el); box-shadow: 0 0 0 3px var(--el-soft, transparent), inset 0 0 26px var(--el-soft, transparent); }
+  .med__no {
+    position: absolute; top: 5px; right: 8px;
+    font-family: var(--font-num); font-size: 10px; color: var(--text-faint);
+  }
+  .med__glyph { font-family: var(--font-serif); font-size: 29px; line-height: 1.12; color: var(--el); }
+  .med__color { font-size: 10.5px; color: var(--text-dim); letter-spacing: 0.08em; }
+  .med__action { font-size: 11.5px; color: var(--text); letter-spacing: 0.08em; }
+  .med__organ { font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.04em; }
+
+  .med--wood { --el: #7fb3a5; --el-soft: rgba(127, 179, 165, 0.14); }
+  .med--fire { --el: #d1604f; --el-soft: rgba(209, 96, 79, 0.14); }
+  .med--earth { --el: #c9a86a; --el-soft: rgba(201, 168, 106, 0.14); }
+  .med--metal { --el: #d7d9dc; --el-soft: rgba(215, 217, 220, 0.1); }
+  .med--water { --el: #7d9ed1; --el-soft: rgba(125, 158, 209, 0.14); }
+
+  .meds-note { font-size: 11.5px; color: var(--text-faint); margin: 12px 0 0; letter-spacing: 0.03em; }
+
+  /* ---------- 结算 ---------- */
+  .result { padding: 26px; }
+  .verdict { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .verdict__label { font-family: var(--font-serif); font-size: 46px; line-height: 1.1; letter-spacing: 0.1em; }
+  .verdict__sub { font-size: 13px; letter-spacing: 0.18em; color: var(--text-faint); }
+  .verdict--great .verdict__label { color: var(--jade-bright); }
+  .verdict--minor .verdict__label { color: var(--gold-bright); }
+  .verdict--plain .verdict__label { color: var(--text-dim); }
+  .verdict--error .verdict__label { color: var(--cinnabar-bright); }
+
+  .result__pattern { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .result__facts { margin: 14px 0 0; font-size: 14.5px; color: var(--text-dim); }
+  .result__facts b { color: var(--text); font-weight: 500; }
+
+  .deltas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .delta { border: 1px solid var(--line-soft); border-radius: 9px; padding: 10px 12px; background: rgba(255, 255, 255, 0.02); }
+  .delta__lab { font-size: 10.5px; letter-spacing: 0.18em; color: var(--text-faint); }
+  .delta__val { font-family: var(--font-num); font-size: 22px; line-height: 1.25; color: var(--text); }
+  .delta__val.up { color: var(--jade-bright); }
+  .delta__val.down { color: var(--cinnabar-bright); }
+  .delta__sub { font-size: 10.5px; color: var(--text-faint); }
+  .qi-meter { margin-top: 4px; }
+  .qi-meter .bar { height: 5px; }
+
+  .lingering {
+    margin-top: 12px; padding: 8px 12px;
+    border: 1px dashed rgba(184, 71, 60, 0.5); border-radius: 8px;
+    font-size: 12.5px; color: var(--cinnabar-bright);
+    background: rgba(184, 71, 60, 0.07); letter-spacing: 0.04em;
+  }
+
+  .comment {
+    margin-top: 18px; padding: 12px 0 0 16px;
+    border-left: 2px solid var(--line); 
+  }
+  .comment__mark { font-size: 10.5px; letter-spacing: 0.24em; color: var(--gold-dim); }
+  .comment p { margin: 4px 0 0; font-family: var(--font-serif); font-size: 16.5px; line-height: 1.75; color: var(--text); }
+
+  .result__foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+  .result__hint { font-size: 11.5px; color: var(--text-faint); letter-spacing: 0.06em; }
+
+  /* ---------- 日结 ---------- */
+  .summary { padding: 26px; }
+  .review { padding: 18px 0 4px; border-top: 1px solid var(--line-soft); }
+  .review:first-of-type { border-top: 0; padding-top: 8px; }
+  .review__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .review__name { font-family: var(--font-serif); font-size: 19px; letter-spacing: 0.06em; }
+  .review__verdict { font-size: 12px; letter-spacing: 0.14em; }
+  .review__verdict.great { color: var(--jade-bright); }
+  .review__verdict.minor { color: var(--gold-bright); }
+  .review__verdict.plain { color: var(--text-dim); }
+  .review__verdict.error { color: var(--cinnabar-bright); }
+
+  .fangjie { display: grid; gap: 7px; }
+  .fangjie__row { display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: start; }
+  .fangjie__lab { font-size: 10.5px; letter-spacing: 0.2em; color: var(--gold-dim); padding-top: 4px; }
+  .fangjie__txt { font-size: 13.6px; line-height: 1.75; color: var(--text-dim); }
+  .fangjie__txt b { color: var(--text); font-weight: 500; }
+  .fangjie__txt .you { color: var(--gold-bright); }
+
+  .insight {
+    margin-top: 18px; padding: 14px 16px;
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(201, 168, 106, 0.045);
+  }
+  .insight__lab { font-size: 10.5px; letter-spacing: 0.24em; color: var(--gold-dim); margin-bottom: 3px; }
+  .insight p { margin: 0; font-family: var(--font-serif); font-size: 14.5px; line-height: 1.8; color: var(--text-dim); }
+
+  .day-net {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline;
+    margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--line-soft);
+    font-size: 12.5px; color: var(--text-faint);
+  }
+  .day-net b { font-family: var(--font-num); font-size: 15px; color: var(--text); font-weight: 500; }
+
+  .summary__foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+
+  /* ---------- 开场 ---------- */
+  .landing-head { padding: 4px 0 22px; }
+  .landing-head h1 { margin: 0 0 12px; }
+  .landing-head h1 em { font-style: normal; color: var(--gold-bright); }
+  .landing-head .lead { font-size: 16px; max-width: 640px; color: var(--text-dim); }
+  .hero__meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .landing__grid { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start; }
+  .landing__intro { padding: 24px; }
+  .landing__intro h2 { margin-bottom: 6px; }
+  .landing__intro > p { font-size: 13.8px; }
+  .rules { margin: 12px 0 0; padding-left: 1.2em; color: var(--text-dim); font-size: 13.6px; line-height: 1.85; }
+  .rules li { margin: 3px 0; }
+  .rules b { color: var(--text); font-weight: 500; }
+  .rules .jade { color: var(--jade-bright); }
+  .rules .cinnabar { color: var(--cinnabar-bright); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .save-box {
+    margin-top: 18px; padding: 12px 14px;
+    border: 1px dashed var(--line); border-radius: 9px;
+    background: rgba(201, 168, 106, 0.04);
+    font-size: 12.5px; color: var(--text-dim);
+  }
+  .save-box strong { color: var(--gold-bright); font-weight: 500; }
+  .save-box .actions { margin-top: 10px; }
+  .best-line { margin-top: 16px; font-size: 12px; color: var(--text-faint); letter-spacing: 0.03em; }
+  .best-line b { color: var(--gold); font-weight: 500; }
+
+  /* ---------- 季末 ---------- */
+  .end { padding: 26px; }
+  .rating-hero { display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center; }
+  .seal {
+    width: 116px; height: 116px; border-radius: 50%;
+    border: 1px solid rgba(201, 168, 106, 0.5);
+    display: grid; place-items: center; text-align: center;
+    font-family: var(--font-serif); font-size: 29px; letter-spacing: 0.12em;
+    color: var(--gold-bright);
+    box-shadow: inset 0 0 30px rgba(201, 168, 106, 0.16), 0 0 30px rgba(0, 0, 0, 0.35);
+    position: relative;
+  }
+  .seal::after {
+    content: ""; position: absolute; inset: 7px; border-radius: 50%;
+    border: 1px solid rgba(201, 168, 106, 0.2);
+  }
+  .rating-hero h1 { margin: 0 0 8px; }
+  .rating-hero h1 small { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.24em; color: var(--text-faint); vertical-align: middle; margin-left: 10px; }
+  .verdict-text { margin: 0; font-family: var(--font-serif); font-size: 15.5px; line-height: 1.9; color: var(--text-dim); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 9px; }
+  .stat-tile { border: 1px solid var(--line-soft); border-radius: 9px; padding: 11px 12px; background: rgba(255, 255, 255, 0.02); }
+  .stat-tile b { display: block; font-family: var(--font-num); font-size: 21px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .stat-tile span { font-size: 10.5px; letter-spacing: 0.16em; color: var(--text-faint); }
+  .stat-tile.alert b { color: var(--cinnabar-bright); }
+
+  .constitution h2 { margin-top: 0; }
+  .constitution .body-line { font-size: 14.5px; line-height: 1.8; color: var(--text-dim); }
+  .constitution .body-line b { color: var(--gold-bright); font-weight: 500; }
+
+  .pref-chart { display: grid; gap: 5px; margin: 14px 0 4px; }
+  .pref-row { display: grid; grid-template-columns: 58px 1fr 52px; align-items: center; gap: 10px; font-size: 12.5px; }
+  .pref-row .pref-name { color: var(--text-dim); letter-spacing: 0.08em; }
+  .pref-row .pref-name i { font-style: normal; color: var(--text-faint); font-size: 10.5px; }
+  .pref-row .bar > i { background: var(--el, var(--gold)); }
+  .pref-row .pref-num { text-align: right; color: var(--text-faint); font-family: var(--font-num); font-size: 12px; }
+
+  .advice { display: grid; gap: 9px; margin-top: 14px; }
+  .advice__row { display: grid; grid-template-columns: 46px 1fr; gap: 10px; align-items: start; }
+  .advice__lab {
+    font-size: 10.5px; letter-spacing: 0.16em; text-align: center;
+    color: var(--gold); border: 1px solid var(--line);
+    border-radius: 999px; padding: 2px 0; margin-top: 2px;
+  }
+  .advice__txt { font-size: 13.4px; line-height: 1.75; color: var(--text-dim); }
+  .advice__txt b { color: var(--text); font-weight: 500; }
+
+  .records { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .records li {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+    padding: 8px 0; border-bottom: 1px dashed var(--line-soft);
+    font-size: 12.5px; color: var(--text-faint);
+  }
+  .records li:last-child { border-bottom: 0; }
+  .records .rec-rank { font-family: var(--font-serif); font-size: 14px; color: var(--gold); letter-spacing: 0.08em; min-width: 40px; }
+  .records .rec-main { color: var(--text-dim); }
+  .records .rec-date { margin-left: auto; font-family: var(--font-num); }
+  .records li.is-now .rec-rank { color: var(--jade-bright); }
+  .records li.is-now::after { content: "本季"; font-size: 10px; color: var(--jade); border: 1px solid rgba(111, 168, 154, 0.4); border-radius: 999px; padding: 0 7px; }
+
+  .end-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+  .screen-note { font-size: 12px; color: var(--text-faint); }
+
+  @media (max-width: 820px) {
+    .clinic, .landing__grid { grid-template-columns: 1fr; }
+    .landing__grid .wheel-panel { order: 2; }
+  }
+  @media (max-width: 760px) {
+    .meds { grid-template-columns: repeat(3, 1fr); }
+    .med__glyph { font-size: 26px; }
+  }
+  @media (max-width: 640px) {
+    .game { padding-top: 20px; }
+    .status { grid-template-columns: 1fr 1fr; padding: 12px 14px; gap: 12px 10px; }
+    .status__val b { font-size: 19px; }
+    .clinic { gap: 14px; }
+    .result, .summary, .end, .landing__intro { padding: 18px; }
+    .verdict__label { font-size: 38px; }
+    .rating-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 16px; }
+    .seal { width: 100px; height: 100px; font-size: 25px; }
+    .rating-hero h1 small { display: block; margin: 6px 0 0; }
+    .verdict-text { text-align: left; }
+    .deltas { grid-template-columns: 1fr 1fr; }
+    .delta:first-child { grid-column: span 2; }
+    .fangjie__row { grid-template-columns: 38px 1fr; }
+    .landing-head .lead { font-size: 14.5px; }
+    .end-actions .btn, .actions .btn { flex: 1 1 auto; }
+  }
+  @media (max-width: 380px) {
+    .meds { grid-template-columns: repeat(2, 1fr); }
+    .med__glyph { font-size: 25px; }
+    .wx-node__organ { font-size: 10.5px; }
+    .patient__name { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar" data-chrome="topbar"></header>
+
+<main class="wrap">
+  <div class="game" id="app"></div>
+</main>
+
+<footer class="foot" data-chrome="footer"></footer>
+
+<script src="./assets/common.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const { qs, qsa, el, store, rand, clamp, fmt, toast } = DSHG;
+
+  DSHG.mountChrome({ title: '卷二 · 五行医馆', meta: 'TCM · FIVE PHASES' });
+
+  /* ============================================================
+     一、常量
+     ============================================================ */
+
+  const DAYS = 15;
+  const QI0 = 70;
+  const START_REP = 40;
+  const START_SILVER = 30;
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  const ELEMS = [
+    { key: 'wood', name: '木', color: '青', organ: '肝·胆', taste: '酸', action: '疏肝', phase: '春' },
+    { key: 'fire', name: '火', color: '赤', organ: '心·小肠', taste: '苦', action: '清心', phase: '夏' },
+    { key: 'earth', name: '土', color: '黄', organ: '脾·胃', taste: '甘', action: '健脾', phase: '长夏' },
+    { key: 'metal', name: '金', color: '白', organ: '肺·大肠', taste: '辛', action: '宣肺', phase: '秋' },
+    { key: 'water', name: '水', color: '黑', organ: '肾·膀胱', taste: '咸', action: '补肾', phase: '冬' }
+  ];
+
+  // 相生：木→火→土→金→水→木；相克：木→土→水→火→金→木
+  const GEN = [1, 2, 3, 4, 0];
+  const CTRL = [2, 3, 4, 0, 1];
+  const MOTHER = [4, 0, 1, 2, 3];      // 生我之行
+  const CHILD = GEN;                    // 我生之行
+
+  const VERDICTS = {
+    great: { label: '大效', qi: 18, rep: 10, silver: 12 },
+    minor: { label: '小效', qi: 8, rep: 4, silver: 8 },
+    plain: { label: '平剂', qi: 2, rep: -2, silver: 4 },
+    error: { label: '误治', qi: -16, rep: -8, silver: 0 }
+  };
+
+  const RANK = { '医圣': 4, '良医': 3, '游医': 2, '庸医': 1 };
+
+  /* ---------- 证候模板池（按行取用） ---------- */
+
+  // 六套固定的证候模板：决定三条症候如何从「偏亢」「偏虚」两侧取用，
+  // 具体字句再按五行之行选取；同一天两位病人不重复同一套模板。
+  const TPL = [
+    ['ex', 'ex', 'def'], // 一、亢象为主，虚象为兼
+    ['ex', 'def', 'ex'], // 二、亢虚并见，以亢起笔
+    ['def', 'ex', 'ex'], // 三、虚象为主，亢象在后
+    ['ex', 'def', 'def'], // 四、亢为标，虚为本
+    ['def', 'def', 'ex'], // 五、虚象两见，兼示亢象
+    ['def', 'ex', 'def']  // 六、虚实交错
+  ];
+
+  const EX_SYM = [
+    ['胁下胀满，善太息', '头胀目赤，烦躁易怒', '嗳气频频，胸胁不舒', '眩晕耳鸣，口苦咽干'],
+    ['心悸而烦，夜寐不安', '口舌生疮，舌尖红赤', '面赤烘热，心烦不宁', '小便短赤，尿道灼热'],
+    ['脘腹胀满，按之疼痛', '嗳腐吞酸，厌食油腻', '大便黏滞，臭秽不爽', '口黏口甜，渴不欲饮'],
+    ['咳嗽气粗，痰黄黏稠', '胸痛胸闷，咳引胁痛', '咽喉肿痛，鼻塞涕黄', '恶寒发热，无汗而喘'],
+    ['腰膝冷痛，下肢浮肿', '小便不利，少腹胀满', '头晕耳鸣，耳中如潮', '畏寒喜暖，夜尿频多']
+  ];
+
+  const DEF_SYM = [
+    ['视物昏花，爪甲不荣', '肢体麻木，筋脉拘急', '夜寐多梦，遇事易惊', '眼干涩痛，不耐久视'],
+    ['心悸怔忡，动则尤甚', '失眠健忘，面色少华', '畏寒肢冷，心胸闷痛', '自汗气短，神疲乏力'],
+    ['纳呆便溏，四肢困重', '食后腹胀，倦怠乏力', '面色萎黄，少气懒言', '腹部隐痛，喜温喜按'],
+    ['干咳少痰，咽干鼻燥', '气短声低，动则汗出', '易感外邪，喷嚏清涕', '咳声低弱，痰白清稀'],
+    ['腰膝酸软，眩晕耳鸣', '五心烦热，夜间盗汗', '发脱齿摇，健忘少寐', '口干咽燥，小便短少']
+  ];
+
+  const EX_COMPLAINT = [
+    ['两胁胀痛，情绪不遂已半月', '头目胀痛，性急易怒', '胸闷嗳气，食后尤甚'],
+    ['心悸阵作，夜不能安', '口舌反复生疮，心烦', '面赤烘热，汗出而烦'],
+    ['胃脘胀痛，嗳气泛酸', '腹满而痛，大便不畅', '口黏纳呆，食后胀甚'],
+    ['咳嗽痰多，胸闷气促', '咽痛鼻塞，咳痰黄稠', '恶寒发热，咳喘并作'],
+    ['腰膝冷痛，遇寒加重', '下肢浮肿，小便不利', '夜尿频多，畏寒喜暖']
+  ];
+
+  const DEF_COMPLAINT = [
+    ['两眼干涩，视物模糊', '肢体麻木，夜寐多梦', '头晕目眩，遇劳加重'],
+    ['心悸气短，动则汗出', '失眠多梦，精神不振', '胸闷隐痛，畏寒肢冷'],
+    ['纳呆食少，大便稀溏', '食后腹胀，倦怠无力', '面色萎黄，四肢困重'],
+    ['干咳无痰，咽干口燥', '气短懒言，容易感冒', '咳声低微，痰白清稀'],
+    ['腰膝酸软，头晕耳鸣', '夜尿频多，神疲乏力', '五心烦热，夜间盗汗']
+  ];
+
+  const PULSE = {
+    '实': ['脉弦而有力，舌边偏红', '脉洪数有力，舌尖红', '脉滑实，舌苔厚腻', '脉浮紧而实，苔薄黄', '脉沉实，舌质偏黯'],
+    '虚': ['脉细弦无力，舌淡少苔', '脉沉细弱，舌淡尖白', '脉缓弱，舌淡胖有齿痕', '脉虚细，舌淡苔薄白', '脉沉细无力，舌淡胖，苔白滑']
+  };
+
+  const NAMES = [
+    '陈砚秋', '沈知微', '王阿婆', '柳三娘', '周仲平', '顾青禾', '赵守拙', '林小满',
+    '苏采芝', '韩子渊', '吴敬堂', '郑阿宝', '冯四娘', '何书远', '唐婉', '谢云生',
+    '曹阿公', '许听雨', '罗大川', '高四妹', '蒋文山', '秦阿婆', '尤敬之', '程九',
+    '吕青囊', '方子衡', '杜若', '邵梅', '崔怀仁', '严冬生', '薛半夏', '白芦'
+  ];
+
+  const NOTES = [
+    '《难经·六十九难》云「虚者补其母，实者泻其子」。五行生克不只是说理，落到用药上，就是先辨虚实，再定补泻的方向。',
+    '《金匮要略》说「见肝之病，知肝传脾，当先实脾」。木旺必克土，先在脾上留一手，这便是治未病的意思。',
+    '《素问·至真要大论》讲「谨守病机，各司其属」。寒热虚实各归其属，方药才有落处，不可见咳止咳、见痛止痛。',
+    '《神农本草经》序例说「药有君臣佐使，以相宣摄合和」。一剂方里，君药定方向，余药只是佐助与约束。',
+    '《素问·脏气法时论》有「肝苦急，急食甘以缓之」；肝欲散，则以辛散之、以酸泻之。五味之用，皆从脏气所苦所欲来。',
+    '《伤寒论》教人「观其脉证，知犯何逆，随证治之」。脉与证相合才敢下药，单凭一个症状最容易误事。',
+    '《难经·七十七难》说「见肝之病，则知肝当传之于脾，故先实其脾气」。与《金匮》互参，可知上工治未病。',
+    '五行有生有克，生是资养，克是约束。只生不克则亢，只克不生则衰，医家调的是这个分寸。',
+    '《素问·阴阳应象大论》以酸苦甘辛咸配木火土金水：酸生肝、苦生心、甘生脾、辛生肺、咸生肾。五味入五脏，不可偏嗜。',
+    '《灵枢·本神》说要「审五脏之病形，以知其气之虚实，谨而调之」。虚实既明，补泻才有下手处。'
+  ];
+
+  const CARE = [
+    {
+      sleep: '子时（23–1 点）前入睡，让肝血归藏；长期熬夜晚睡，先伤的是筋与目。',
+      diet: '少酒、少辛辣，可用枸杞、桑葚与深绿色叶菜；情绪郁结时，别拿甜食当解药。',
+      hour: '丑时（1–3 点）肝经当令，务必熟睡；白天可在巳时起身舒展，别整日久坐。'
+    },
+    {
+      sleep: '尽量 23 点前入睡，睡前半小时离开屏幕；心阴不足的人，尤忌夜间剧烈运动。',
+      diet: '少浓茶、咖啡与烈酒；可适量莲子、小米、百合，心火偏盛时用莲子心代茶，不宜久服。',
+      hour: '午时（11–13 点）心经当令，小憩二十分钟即可，久睡反令气机不畅。'
+    },
+    {
+      sleep: '三餐定时比补品要紧，晚饭不过饱，睡前一小时不再进食。',
+      diet: '少生冷、甜腻与冰饮，主食不可偏废；山药、小米、南瓜煮粥，细嚼慢咽。',
+      hour: '辰时（7–9 点）胃经当令，早饭不可省；巳时（9–11 点）脾经当令，饭后缓行百步。'
+    },
+    {
+      sleep: '早睡以养肺阴，卧室保持湿润；秋燥时节尤忌熬夜。',
+      diet: '少烟酒、烧烤与过辣；百合、银耳、梨、白萝卜可常食，煲汤比生冷更宜。',
+      hour: '寅时（3–5 点）肺经当令，咳喘易在此时发作，注意保暖；清晨可做缓慢深呼吸。'
+    },
+    {
+      sleep: '23 点前入睡，避免长期熬夜耗伤肾精；冬季宜早卧晚起，待日光而作。',
+      diet: '少过咸与重口味，饮水少量多次；黑豆、核桃、木耳可适量，不必迷信单一补品。',
+      hour: '酉时（17–19 点）肾经当令，宜稍事休息，不宜此时剧烈运动；久坐者每小时起身一次。'
+    }
+  ];
+
+  const TREND = [
+    '木主疏泄，喜条达而恶抑郁。你下药先想到开郁柔肝，遇气机不畅之证多半应手；只是疏泄太过也耗阴血，别把「疏」当成唯一解法。',
+    '火主温煦，为阳中之太阳。你惯于从心火入手，善治烦热与神志不宁；但火易耗气伤阴，清降之外还要记得顾护心阴。',
+    '土主运化，为气血生化之源。你用药多从脾胃立论，稳当而少险；但土性壅滞，健脾之余也要防补得过腻、碍了气机。',
+    '金主肃降，司呼吸而行水。你重视宣肃肺气，遇表证与痰咳思路清楚；只是肺为娇脏，辛散太过反伤津液，宜中病即止。',
+    '水主封藏，为先天之本。你下药偏于温养与固摄，善治腰膝与二便之证；但水易泛滥，补的同时也要留意气化与通利。'
+  ];
+
+  const RATING_TEXT = {
+    '医圣': '一季十七诊，指下分明，方中肯綮。你不逐症而治，能循生克之序：见木旺先虑克土，遇火虚知取木母。青囊镇父老相传，说来了个读得懂脉的郎中。医之为道，至此可称圣手。',
+    '良医': '一季下来，辨证多能中的，偶有迟疑，也不失分寸。你已懂得虚则补其母、实则泻其子，只是临证尚欠一眼定夺的果断。再坐几季，指下自会生出一份从容。',
+    '游医': '医路初开，胆气有余而法度未熟。你时能一击中的，也常在不该泻的时候泻了，或于该补之时绕了远路。所幸肯听脉、肯复案，把每一则误治记下，便是长进。',
+    '庸医': '这一季，方子开得急，脉却看得浅。虚证误泻、实证犹疑，病家元气耗在你手里，声望也随之折损。医道不怕慢，怕的是不知错；回去把生克与虚实再理一遍，明年重来。'
+  };
+
+  /* ============================================================
+     二、状态
+     ============================================================ */
+
+  const app = qs('#app');
+  let state = { mode: 'landing' };
+  let savedGame = null;
+  let readIdx = 0;
+
+  function newStats() {
+    return {
+      reputation: START_REP,
+      silver: START_SILVER,
+      seen: 0,
+      qiSum: 0,
+      great: 0,
+      minor: 0,
+      plain: 0,
+      errors: 0,
+      prefs: [0, 0, 0, 0, 0],
+      errByElem: [0, 0, 0, 0, 0]
+    };
+  }
+
+  function plus(n) {
+    return n >= 0 ? '+' + n : '−' + Math.abs(n);
+  }
+
+  function pct(n) {
+    return Math.round(n * 100) + '%';
+  }
+
+  /* ============================================================
+     三、病例生成
+     ============================================================ */
+
+  function isCase(c) {
+    return !!c && typeof c.name === 'string' &&
+      typeof c.age === 'number' &&
+      (c.type === '实' || c.type === '虚') &&
+      Number.isInteger(c.ex) && c.ex >= 0 && c.ex < 5 &&
+      Number.isInteger(c.def) && c.def >= 0 && c.def < 5 &&
+      c.ex !== c.def &&
+      Array.isArray(c.symptoms) && c.symptoms.length === 3 &&
+      typeof c.pulse === 'string' &&
+      typeof c.complaint === 'string';
+  }
+
+  function isResult(r) {
+    return !!r &&
+      Number.isInteger(r.pick) && r.pick >= 0 && r.pick < 5 &&
+      !!VERDICTS[r.verdict] &&
+      Number.isFinite(r.qi) &&
+      typeof r.lingering === 'boolean' &&
+      Number.isFinite(r.repDelta) &&
+      Number.isFinite(r.silverDelta) &&
+      Number.isFinite(r.qiDelta) &&
+      typeof r.note === 'string';
+  }
+
+  function isResultEntry(item) {
+    return !!item && isCase(item.patient) && isResult(item.result);
+  }
+
+  function makeCase(usedTpl) {
+    const ex = rand.int(0, 4);
+    // 从其余四行中等概率取偏虚之行，天然与偏亢之行不同
+    const def = (ex + rand.int(1, 4)) % 5;
+
+    const type = rand.chance(0.5) ? '实' : '虚';
+
+    let tplIdx = rand.int(0, TPL.length - 1);
+    let guard = 0;
+    while (usedTpl.indexOf(tplIdx) !== -1 && guard < 40) {
+      tplIdx = rand.int(0, TPL.length - 1);
+      guard += 1;
+    }
+    usedTpl.push(tplIdx);
+
+    const order = TPL[tplIdx];
+    const taken = [];
+    const symptoms = order.map(function (src) {
+      const pool = src === 'ex' ? EX_SYM[ex] : DEF_SYM[def];
+      let line = rand.pick(pool);
+      let tries = 0;
+      while (taken.indexOf(line) !== -1 && tries < 30) {
+        line = rand.pick(pool);
+        tries += 1;
+      }
+      taken.push(line);
+      return line;
+    });
+
+    const avail = NAMES.filter(function (n) { return state.usedNames.indexOf(n) === -1; });
+    const name = avail.length ? rand.pick(avail) : rand.pick(NAMES);
+    state.usedNames.push(name);
+
+    const primary = type === '实' ? ex : def;
+    const complaint = rand.pick(type === '实' ? EX_COMPLAINT[ex] : DEF_COMPLAINT[def]);
+
+    return {
+      name: name,
+      age: rand.int(18, 76),
+      type: type,
+      ex: ex,
+      def: def,
+      complaint: complaint,
+      pulse: PULSE[type][primary],
+      symptoms: symptoms,
+      tpl: tplIdx,
+      // 久病者来时才 56 上下，新病者尚有 70；误治一次就可能跌进「病势缠绵」。
+      qi0: rand.int(56, 70)
+    };
+  }
+
+  function makeDay(day) {
+    const count = (day === 5 || day === 10) ? 2 : 1;
+    const usedTpl = [];
+    const list = [];
+    for (let i = 0; i < count; i += 1) {
+      list.push(makeCase(usedTpl));
+    }
+    return list;
+  }
+
+  /* ============================================================
+     四、判定
+     ============================================================ */
+
+  /**
+   * 按规则判定。虚证的「误治」优先于小效：
+   * 若所取之行正是偏亢之行，或恰能克制偏虚之行，即为误治；
+   * 否则再论直补（大效）与补母（小效）。
+   */
+  function judge(type, ex, def, pick) {
+    if (type === '实') {
+      if (pick === ex) return 'great';
+      if (pick === CHILD[ex]) return 'minor';
+      return 'plain';
+    }
+    if (pick === ex) return 'error';
+    if (CTRL[pick] === def) return 'error';
+    if (pick === def) return 'great';
+    if (pick === MOTHER[def]) return 'minor';
+    return 'plain';
+  }
+
+  function methodLabel(c, pick, verdict) {
+    if (verdict === 'great') return c.type === '实' ? '直折其亢' : '直补不足';
+    if (verdict === 'minor') return c.type === '实' ? '泻子以泄母' : '虚则补其母';
+    if (verdict === 'plain') return '平和无功';
+    return pick === c.ex ? '虚证误泻' : '反伐其虚';
+  }
+
+  function makeNote(c, pick, verdict) {
+    const pn = ELEMS[pick].name;
+    const en = ELEMS[c.ex].name;
+    const dn = ELEMS[c.def].name;
+
+    if (verdict === 'great') {
+      if (c.type === '实') {
+        return '你用了' + pn + '，病人是' + en + '行偏亢。直折其有余，一剂而亢势得平，脉转柔和，此为上工之举。';
+      }
+      return '你用了' + pn + '，病人是' + dn + '行偏虚。直补其不足，虚得所养，脉象渐起，四肢亦觉有力。';
+    }
+    if (verdict === 'minor') {
+      if (c.type === '实') {
+        return '你用了' + pn + '，病人是' + en + '行偏亢。实则泻其子，借' + pn + '以泄' + en + '势，虽非直折，理路却正。';
+      }
+      return '你用了' + pn + '，病人是' + dn + '行偏虚。虚则补其母，从' + pn + '缓图其本，效虽不速，法度不差。';
+    }
+    if (verdict === 'plain') {
+      return '你用了' + pn + '，病人是' + en + '行偏亢、' + dn + '行偏虚。方虽平和，未中病机，只算无功无过。';
+    }
+    if (pick === c.ex) {
+      return '你用了' + pn + '，病人是' + en + '行偏亢、' + dn + '行偏虚。虚证仍去泻' + en + '，虚其虚也，病势必增。';
+    }
+    return '你用了' + pn + '，病人是' + dn + '行偏虚。' + pn + '行克' + dn + '，反伐其不足，虚者愈虚，病势加重。';
+  }
+
+  function relationText(c) {
+    const en = ELEMS[c.ex].name;
+    const dn = ELEMS[c.def].name;
+    let rel = '';
+    if (GEN[c.ex] === c.def) {
+      rel = en + '生' + dn + '，' + en + '气偏亢则耗散于' + dn + '，' + dn + '受纳不及，遂见不足，此属母病及子。';
+    } else if (GEN[c.def] === c.ex) {
+      rel = dn + '生' + en + '，' + en + '亢则盗' + dn + '之气，子盗母气，' + dn + '因虚。';
+    } else if (CTRL[c.ex] === c.def) {
+      rel = en + '克' + dn + '，' + en + '旺则乘' + dn + '，' + dn + '受克而虚，此属相乘。';
+    } else {
+      rel = dn + '本克' + en + '，今' + dn + '虚而' + en + '亢，' + en + '反侮' + dn + '，此属相侮。';
+    }
+    return '此证' + en + '行偏亢、' + dn + '行偏虚，属' + c.type + '证。' + rel;
+  }
+
+  function methodText(c) {
+    const en = ELEMS[c.ex].name;
+    const dn = ELEMS[c.def].name;
+    if (c.type === '实') {
+      const ch = ELEMS[CHILD[c.ex]];
+      return '实则泻其子，法当取' + ch.name + '行（' + ch.taste + '味）为君，以泄' + en + '之势；若直折' + en + '行，亦为正治。';
+    }
+    const mo = ELEMS[MOTHER[c.def]];
+    return '虚则补其母，法当取' + mo.name + '行（' + mo.taste + '味）为君，或直补' + dn + '行，使虚处得养。';
+  }
+
+  function applyText(c, pick, verdict) {
+    const pn = ELEMS[pick].name;
+    const en = ELEMS[c.ex].name;
+    const dn = ELEMS[c.def].name;
+    if (verdict === 'great') {
+      return c.type === '实'
+        ? '你取' + pn + '，直折' + en + '之亢，故为大效。'
+        : '你取' + pn + '，直补' + dn + '之不足，故为大效。';
+    }
+    if (verdict === 'minor') {
+      return c.type === '实'
+        ? '你取' + pn + '，泻子以泄母，故为小效。'
+        : '你取' + pn + '，补母以生子，故为小效。';
+    }
+    if (verdict === 'plain') {
+      return '你取' + pn + '，既未折' + en + '之亢，也未补' + dn + '之虚，故为平剂。';
+    }
+    if (pick === c.ex) {
+      return '你取' + pn + '；' + en + '已偏亢、' + dn + '已不足，仍泻' + pn + '，是虚其虚，故为误治。';
+    }
+    return '你取' + pn + '；' + pn + '行克' + dn + '，反伐其不足，故为误治。';
+  }
+
+  /* ============================================================
+     五、存档
+     ============================================================ */
+
+  function persist() {
+    if (!state || state.mode !== 'play') return;
+    store.set('wuxing.save', {
+      v: 1,
+      state: {
+        day: state.day,
+        patients: state.patients,
+        patientIndex: state.patientIndex,
+        phase: state.phase,
+        results: state.results,
+        lastResult: state.lastResult,
+        stats: state.stats,
+        usedNames: state.usedNames
+      }
+    });
+  }
+
+  function readSave() {
+    const raw = store.get('wuxing.save', null);
+    if (!raw || typeof raw !== 'object' || raw.v !== 1 || !raw.state) return null;
+    const st = raw.state;
+    try {
+      if (!Number.isInteger(st.day) || st.day < 1 || st.day > DAYS) return null;
+      const expected = (st.day === 5 || st.day === 10) ? 2 : 1;
+      if (!Array.isArray(st.patients) || st.patients.length !== expected) return null;
+      if (!Number.isInteger(st.patientIndex) || st.patientIndex < 0 || st.patientIndex >= st.patients.length) return null;
+      if (['consult', 'result', 'summary'].indexOf(st.phase) === -1) return null;
+      if (!st.patients.every(isCase)) return null;
+      if (!Array.isArray(st.results) || !st.results.every(isResultEntry)) return null;
+      if (st.phase === 'result' && (!isResult(st.lastResult) || !st.results.length)) return null;
+      if (st.phase !== 'result' && st.lastResult && !isResult(st.lastResult)) return null;
+      if (!st.stats || !Number.isFinite(st.stats.reputation) || !Number.isFinite(st.stats.silver)) return null;
+
+      const defaults = newStats();
+      const stats = Object.assign({}, defaults, st.stats);
+      stats.prefs = (Array.isArray(st.stats.prefs) && st.stats.prefs.length === 5) ? st.stats.prefs.slice() : defaults.prefs;
+      stats.errByElem = (Array.isArray(st.stats.errByElem) && st.stats.errByElem.length === 5) ? st.stats.errByElem.slice() : defaults.errByElem;
+      if (!stats.prefs.every(Number.isFinite)) stats.prefs = defaults.prefs.slice();
+      if (!stats.errByElem.every(Number.isFinite)) stats.errByElem = defaults.errByElem.slice();
+      ['seen', 'qiSum', 'great', 'minor', 'plain', 'errors'].forEach(function (k) {
+        if (!Number.isFinite(stats[k])) stats[k] = defaults[k];
+      });
+      stats.reputation = clamp(stats.reputation, 0, 100);
+      stats.silver = Math.max(0, stats.silver);
+      stats.qiSum = Math.max(0, stats.qiSum);
+
+      return {
+        mode: 'play',
+        day: st.day,
+        patients: st.patients,
+        patientIndex: st.patientIndex,
+        phase: st.phase,
+        results: st.results,
+        lastResult: st.lastResult || null,
+        stats: stats,
+        usedNames: Array.isArray(st.usedNames) ? st.usedNames : [],
+        locked: false
+      };
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function loadRecords() {
+    const raw = store.get('wuxing.records', []);
+    if (!Array.isArray(raw)) return [];
+    return raw.filter(function (r) {
+      return r && typeof r === 'object' && typeof r.rating === 'string' && RANK[r.rating];
+    });
+  }
+
+  function sortRecords(list) {
+    return list.slice().sort(function (a, b) {
+      return (RANK[b.rating] || 0) - (RANK[a.rating] || 0) ||
+        (b.reputation || 0) - (a.reputation || 0) ||
+        (b.cureRate || 0) - (a.cureRate || 0) ||
+        (a.errors || 0) - (b.errors || 0);
+    }).slice(0, 10);
+  }
+
+  function todayLabel() {
+    const d = new Date();
+    return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /* ============================================================
+     六、流程
+     ============================================================ */
+
+  function startSeason() {
+    state = {
+      mode: 'play',
+      day: 1,
+      patients: [],
+      patientIndex: 0,
+      phase: 'consult',
+      results: [],
+      lastResult: null,
+      stats: newStats(),
+      usedNames: [],
+      locked: false
+    };
+    savedGame = null;
+    readIdx = 0;
+    state.patients = makeDay(1);
+    persist();
+    render();
+    scrollTop();
+  }
+
+  function resumeSeason() {
+    if (!savedGame) return;
+    state = savedGame;
+    state.mode = 'play';
+    state.locked = false;
+    savedGame = null;
+    readIdx = 0;
+    persist();
+    render();
+    scrollTop();
+  }
+
+  function settle(pick) {
+    if (!state || state.mode !== 'play' || state.phase !== 'consult' || state.locked) return;
+    const c = state.patients[state.patientIndex];
+    if (!c || typeof pick !== 'number') return;
+
+    state.locked = true;
+    const verdict = judge(c.type, c.ex, c.def, pick);
+    const v = VERDICTS[verdict];
+    const qi = clamp((c.qi0 || QI0) + v.qi, 0, 100);
+    const lingering = qi < 40;
+
+    qsa('.med', app).forEach(function (b) {
+      b.disabled = true;
+      if (Number(b.dataset.pick) === pick) b.classList.add('is-picked');
+    });
+
+    window.setTimeout(function () {
+      if (!state || state.mode !== 'play' || state.phase !== 'consult') return;
+      commitTreatment(c, pick, verdict, qi, lingering);
+    }, 360);
+  }
+
+  function commitTreatment(c, pick, verdict, qi, lingering) {
+    const v = VERDICTS[verdict];
+    const stats = state.stats;
+    const repDelta = v.rep + (lingering ? -4 : 0);
+
+    stats.reputation = clamp(stats.reputation + repDelta, 0, 100);
+    stats.silver = Math.max(0, stats.silver + v.silver);
+    stats.seen += 1;
+    stats.qiSum += qi;
+    stats.prefs[pick] += 1;
+
+    if (verdict === 'error') {
+      stats.errors += 1;
+      stats.errByElem[pick] += 1;
+    } else if (verdict === 'great') {
+      stats.great += 1;
+    } else if (verdict === 'minor') {
+      stats.minor += 1;
+    } else {
+      stats.plain += 1;
+    }
+
+    const result = {
+      pick: pick,
+      verdict: verdict,
+      qi: qi,
+      lingering: lingering,
+      repDelta: repDelta,
+      silverDelta: v.silver,
+      qiDelta: v.qi,
+      note: makeNote(c, pick, verdict)
+    };
+
+    state.results.push({ patient: c, result: result });
+    state.lastResult = result;
+    state.phase = 'result';
+    state.locked = false;
+    persist();
+    render();
+    scrollTop();
+  }
+
+  function continueFromResult() {
+    if (!state || state.mode !== 'play' || state.phase !== 'result') return;
+    if (state.patientIndex + 1 < state.patients.length) {
+      state.patientIndex += 1;
+      state.phase = 'consult';
+      state.lastResult = null;
+      state.locked = false;
+      persist();
+      render();
+      scrollTop();
+    } else {
+      state.phase = 'summary';
+      state.locked = false;
+      persist();
+      render();
+      scrollTop();
+    }
+  }
+
+  function nextDay() {
+    if (!state || state.mode !== 'play' || state.phase !== 'summary') return;
+    if (state.day >= DAYS) {
+      endSeason();
+      return;
+    }
+    state.day += 1;
+    state.patients = makeDay(state.day);
+    state.patientIndex = 0;
+    state.results = [];
+    state.lastResult = null;
+    state.phase = 'consult';
+    state.locked = false;
+    persist();
+    render();
+    scrollTop();
+    if (state.day === 5 || state.day === 10) toast('今日集日，两位病人，先诊一位再诊一位');
+  }
+
+  function pickRating(stats) {
+    const seen = stats.seen || 1;
+    const rate = (stats.great + stats.minor) / seen;
+    if (stats.errors === 0 && rate >= 0.85 && stats.reputation >= 75) return '医圣';
+    if (stats.errors <= 2 && rate >= 0.6) return '良医';
+    if (rate >= 0.35 || stats.errors <= 3) return '游医';
+    return '庸医';
+  }
+
+  function determineConstitution(prefs, errs) {
+    let max = Math.max.apply(null, prefs);
+    let cand = [];
+    for (let i = 0; i < 5; i += 1) if (prefs[i] === max) cand.push(i);
+    const tied = cand.length > 1;
+    if (tied) {
+      let minErr = Math.min.apply(null, cand.map(function (i) { return errs[i]; }));
+      cand = cand.filter(function (i) { return errs[i] === minErr; });
+    }
+    return { idx: cand[0], counts: prefs.slice(), tied: tied };
+  }
+
+  function endSeason() {
+    const stats = JSON.parse(JSON.stringify(state.stats));
+    const seen = stats.seen || 1;
+    const cureRate = (stats.great + stats.minor) / seen;
+    const rating = pickRating(stats);
+    const cons = determineConstitution(stats.prefs, stats.errByElem);
+    const record = {
+      id: String(Date.now()) + '-' + Math.random().toString(36).slice(2, 7),
+      date: todayLabel(),
+      rating: rating,
+      reputation: stats.reputation,
+      cureRate: Math.round(cureRate * 100),
+      errors: stats.errors,
+      constitution: ELEMS[cons.idx].name
+    };
+    const records = sortRecords(loadRecords().concat([record]));
+    store.set('wuxing.records', records);
+    store.del('wuxing.save');
+
+    state.mode = 'end';
+    state.locked = false;
+    state.endData = {
+      rating: rating,
+      cureRate: cureRate,
+      stats: stats,
+      constitution: cons,
+      records: records,
+      recordId: record.id
+    };
+    render();
+    scrollTop();
+  }
+
+  /* ============================================================
+     七、渲染：公共部件
+     ============================================================ */
+
+  function render() {
+    if (!app) return;
+    app.innerHTML = '';
+    let node;
+    if (state.mode === 'landing') node = viewLanding();
+    else if (state.mode === 'end') node = viewEnd();
+    else node = viewPlay();
+    if (!node) node = el('div', { class: 'panel', text: '页面状态异常，请刷新重试。' });
+    node.classList.add('screen');
+    app.appendChild(node);
+  }
+
+  function scrollTop() {
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    catch (err) { try { window.scrollTo(0, 0); } catch (e2) {} }
+  }
+
+  function sv(tag, attrs, children) {
+    const node = document.createElementNS(SVGNS, tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        const v = attrs[k];
+        if (v === undefined || v === null) return;
+        node.setAttribute(k, v);
+      });
+    }
+    const list = children === undefined ? [] : (Array.isArray(children) ? children : [children]);
+    list.forEach(function (c) {
+      if (c === null || c === undefined) return;
+      node.appendChild(typeof c === 'string' || typeof c === 'number'
+        ? document.createTextNode(String(c)) : c);
+    });
+    return node;
+  }
+
+  function statusBar() {
+    const s = state.stats;
+    const avg = s.seen ? s.qiSum / s.seen : 0;
+    const dayPct = state.day / DAYS * 100;
+    const fair = state.day === 5 || state.day === 10;
+
+    return el('div', { class: 'status panel panel--flat', 'aria-label': '行医状态' }, [
+      el('div', { class: 'status__cell status__cell--day' }, [
+        el('div', { class: 'status__lab' }, [
+          el('span', { text: '日次' }),
+          fair ? el('span', { class: 'tag tag--cinnabar', text: '集日' }) : null
+        ]),
+        el('div', { class: 'status__val' }, [
+          el('b', { text: '第 ' + state.day + ' 天' }),
+          el('span', { class: 'status__sub', text: '/ ' + DAYS })
+        ]),
+        el('div', { class: 'meter' }, [el('i', { style: { width: dayPct + '%' } })])
+      ]),
+      el('div', { class: 'status__cell status__cell--qi' }, [
+        el('div', { class: 'status__lab' }, [el('span', { text: '元气均值' })]),
+        el('div', { class: 'status__val' }, [
+          el('b', { text: s.seen ? String(Math.round(avg)) : '—' }),
+          el('span', { class: 'status__sub', text: '/ 100' })
+        ]),
+        el('div', { class: 'meter' }, [el('i', { style: { width: (s.seen ? avg : 0) + '%' } })])
+      ]),
+      el('div', { class: 'status__cell status__cell--rep' }, [
+        el('div', { class: 'status__lab' }, [el('span', { text: '声望' })]),
+        el('div', { class: 'status__val' }, [
+          el('b', { class: 'num', text: String(s.reputation) }),
+          el('span', { class: 'status__sub', text: '/ 100' })
+        ]),
+        el('div', { class: 'meter' }, [el('i', { style: { width: s.reputation + '%' } })])
+      ]),
+      el('div', { class: 'status__cell status__cell--silver' }, [
+        el('div', { class: 'status__lab' }, [el('span', { text: '银两' })]),
+        el('div', { class: 'status__val' }, [
+          el('b', { class: 'num', text: fmt(s.silver) }),
+          el('span', { class: 'status__sub', text: '两' })
+        ])
+      ])
+    ]);
+  }
+
+  /* ============================================================
+     八、五行圆盘
+     ============================================================ */
+
+  const CX = 180;
+  const CY = 180;
+  const R = 132;
+  const NR = 37;
+  const ANG = [-90, -18, 54, 126, 198];
+
+  function pointAt(radius, deg) {
+    const rad = deg * Math.PI / 180;
+    return [CX + radius * Math.cos(rad), CY + radius * Math.sin(rad)];
+  }
+
+  function readRows(idx) {
+    const e = ELEMS[idx];
+    const child = ELEMS[CHILD[idx]];
+    const ctrl = ELEMS[CTRL[idx]];
+    const mother = ELEMS[MOTHER[idx]];
+    return [
+      el('div', { class: 'wx-read__head' }, [
+        el('span', { text: e.color + e.name + ' · ' + e.phase }),
+        el('span', { text: e.organ + ' · 味' + e.taste })
+      ]),
+      el('div', { class: 'wx-read__row' }, [el('b', { text: '我生' }), el('span', { text: child.name + '（' + e.name + '生' + child.name + '）' })]),
+      el('div', { class: 'wx-read__row' }, [el('b', { text: '我克' }), el('span', { text: ctrl.name + '（' + e.name + '克' + ctrl.name + '）' })]),
+      el('div', { class: 'wx-read__row' }, [el('b', { text: '生我' }), el('span', { text: mother.name + '（' + mother.name + '生' + e.name + '）' })])
+    ];
+  }
+
+  function setRead(idx) {
+    readIdx = idx;
+    const box = qs('#wx-read');
+    if (box) box.replaceChildren.apply(box, readRows(idx));
+    qsa('.wx-node', app).forEach(function (n) {
+      n.classList.toggle('is-active', Number(n.getAttribute('data-i')) === idx);
+    });
+  }
+
+  function buildWheel(ex, def) {
+    const svg = sv('svg', {
+      viewBox: '0 0 360 360',
+      class: 'wheel-svg',
+      role: 'img',
+      'aria-label': '五行相生相克圆盘，实线为相生，虚线为相克，描红为偏亢，描淡为偏虚'
+    });
+
+    const defs = sv('defs', null, [
+      sv('marker', {
+        id: 'wx-arrow-sheng', viewBox: '0 0 10 10', refX: '8', refY: '5',
+        markerWidth: '6', markerHeight: '6', orient: 'auto'
+      }, [sv('path', { d: 'M0 0 L10 5 L0 10 z', fill: '#c9a86a', opacity: '0.75' })]),
+      sv('marker', {
+        id: 'wx-arrow-ke', viewBox: '0 0 10 10', refX: '8', refY: '5',
+        markerWidth: '16', markerHeight: '16', orient: 'auto'
+      }, [sv('path', { d: 'M0 0 L10 5 L0 10 z', fill: '#b8473c', opacity: '0.6' })])
+    ]);
+    svg.appendChild(defs);
+
+    svg.appendChild(sv('circle', {
+      cx: CX, cy: CY, r: R + 26,
+      fill: 'none', stroke: 'rgba(201,168,106,0.13)', 'stroke-width': '1'
+    }));
+
+    // 相克：虚线弦
+    for (let i = 0; i < 5; i += 1) {
+      const t = CTRL[i];
+      const pa = pointAt(R, ANG[i]);
+      const pb = pointAt(R, ANG[t]);
+      const dx = pb[0] - pa[0];
+      const dy = pb[1] - pa[1];
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const ux = dx / len;
+      const uy = dy / len;
+      const sx = pa[0] + ux * (NR + 2);
+      const sy = pa[1] + uy * (NR + 2);
+      const exx = pb[0] - ux * (NR + 10);
+      const eyy = pb[1] - uy * (NR + 10);
+      const mx = ((sx + exx) / 2) * 0.74 + CX * 0.26;
+      const my = ((sy + eyy) / 2) * 0.74 + CY * 0.26;
+      svg.appendChild(sv('path', {
+        d: 'M ' + sx.toFixed(1) + ' ' + sy.toFixed(1) + ' Q ' + mx.toFixed(1) + ' ' + my.toFixed(1) + ' ' + exx.toFixed(1) + ' ' + eyy.toFixed(1),
+        class: 'wx-link--ke',
+        'marker-end': 'url(#wx-arrow-ke)'
+      }));
+    }
+
+    // 相生：外环实线弧
+    for (let i = 0; i < 5; i += 1) {
+      const a1 = ANG[i] + 16;
+      const a2 = ANG[i] + 56;
+      const p1 = pointAt(R + 26, a1);
+      const p2 = pointAt(R + 26, a2);
+      svg.appendChild(sv('path', {
+        d: 'M ' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1) +
+          ' A ' + (R + 26) + ' ' + (R + 26) + ' 0 0 1 ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1),
+        class: 'wx-link--sheng',
+        'marker-end': 'url(#wx-arrow-sheng)'
+      }));
+    }
+
+    // 中心
+    svg.appendChild(sv('circle', {
+      cx: CX, cy: CY, r: 33, fill: '#0a0e15',
+      stroke: 'rgba(201,168,106,0.22)', 'stroke-width': '1'
+    }));
+    svg.appendChild(sv('text', {
+      x: CX, y: CY - 2, 'text-anchor': 'middle',
+      'font-family': '"Songti SC", "STSong", "SimSun", Georgia, serif', 'font-size': '14', fill: '#c9a86a', 'letter-spacing': '2'
+    }, ['五行']));
+    svg.appendChild(sv('text', {
+      x: CX, y: CY + 14, 'text-anchor': 'middle',
+      'font-family': '"PingFang SC", "Microsoft YaHei", sans-serif', 'font-size': '9.5', fill: '#6f6b64', 'letter-spacing': '2'
+    }, ['生克']));
+
+    // 五格
+    for (let i = 0; i < 5; i += 1) {
+      const p = pointAt(R, ANG[i]);
+      const cls = ['wx-node', 'wx-node--' + ELEMS[i].key];
+      if (i === ex) cls.push('is-ex');
+      if (i === def) cls.push('is-def');
+      if (i === readIdx) cls.push('is-active');
+
+      const g = sv('g', {
+        class: cls.join(' '),
+        transform: 'translate(' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ')',
+        tabindex: '0',
+        role: 'button',
+        'data-i': String(i),
+        'aria-label': ELEMS[i].color + ELEMS[i].name + '，' + ELEMS[i].organ + '，味' + ELEMS[i].taste +
+          (i === ex ? '，偏亢' : '') + (i === def ? '，偏虚' : '')
+      }, [
+        sv('title', null, [ELEMS[i].color + ELEMS[i].name + ' · ' + ELEMS[i].organ + ' · 味' + ELEMS[i].taste]),
+        sv('circle', { class: 'wx-halo', r: NR + 7 }),
+        sv('circle', { class: 'wx-body', r: NR, 'stroke-width': '1.5' }),
+        sv('text', { class: 'wx-node__glyph', y: '-2', 'text-anchor': 'middle' }, [ELEMS[i].color + ELEMS[i].name]),
+        sv('text', { class: 'wx-node__organ', y: '17', 'text-anchor': 'middle' }, [ELEMS[i].organ])
+      ]);
+
+      g.addEventListener('pointerenter', function () { setRead(i); });
+      g.addEventListener('focus', function () { setRead(i); });
+      g.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        setRead(i);
+      });
+      g.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          setRead(i);
+        }
+      });
+      svg.appendChild(g);
+    }
+
+    const readBox = el('div', { class: 'wx-read', id: 'wx-read' });
+    readBox.replaceChildren.apply(readBox, readRows(readIdx));
+
+    const legend = el('div', { class: 'wx-legend' }, [
+      el('span', null, [el('i', { class: 'lg lg--sheng' }), '实线 相生']),
+      el('span', null, [el('i', { class: 'lg lg--ke' }), '虚线 相克']),
+      el('span', null, [el('i', { class: 'lg lg--ex' }), '描红 偏亢']),
+      el('span', null, [el('i', { class: 'lg lg--def' }), '描淡 偏虚'])
+    ]);
+
+    return el('div', { class: 'wheel-wrap' }, [svg, readBox, legend]);
+  }
+
+  function wheelPanel(c) {
+    const panel = el('section', { class: 'panel wheel-panel' }, [
+      el('div', { class: 'eyebrow', text: '五行生克 · 悬停查看' }),
+      buildWheel(c ? c.ex : -1, c ? c.def : -1)
+    ]);
+    panel.appendChild(el('p', {
+      class: 'wheel-caption',
+      text: c ? '描红为当日偏亢之行，描淡为偏虚之行；先定虚实，再择君臣。' : '木火土金水，周行而不殆；生克有度，方得中和。'
+    }));
+    return panel;
+  }
+
+  /* ============================================================
+     九、渲染：行医
+     ============================================================ */
+
+  function viewPlay() {
+    const wrap = el('div', { class: 'play' });
+    wrap.appendChild(statusBar());
+    if (state.phase === 'consult') wrap.appendChild(viewConsult());
+    else if (state.phase === 'result') wrap.appendChild(viewResult());
+    else wrap.appendChild(viewSummary());
+    return wrap;
+  }
+
+  function medButton(e, i) {
+    const b = el('button', {
+      class: 'med med--' + e.key,
+      type: 'button',
+      title: e.name + ' · ' + e.taste + ' · ' + e.action,
+      'aria-label': '君药：' + e.name + '行，味' + e.taste + '，' + e.action
+    }, [
+      el('span', { class: 'med__no', text: String(i + 1) }),
+      el('span', { class: 'med__glyph', text: e.name }),
+      el('span', { class: 'med__color', text: e.color + ' · 味' + e.taste }),
+      el('span', { class: 'med__action', text: e.action }),
+      el('span', { class: 'med__organ', text: e.organ })
+    ]);
+    b.dataset.pick = String(i);
+    b.addEventListener('click', function () { settle(i); });
+    return b;
+  }
+
+  function viewConsult() {
+    const c = state.patients[state.patientIndex];
+    if (!c) {
+      return el('section', { class: 'panel' }, [
+        el('h2', { text: '病案散佚' }),
+        el('p', { text: '这一日的病案已不可读，只能另开一季了。' }),
+        el('button', { class: 'btn', type: 'button', text: '另开一季', onclick: startSeason })
+      ]);
+    }
+    const multi = state.patients.length > 1;
+
+    const card = el('section', { class: 'panel patient' }, [
+      el('div', { class: 'eyebrow' }, [
+        el('span', { text: '第 ' + state.day + ' 天 · 第 ' + (state.patientIndex + 1) + ' 诊' }),
+        multi ? el('span', { class: 'tag tag--cinnabar', text: '集日' }) : null
+      ]),
+      el('div', { class: 'patient__head' }, [
+        el('h2', { class: 'patient__name', text: c.name }),
+        el('span', { class: 'patient__age', text: c.age + ' 岁' })
+      ]),
+      el('div', { class: 'patient__row' }, [
+        el('span', { class: 'patient__label', text: '主诉' }),
+        el('span', { class: 'patient__complaint', text: '「' + c.complaint + '。」' })
+      ]),
+      el('div', { class: 'pulse' }, [
+        el('div', { class: 'pulse__lab', text: '舌 · 脉' }),
+        el('div', { class: 'pulse__txt', text: c.pulse }),
+        el('div', { class: 'pulse__hint', text: '脉症合参，先辨虚实。' })
+      ]),
+      el('div', { class: 'sx' }, [
+        el('div', { class: 'sx__lab', text: '症候' }),
+        el('ol', { class: 'sx__list' }, c.symptoms.map(function (s) { return el('li', { text: s }); }))
+      ]),
+      el('div', { class: 'meds-head' }, [
+        el('span', { class: 'eyebrow', text: '药柜 · 择一味君药' }),
+        el('span', { class: 'kbd-hint', text: '按 1–5 快选' })
+      ]),
+      el('div', { class: 'meds' }, ELEMS.map(function (e, i) { return medButton(e, i); })),
+      el('p', { class: 'meds-note', text: '实者泻之，虚者补之；虚实不明，平剂最是无功。' })
+    ]);
+
+    return el('div', { class: 'clinic' }, [wheelPanel(c), card]);
+  }
+
+  function deltaCell(label, value, sub, tone) {
+    return el('div', { class: 'delta' }, [
+      el('div', { class: 'delta__lab', text: label }),
+      el('div', { class: 'delta__val' + (tone ? ' ' + tone : ''), text: value }),
+      el('div', { class: 'delta__sub', text: sub })
+    ]);
+  }
+
+  function viewResult() {
+    const c = state.patients[state.patientIndex];
+    const r = state.lastResult;
+    if (!c || !r) return viewSummary();
+
+    const m = VERDICTS[r.verdict];
+    const e = ELEMS[r.pick];
+    const exN = ELEMS[c.ex].name;
+    const defN = ELEMS[c.def].name;
+    const isLast = state.patientIndex + 1 >= state.patients.length;
+
+    const qiBar = el('div', { class: 'bar' }, [
+      el('i', { style: { width: r.qi + '%', background: r.qi >= 60 ? 'linear-gradient(90deg,#4f7d71,var(--jade-bright))' : 'linear-gradient(90deg,#7a3a33,var(--cinnabar-bright))' } })
+    ]);
+
+    const deltas = el('div', { class: 'deltas' }, [
+      el('div', { class: 'delta' }, [
+        el('div', { class: 'delta__lab', text: '病人元气' }),
+        el('div', { class: 'delta__val ' + (r.qiDelta >= 0 ? 'up' : 'down'), text: String(r.qi) }),
+        el('div', { class: 'delta__sub', text: QI0 + ' 起，' + plus(r.qiDelta) }),
+        el('div', { class: 'qi-meter' }, [qiBar])
+      ]),
+      deltaCell('声望', plus(r.repDelta), r.lingering ? '含缠绵 −4' : '按判定增减', r.repDelta >= 0 ? 'up' : 'down'),
+      deltaCell('银两', plus(r.silverDelta), '诊金', r.silverDelta > 0 ? 'up' : '')
+    ]);
+
+    const children = [
+      el('div', { class: 'verdict verdict--' + r.verdict }, [
+        el('div', { class: 'verdict__label', text: m.label }),
+        el('div', { class: 'verdict__sub', text: methodLabel(c, r.pick, r.verdict) })
+      ]),
+      el('div', { class: 'result__pattern' }, [
+        el('span', { class: 'tag', text: c.name + ' · ' + c.age + ' 岁' }),
+        el('span', { class: 'tag', text: c.type + '证' }),
+        el('span', { class: 'tag', text: '君药 ' + e.name + ' · 味' + e.taste })
+      ]),
+      el('p', { class: 'result__facts' }, [
+        '病人 ', el('b', { text: exN + '行偏亢' }), '、', el('b', { text: defN + '行偏虚' }),
+        '；你取 ', el('b', { text: e.name + '行（' + e.color + '，味' + e.taste + '）' }), '。'
+      ]),
+      deltas
+    ];
+
+    if (r.lingering) {
+      children.push(el('div', { class: 'lingering', text: '病势缠绵：病人元气已低于 40，声望额外 −4。' }));
+    }
+
+    children.push(el('div', { class: 'comment' }, [
+      el('span', { class: 'comment__mark', text: '点评' }),
+      el('p', { text: r.note })
+    ]));
+
+    children.push(el('div', { class: 'result__foot' }, [
+      el('button', {
+        class: 'btn', type: 'button',
+        text: isLast ? '今日小结' : '下一位病人',
+        onclick: continueFromResult
+      }),
+      el('span', { class: 'result__hint', text: 'Enter 继续' })
+    ]));
+
+    return el('section', { class: 'panel result', role: 'status' }, children);
+  }
+
+  function viewSummary() {
+    const results = state.results || [];
+    const isLastDay = state.day >= DAYS;
+    let netRep = 0;
+    let netSilver = 0;
+    let qiSum = 0;
+
+    const reviews = results.map(function (item) {
+      const c = item.patient;
+      const r = item.result;
+      netRep += r.repDelta;
+      netSilver += r.silverDelta;
+      qiSum += r.qi;
+      const m = VERDICTS[r.verdict];
+      const exN = ELEMS[c.ex].name;
+      const defN = ELEMS[c.def].name;
+
+      const fangjie = [
+        el('div', { class: 'fangjie__row' }, [
+          el('span', { class: 'fangjie__lab', text: '病机' }),
+          el('span', { class: 'fangjie__txt', text: relationText(c) })
+        ]),
+        el('div', { class: 'fangjie__row' }, [
+          el('span', { class: 'fangjie__lab', text: '治法' }),
+          el('span', { class: 'fangjie__txt', text: methodText(c) })
+        ]),
+        el('div', { class: 'fangjie__row' }, [
+          el('span', { class: 'fangjie__lab', text: '用药' }),
+          el('span', { class: 'fangjie__txt' }, [
+            el('span', { class: 'you', text: applyText(c, r.pick, r.verdict) }),
+            r.lingering ? ' 病家元气仅 ' + r.qi + '，已入病势缠绵之境。' : ''
+          ])
+        ])
+      ];
+
+      return el('article', { class: 'review' }, [
+        el('div', { class: 'review__head' }, [
+          el('span', { class: 'review__name', text: c.name }),
+          el('span', { class: 'tag', text: c.age + ' 岁 · ' + c.type + '证' }),
+          el('span', { class: 'review__verdict ' + r.verdict, text: m.label + ' · ' + methodLabel(c, r.pick, r.verdict) }),
+          el('span', { class: 'tag', text: exN + '亢 / ' + defN + '虚' })
+        ]),
+        el('div', { class: 'fangjie' }, fangjie)
+      ]);
+    });
+
+    if (!reviews.length) {
+      reviews.push(el('p', { class: 'dim', text: '今日没有留下完整医案。' }));
+    }
+
+    const avgQi = results.length ? Math.round(qiSum / results.length) : 0;
+    const note = NOTES[(state.day - 1) % NOTES.length];
+
+    return el('section', { class: 'panel summary' }, [
+      el('div', { class: 'eyebrow' }, [
+        el('span', { text: '第 ' + state.day + ' 天 · 今日小结' }),
+        state.patients.length > 1 ? el('span', { class: 'tag tag--cinnabar', text: '集日' }) : null
+      ]),
+      el('h2', { text: '方解' }),
+      ...reviews,
+      el('div', { class: 'day-net' }, [
+        el('span', null, ['今日声望 ', el('b', { class: netRep >= 0 ? 'jade' : 'cinnabar', text: plus(netRep) })]),
+        el('span', null, ['银两 ', el('b', { text: plus(netSilver) })]),
+        el('span', null, ['元气均值 ', el('b', { text: String(avgQi) })]),
+        el('span', { class: 'faint', text: results.length + ' 诊' })
+      ]),
+      el('div', { class: 'insight' }, [
+        el('div', { class: 'insight__lab', text: '医案小识' }),
+        el('p', { text: note })
+      ]),
+      el('div', { class: 'summary__foot' }, [
+        el('button', {
+          class: 'btn' + (isLastDay ? ' btn--cinnabar' : ''),
+          type: 'button',
+          text: isLastDay ? '季末结算' : '次日',
+          onclick: nextDay
+        }),
+        el('span', { class: 'result__hint', text: isLastDay ? 'Enter 结算' : 'Enter 进入下一日' })
+      ])
+    ]);
+  }
+
+  /* ============================================================
+     十、渲染：开场
+     ============================================================ */
+
+  function phaseText(phase) {
+    if (phase === 'consult') return '候诊中';
+    if (phase === 'result') return '待续诊';
+    return '待翻日';
+  }
+
+  function viewLanding() {
+    const records = sortRecords(loadRecords());
+    const best = records[0] || null;
+
+    const head = el('div', { class: 'landing-head fade-up' }, [
+      el('div', { class: 'eyebrow', text: '青囊镇 · 一季十五日' }),
+      el('h1', null, ['五行', el('em', { text: '医馆' })]),
+      el('p', { class: 'lead', text: '你是游方郎中，在青囊镇借馆坐诊一季。每天来一位病人，集日两位。辨其虚实，循五行生克择一味君药；十五日之后，青囊镇会给你一个评语，也会照见你自己的体质。' }),
+      el('div', { class: 'hero__meta' }, [
+        el('span', { class: 'tag', text: '纯离线' }),
+        el('span', { class: 'tag', text: '一季十七诊' }),
+        el('span', { class: 'tag', text: '键盘 1–5 / Enter' })
+      ])
+    ]);
+
+    const intro = el('section', { class: 'panel landing__intro fade-up' }, [
+      el('h2', { text: '先辨虚实，再论补泻' }),
+      el('p', { text: '脉来有力、舌质偏红者多实；脉来无力、舌淡者多虚。虚实既定，再看五行生克：' }),
+      el('ol', { class: 'rules' }, [
+        el('li', null, [el('b', { text: '实证' }), '：取偏亢之行，直折其势，为大效；取其所生之行，泻子以泄母，为小效。']),
+        el('li', null, [el('b', { text: '虚证' }), '：取偏虚之行，直补不足，为大效；取其母（生它之行），虚则补其母，为小效。']),
+        el('li', null, [el('b', { class: 'cinnabar', text: '误治' }), '：虚证仍去泻偏亢之行，或取克偏虚之行，反伐其虚。']),
+        el('li', null, [el('b', { text: '平剂' }), '：其余选择，无功无过，小扣声望。']),
+        el('li', null, [el('b', { text: '代价' }), '：病人来时元气多在 56–70 之间，久病者更虚，低于 40 则病势缠绵，声望再扣 4。'])
+      ]),
+      savedGame ? el('div', { class: 'save-box' }, [
+        el('div', null, [
+          '发现旧档：', el('strong', { text: '第 ' + savedGame.day + ' 天' }),
+          ' · ' + phaseText(savedGame.phase) + ' · 声望 ' + savedGame.stats.reputation
+        ]),
+        el('div', { class: 'actions' }, [
+          el('button', {
+            class: 'btn', type: 'button',
+            text: '续诊（第 ' + savedGame.day + ' 天）',
+            onclick: resumeSeason
+          }),
+          el('button', {
+            class: 'btn btn--ghost', type: 'button', text: '另开一季',
+            onclick: function (ev) { discardAndStart(ev.currentTarget); }
+          })
+        ])
+      ]) : el('div', { class: 'actions' }, [
+        el('button', { class: 'btn', type: 'button', text: '开馆坐诊', onclick: startSeason })
+      ]),
+      best ? el('div', { class: 'best-line' }, [
+        '历史最佳：', el('b', { text: best.rating }),
+        ' · 治愈率 ' + (best.cureRate || 0) + '% · 误治 ' + (best.errors || 0) + ' 次 · 声望 ' + (best.reputation || 0),
+        best.constitution ? ' · ' + best.constitution + '行体质' : ''
+      ]) : el('div', { class: 'best-line', text: '尚无旧档。这一季，是你的第一份医案。' })
+    ]);
+
+    return el('div', null, [head, el('div', { class: 'landing__grid' }, [wheelPanel(null), intro])]);
+  }
+
+  function discardAndStart(btn) {
+    if (!savedGame) { startSeason(); return; }
+    if (btn.dataset.armed === '1') { startSeason(); return; }
+    btn.dataset.armed = '1';
+    btn.textContent = '再点一次，弃旧档';
+    window.setTimeout(function () {
+      if (btn && btn.isConnected) {
+        btn.dataset.armed = '0';
+        btn.textContent = '另开一季';
+      }
+    }, 2800);
+  }
+
+  /* ============================================================
+     十一、渲染：季末
+     ============================================================ */
+
+  function viewEnd() {
+    const data = state.endData;
+    if (!data) return viewLanding();
+    const st = data.stats;
+    const avg = st.seen ? Math.round(st.qiSum / st.seen) : 0;
+    const cons = data.constitution;
+    const e = ELEMS[cons.idx];
+    const total = st.seen || 1;
+    const share = Math.round(cons.counts[cons.idx] / total * 100);
+
+    const tiles = [
+      ['接诊', String(st.seen), ''],
+      ['大效', String(st.great), ''],
+      ['小效', String(st.minor), ''],
+      ['平剂', String(st.plain), ''],
+      ['误治', String(st.errors), st.errors > 0 ? 'alert' : ''],
+      ['治愈率', pct(data.cureRate), ''],
+      ['元气均值', String(avg), ''],
+      ['声望', String(st.reputation), ''],
+      ['银两', String(st.silver), '']
+    ].map(function (t) {
+      return el('div', { class: 'stat-tile' + (t[2] ? ' ' + t[2] : '') }, [
+        el('b', { text: t[1] }),
+        el('span', { text: t[0] })
+      ]);
+    });
+
+    const prefColors = ['#7fb3a5', '#d1604f', '#c9a86a', '#d7d9dc', '#7d9ed1'];
+    const prefRows = ELEMS.map(function (elDef, i) {
+      const max = Math.max.apply(null, cons.counts) || 1;
+      return el('div', { class: 'pref-row' }, [
+        el('span', { class: 'pref-name' }, [elDef.name, ' ', el('i', { text: elDef.organ })]),
+        el('div', { class: 'bar' }, [
+          el('i', { style: { width: (cons.counts[i] / max * 100) + '%', background: prefColors[i] } })
+        ]),
+        el('span', { class: 'pref-num', text: String(cons.counts[i]) + ' 次' })
+      ]);
+    });
+
+    const care = CARE[cons.idx];
+    const advice = [
+      ['睡眠', care.sleep],
+      ['饮食', care.diet],
+      ['时辰', care.hour]
+    ].map(function (row) {
+      return el('div', { class: 'advice__row' }, [
+        el('span', { class: 'advice__lab', text: row[0] }),
+        el('span', { class: 'advice__txt', text: row[1] })
+      ]);
+    });
+
+    const recordItems = data.records.map(function (r) {
+      return el('li', { class: r.id === data.recordId ? 'is-now' : '' }, [
+        el('span', { class: 'rec-rank', text: r.rating }),
+        el('span', { class: 'rec-main', text: '治愈 ' + (r.cureRate || 0) + '% · 误治 ' + (r.errors || 0) + ' · 声望 ' + (r.reputation || 0) + (r.constitution ? ' · ' + r.constitution + '行' : '') }),
+        el('span', { class: 'rec-date', text: r.date || '' })
+      ]);
+    });
+
+    const bodyLine = el('p', { class: 'body-line' }, [
+      '十五日十七诊，你 ', el('b', { text: String(cons.counts[cons.idx]) + ' 次' }),
+      ' 以', el('b', { text: e.name + '行（' + e.taste + '味，' + e.action + '）' }),
+      ' 为君，占 ', el('b', { text: share + '%' }), '。' + TREND[cons.idx],
+      cons.tied ? ' 数行并列时，以误治较少者断。' : ''
+    ]);
+
+    return el('div', null, [
+      el('section', { class: 'panel end' }, [
+        el('div', { class: 'eyebrow', text: '季末 · 青囊镇评' }),
+        el('div', { class: 'rating-hero' }, [
+          el('div', { class: 'seal' }, [
+            el('span', { text: data.rating })
+          ]),
+          el('div', null, [
+            el('h1', null, [data.rating, el('small', { text: '一季之评' })]),
+            el('p', { class: 'verdict-text', text: RATING_TEXT[data.rating] })
+          ])
+        ]),
+        el('hr', { class: 'rule' }),
+        el('div', { class: 'stats-grid' }, tiles)
+      ]),
+
+      el('section', { class: 'panel end constitution', style: { marginTop: '18px' } }, [
+        el('div', { class: 'eyebrow', text: '照见自己' }),
+        el('h2', { text: '你的体质属 ' + e.name }),
+        bodyLine,
+        el('div', { class: 'pref-chart' }, prefRows),
+        el('div', { class: 'advice' }, advice)
+      ]),
+
+      el('section', { class: 'panel end', style: { marginTop: '18px' } }, [
+        el('div', { class: 'eyebrow', text: '青囊镇医案榜 · 最多十则' }),
+        el('h2', { text: '历年旧档' }),
+        recordItems.length
+          ? el('ul', { class: 'records' }, recordItems)
+          : el('p', { class: 'dim', text: '尚无旧档。' }),
+        el('div', { class: 'end-actions' }, [
+          el('button', { class: 'btn', type: 'button', text: '再坐一季', onclick: startSeason }),
+          el('a', { class: 'btn btn--ghost', href: './index.html', text: '回大厅' })
+        ])
+      ])
+    ]);
+  }
+
+  /* ============================================================
+     十二、键盘
+     ============================================================ */
+
+  function onKey(ev) {
+    if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    const tag = (ev.target && ev.target.tagName) || '';
+
+    if (state.mode === 'play' && state.phase === 'consult' && /^[1-5]$/.test(ev.key)) {
+      ev.preventDefault();
+      if (!state.locked) settle(Number(ev.key) - 1);
+      return;
+    }
+
+    if (ev.key === 'Enter') {
+      if (tag === 'BUTTON' || tag === 'A') return;
+      if (state.mode === 'play' && state.phase === 'result') {
+        ev.preventDefault();
+        continueFromResult();
+      } else if (state.mode === 'play' && state.phase === 'summary') {
+        ev.preventDefault();
+        nextDay();
+      }
+    }
+  }
+
+  /* ============================================================
+     十三、启动
+     ============================================================ */
+
+  function init() {
+    savedGame = readSave();
+    render();
+    document.addEventListener('keydown', onKey);
+  }
+
+  try {
+    init();
+  } catch (err) {
+    try {
+      if (app) {
+        app.innerHTML = '';
+        app.appendChild(el('section', { class: 'panel center', style: { marginTop: '40px' } }, [
+          el('h2', { text: '医馆未能开张' }),
+          el('p', { text: '页面初始化时出了差错，请刷新重试。你的旧档仍保存在本机。' })
+        ]));
+      }
+    } catch (err2) {}
+  }
+})();
+</script>
+</body>
+</html>

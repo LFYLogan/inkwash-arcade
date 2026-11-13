@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>问心局 · 雾隐城三日 · 墨戏三卷</title>
+<meta name="description" content="你是初入雾隐城的旅人。二十四次抉择，照见一个四字人格。故事式 MBTI，纯前端离线可玩。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Cpath d='M32 12v40M18 26h28M22 26v26M42 26v26M16 52h32' fill='none' stroke='%23c9a86a' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/theme.css">
+<style>
+  /* ============ 问心局 · 本页样式 ============ */
+  #app { padding: 20px 0 0; }
+
+  /* ---- 心灯进度 ---- */
+  .hud { display: none; padding: 4px 2px 0; }
+  .hud.is-on { display: block; }
+  .hud__row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+  .hud__k { font-family: var(--font-serif); font-size: 13px; letter-spacing: 0.32em; color: var(--gold-dim); }
+  .hud__k::before {
+    content: "";
+    display: inline-block;
+    width: 6px; height: 6px;
+    margin-right: 9px;
+    border-radius: 50%;
+    background: var(--gold-bright);
+    box-shadow: 0 0 10px rgba(232, 205, 151, 0.8);
+    vertical-align: 2px;
+  }
+  .hud__count { font-size: 12px; letter-spacing: 0.06em; color: var(--text-dim); }
+  .hud .meter { height: 4px; }
+  .hud__act { margin-top: 9px; font-size: 10.5px; letter-spacing: 0.26em; color: var(--text-faint); }
+
+  .stage { margin-top: 20px; }
+
+  /* ---- 场景 ---- */
+  .panel.scene { padding: 30px 30px 24px; }
+  .scene__title { margin: 0 0 16px; font-size: clamp(24px, 4.4vw, 30px); letter-spacing: 0.08em; color: var(--text); }
+  .scene__text {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 16.5px;
+    line-height: 2.05;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-align: justify;
+  }
+
+  /* ---- 选项 ---- */
+  .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 26px; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 13px;
+    width: 100%; min-height: 56px;
+    padding: 14px 16px;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 15px; line-height: 1.62;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  }
+  .opt:hover { border-color: var(--line); background: rgba(201, 168, 106, 0.075); }
+  .opt:active { transform: scale(0.995); }
+  .opt:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .opt__no {
+    flex: 0 0 auto;
+    width: 23px; height: 23px; margin-top: 2px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font-size: 11.5px;
+    color: var(--gold);
+  }
+  .opt.is-picked { border-color: rgba(201, 168, 106, 0.6); background: rgba(201, 168, 106, 0.1); }
+  .opt.is-picked .opt__no { background: var(--gold); border-color: var(--gold); color: var(--ink-0); }
+
+  .scene__foot { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+  button.back { border: 0; background: none; padding: 6px 0; cursor: pointer; font-family: var(--font-sans); }
+  button.back:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+  .scene__foot .back { font-size: 12.5px; letter-spacing: 0.12em; }
+  .hint { font-size: 11.5px; letter-spacing: 0.04em; color: var(--text-faint); }
+  .kbd {
+    display: inline-grid; place-items: center;
+    min-width: 18px; height: 18px; margin: 0 2px; padding: 0 4px;
+    font-family: var(--font-num); font-size: 10.5px; line-height: 1;
+    color: var(--text-dim);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  /* ---- 卷首 ---- */
+  .panel.intro { padding: 38px 38px 32px; overflow: hidden; }
+  .intro__art { margin: -4px 0 18px; }
+  .intro__art svg { display: block; width: 100%; height: auto; }
+  .intro h1 { margin-bottom: 16px; }
+  .intro h1 em { font-style: normal; color: var(--gold-bright); }
+  .intro .lede {
+    font-family: var(--font-serif);
+    font-size: 16.5px; line-height: 2.05;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-align: justify;
+  }
+  .intro .lede + .lede { font-size: 15px; color: var(--text-dim); }
+  .intro__meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 26px; }
+  .intro__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .intro__last { margin-top: 18px; font-size: 13px; color: var(--text-faint); }
+  .linkish {
+    border: 0; background: none; padding: 0;
+    font: inherit; color: var(--gold-bright);
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .linkish:hover { color: var(--gold-bright); border-bottom-color: var(--gold); }
+  .linkish:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+
+  /* ---- 结果 ---- */
+  .panel.result { padding: 34px 32px 28px; }
+  .result__head { text-align: center; }
+  .result__head .eyebrow { margin-bottom: 6px; }
+  .code {
+    font-family: var(--font-num);
+    font-size: clamp(46px, 13vw, 68px);
+    line-height: 1.06;
+    letter-spacing: 0.18em;
+    text-indent: 0.18em;
+    color: var(--gold-bright);
+  }
+  .pname {
+    margin: 12px 0 0;
+    font-family: var(--font-serif);
+    font-size: clamp(22px, 6vw, 27px);
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    color: var(--text);
+  }
+  .result__tag { margin-top: 10px; font-size: 10.5px; letter-spacing: 0.3em; color: var(--text-faint); }
+  .tie { margin: 16px auto 0; max-width: 30em; font-size: 12.5px; letter-spacing: 0.04em; color: var(--jade-bright); }
+  .sketch {
+    margin: 22px 0 0;
+    font-family: var(--font-serif);
+    font-size: 16px; line-height: 2.1;
+    letter-spacing: 0.02em;
+    color: var(--text);
+    text-align: justify;
+  }
+
+  .axes { display: grid; gap: 17px; }
+  .axis__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 11px; letter-spacing: 0.2em; color: var(--text-faint); }
+  .axis__row { display: grid; grid-template-columns: 60px 1fr 60px; gap: 10px; align-items: center; }
+  .axis__end { font-family: var(--font-num); font-size: 13px; letter-spacing: 0.04em; color: var(--text-dim); white-space: nowrap; }
+  .axis__end:last-child { text-align: right; }
+  .axis__end b { font-weight: 400; }
+  .axis__end.is-win { color: var(--gold-bright); }
+  .axis__end.is-win b { color: var(--gold-bright); }
+  .axis__track { position: relative; }
+  .axis__track::after {
+    content: "";
+    position: absolute; left: 50%; top: -4px; bottom: -4px;
+    width: 1px;
+    background: rgba(201, 168, 106, 0.22);
+    pointer-events: none;
+  }
+  .axis__track .bar { height: 7px; }
+  .axis__note { margin-top: 7px; font-size: 12px; letter-spacing: 0.02em; color: var(--text-dim); }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+  .easter {
+    margin-top: 20px; padding: 16px 18px;
+    border: 1px solid var(--line-soft);
+    border-left: 2px solid var(--gold-dim);
+    border-radius: 8px;
+    background: rgba(201, 168, 106, 0.045);
+  }
+  .easter h3 {
+    margin: 0 0 7px;
+    font-family: var(--font-sans); font-weight: 400;
+    font-size: 11px; letter-spacing: 0.24em;
+    color: var(--gold-dim);
+  }
+  .easter p { margin: 0; font-size: 14px; line-height: 1.8; color: var(--text-dim); }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+  .actions .btn { flex: 1 1 auto; }
+  .result__fine { margin: 20px 0 0; text-align: center; font-size: 11.5px; letter-spacing: 0.12em; color: var(--text-faint); }
+
+  @media (max-width: 640px) {
+    .panel.intro { padding: 26px 20px 24px; }
+    .panel.scene { padding: 24px 18px 20px; }
+    .panel.result { padding: 28px 18px 24px; }
+    .scene__text, .intro .lede { font-size: 16px; line-height: 1.95; }
+    .hint { display: none; }
+    .axis__row { grid-template-columns: 52px 1fr 52px; gap: 8px; }
+    .actions { flex-direction: column; }
+    .actions .btn { width: 100%; }
+  }
+  @media (max-width: 380px) {
+    .code { font-size: 43px; }
+    .panel.scene { padding: 22px 15px 18px; }
+    .opt { font-size: 14.5px; padding: 13px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar" data-chrome="topbar"></header>
+
+<main class="wrap wrap--narrow" id="app">
+  <section class="hud" id="hud" aria-label="心灯进度">
+    <div class="hud__row">
+      <span class="hud__k">心灯</span>
+      <span class="hud__count num" id="hudCount">第 1 / 24 场</span>
+    </div>
+    <div class="meter" id="hudMeter" role="progressbar" aria-valuemin="1" aria-valuemax="24" aria-valuenow="1" aria-label="入城进度"><i id="hudBar"></i></div>
+    <div class="hud__act" id="hudAct">第一幕 · 入城</div>
+  </section>
+  <div class="stage" id="stage"></div>
+</main>
+
+<footer class="foot" data-chrome="footer"></footer>
+
+<script src="./assets/common.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const TOTAL = 24;
+
+  const ACTS = {
+    1: '第一幕 · 入城',
+    2: '第二幕 · 探幽',
+    3: '第三幕 · 登塔',
+  };
+  const CN_NUM = ['一', '二', '三', '四', '五', '六', '七', '八'];
+
+  const AXES = [
+    { key: 'EI', name: '心向', left: 'E', right: 'I' },
+    { key: 'SN', name: '观物', left: 'S', right: 'N' },
+    { key: 'TF', name: '裁断', left: 'T', right: 'F' },
+    { key: 'JP', name: '行止', left: 'J', right: 'P' },
+  ];
+  const AXIS_LETTERS = ['E', 'I', 'S', 'N', 'T', 'F', 'J', 'P'];
+
+  const AXIS_NOTE = {
+    E: '你先开口，路自己让开',
+    I: '你退半步，先把人事看清',
+    S: '你信手边的物证，不轻信风',
+    N: '你在字缝里，看见另一层意思',
+    T: '你先把账算清，再谈心情',
+    F: '你先顾人的冷暖，再论对错',
+    J: '你要一个收束，哪怕收得急',
+    P: '你留一线余地，让事自己长',
+  };
+
+  /* 每一场覆盖两条轴；四轴各出现在十二场中。
+     选项权重只写动作，不写人格。 */
+  const SCENES = [
+    {
+      act: 1,
+      title: '城门·验牒',
+      text: '暮色把城门压成一道深缝。守门的老吏把你的过所翻来覆去地看，灯苗在他指节上抖。他忽然抬眼：“进城做什么？”',
+      opts: [
+        { t: '照实答话，顺口问他城中近日的怪事', w: { E: 2, S: 1 } },
+        { t: '只说投亲，垂下眼，让他自己看牒上的印', w: { I: 2, N: 1 } },
+        { t: '先不答，反问一句：这城里，夜里谁在敲钟', w: { E: 1, N: 2 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '长街·问路',
+      text: '长街两侧的灯笼都朝同一个方向歪，像被谁一一推过。你手里那张客栈名被雨洇开，认不出是“青”还是“清”。',
+      opts: [
+        { t: '找临街的摊主问一句，顺手买块热糕', w: { E: 2, S: 1 } },
+        { t: '不作声，顺着灯笼歪斜的方向走', w: { I: 2, N: 1 } },
+        { t: '凑近门楣，把每块褪色的门牌认一遍', w: { I: 1, S: 2 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '茶棚·听雨',
+      text: '雨来得急，茶棚里挤了半城的人。邻座两个行商压着嗓子争一件事：三日后塔上要开一场“照心”，去的人有的回来，有的没回来。',
+      opts: [
+        { t: '挪到角落，听他们把话说完再走', w: { I: 2, S: 1 } },
+        { t: '端茶过去，笑着问塔上到底照什么', w: { E: 2, N: 1 } },
+        { t: '低头拨着茶沫，把两家的话拼成一张图', w: { I: 1, N: 2 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '客栈·空房',
+      text: '客栈只剩一间房。推门，两张床，靠窗那张的被子掀着一角，褥子还是温的。掌柜在门外说：“这几日，店里没有别的客人。”',
+      opts: [
+        { t: '叫住掌柜，把温褥子的事当面问清', w: { E: 2, S: 1 } },
+        { t: '笑着道谢，熄灯，坐在暗处等', w: { E: 1, N: 2 } },
+        { t: '不声张，闩好窗，一寸寸查看屋子', w: { I: 2, S: 1 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '石桥·落水',
+      text: '过石桥时，水里忽然翻起一阵响。一个孩子扒着桥墩，喊不出声，只把手指抠进石缝。岸上围了一圈人，没有人先动。',
+      opts: [
+        { t: '脱了外衫跳下去，先把孩子托上岸', w: { E: 2, F: 1 } },
+        { t: '沉住气，先看清水势再伸手', w: { I: 2, T: 1 } },
+        { t: '招呼岸上的人搭手，一齐把人拽上来', w: { E: 1, T: 2 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '药铺·缺味',
+      text: '药铺里灯芯挑得很低。掌柜摊开方子，缺一味雪见，柜上只剩药性相近的地骨。里屋的病人咳得像在撕纸。他抬眼看你：“换不换？”',
+      opts: [
+        { t: '让他换，出了事你一同担着', w: { E: 2, F: 1 } },
+        { t: '拦住他，说方子不能改，先寻药', w: { I: 2, T: 1 } },
+        { t: '先细问病人寒热，再拿主意', w: { I: 1, T: 2 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '更鼓·巡夜',
+      text: '三更的鼓刚敲过，巷子深处有一声短促的喊，随即断了。巡夜的老卒停住脚，把灯笼往你这边偏了偏：“你也听见了？”',
+      opts: [
+        { t: '提灯就往巷里走，让老卒跟上', w: { E: 2, T: 1 } },
+        { t: '拉住老卒，先问这条巷子通哪里', w: { I: 2, T: 1 } },
+        { t: '心里一紧，先想到那屋里还有谁', w: { I: 1, F: 2 } },
+      ],
+    },
+    {
+      act: 1,
+      title: '井台·低语',
+      text: '井台边没有风，辘轳却自己在转。你俯身去看，水面上映出的不是你的脸，是一个正张口说话的人。声音很轻，像从你耳里长出来。',
+      opts: [
+        { t: '扬声喊来店家，让他也听听井里的声', w: { E: 2, F: 1 } },
+        { t: '不作声，把听到的每个字记在心里', w: { I: 2, T: 1 } },
+        { t: '拿竹竿敲井沿，试它是不是回声', w: { E: 1, T: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '深巷·岔路',
+      text: '巷子在第三个转角分成两条。左边有灯，右边有卖糖人的挑子，两条都通向城心。可你记得，来时只走过一条。',
+      opts: [
+        { t: '问一声挑担的老汉，哪条路近', w: { E: 2, J: 1 } },
+        { t: '不问了，挑有灯的那条走到底', w: { I: 2, P: 1 } },
+        { t: '先退回巷口，把来路记清再选', w: { I: 1, J: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '灯市·失物',
+      text: '灯市挤得人肩碰肩。卖灯的小娘子忽然蹲下去，声音发颤：“我的坠子……”人群从她身边漫过去，没有人停。',
+      opts: [
+        { t: '蹲下帮她翻灯架下的碎纸', w: { E: 2, J: 1 } },
+        { t: '让她别动，沿她走过的路倒着找', w: { I: 2, J: 1 } },
+        { t: '先问她坠子什么样、最后摸到在哪', w: { E: 1, P: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '旧宅·闭门',
+      text: '旧宅的门虚掩，门环上缠着新换的红绳。窗纸后有光，一明一暗，像有人在里头来回走。街坊说，这宅子空了七年。',
+      opts: [
+        { t: '叩三下门，报上自己是过路人', w: { E: 2, J: 1 } },
+        { t: '绕到后墙，找一道能看见里面的缝', w: { I: 2, P: 1 } },
+        { t: '先退到对街，守着看谁进出', w: { I: 1, J: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '河埠·渡船',
+      text: '河埠的石阶泡在水里。船夫把篙一撑，船头贴岸，却不靠稳：“上游在放闸，过去就回不来。你上不上？”他手里的篙一直没停。',
+      opts: [
+        { t: '跳上船，让他现在就撑', w: { E: 2, P: 1 } },
+        { t: '问他放闸到几时，等水稳了再走', w: { I: 2, J: 1 } },
+        { t: '不上，先沿河走一段看看水势', w: { I: 1, P: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '祠堂·供灯',
+      text: '祠堂里供着一排长明灯，最末一盏只剩豆大的火。牌位缺了一块，空出的木槽里积着新落的灰。守祠的老妇说，缺的那位，还没死。',
+      opts: [
+        { t: '把灯添满油，再问老妇缺的是谁', w: { S: 2, F: 1 } },
+        { t: '盯着那个空木槽，想它为何偏偏是新的', w: { N: 2, T: 1 } },
+        { t: '先数一遍牌位，看少的是第几块', w: { S: 1, T: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '书肆·残卷',
+      text: '书肆最里一排，抽出一本没有封皮的册子，纸页脆得掉渣。上面画着一座塔，塔顶涂成一团墨。掌柜伸手要拿回去：“这本不卖，也不该看。”',
+      opts: [
+        { t: '掏钱买下，只求抄一份塔图', w: { S: 2, T: 1 } },
+        { t: '问他：不卖，是怕谁看见', w: { N: 1, F: 2 } },
+        { t: '不动声色，把残页的次序记下', w: { S: 1, T: 2 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '街角·争执',
+      text: '街角围了人。米铺伙计揪着一个妇人的袖子，说她袖里藏着两升米。妇人只说：“孩子三天没吃东西了。”伙计的手没松，眼睛在人群里找帮腔的人。',
+      opts: [
+        { t: '分开两人的手，先把米钱替她垫上', w: { F: 2, S: 1 } },
+        { t: '问清米价与规矩，再决定管不管', w: { T: 2, S: 1 } },
+        { t: '多看一眼那妇人的袖口，觉得不对', w: { N: 2, F: 1 } },
+      ],
+    },
+    {
+      act: 2,
+      title: '城头·远望',
+      text: '城墙上的风比城里冷。塔立在雾里，只看得见最上面三层。守城的老兵把酒囊递过来：“三日后登塔的人，十个里有九个，回来话都少了。”',
+      opts: [
+        { t: '仰头数塔的层数，推它当年怎么立起来', w: { N: 2, T: 1 } },
+        { t: '接过酒囊喝一口，问他那九人如今怎样', w: { S: 2, F: 1 } },
+        { t: '问他塔上几时换岗、从哪道门进', w: { S: 2, T: 1 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '塔门·叩锁',
+      text: '塔门是整块铁，锁孔不像锁孔，倒像一个没写完的字。门缝里透出一点光，忽明忽暗，像有人在里面数着脚步。',
+      opts: [
+        { t: '按门上的纹路，把锁孔补成一个“心”字', w: { S: 2, J: 1 } },
+        { t: '不急着开门，先绕塔走一圈找别的入口', w: { N: 2, P: 1 } },
+        { t: '退回阶下，等塔里那脚步声自己停', w: { N: 1, J: 2 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '回廊·镜影',
+      text: '回廊两侧挂满铜镜，每一面里的你都比前一面老一些。走到尽头，最旧的那面镜子里的人抬起头，先开了口。',
+      opts: [
+        { t: '停在原地，把每面镜中的自己看一遍', w: { S: 2, J: 1 } },
+        { t: '不去看脸，只听它说的第一句话', w: { N: 2, P: 1 } },
+        { t: '伸手摸镜面，试它是不是真的铜', w: { S: 1, P: 2 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '藏书·无名',
+      text: '塔中一层全是书，书脊上没有字。你抽出一本，翻开第一页，写着你的名字，后面还有大半本空白。',
+      opts: [
+        { t: '从头读起，一页一页，把已有的都读完', w: { S: 2, J: 1 } },
+        { t: '合上书，去找别的书里有没有同名的人', w: { N: 2, P: 1 } },
+        { t: '蘸墨在空白处写下一个字，看它会不会变', w: { S: 1, P: 2 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '钟室·停摆',
+      text: '钟室的铜钟停在一处，钟摆却还在轻轻晃。齿轮咬着一枚铜钱，像有人故意塞进去，让它停在某个时辰。',
+      opts: [
+        { t: '取出铜钱，照原样把齿轮归位', w: { S: 2, J: 1 } },
+        { t: '不碰它，先想它停在哪个时辰', w: { N: 2, P: 1 } },
+        { t: '数清齿轮的齿数，再决定动不动它', w: { S: 1, P: 2 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '暗阶·同行',
+      text: '石阶窄得只容一人。身后不知何时多了脚步，不快不慢，始终差你七级。你停下，它也停；阶下有人轻声问：“能一起走吗？”',
+      opts: [
+        { t: '侧身让开半步，等那人上来并肩走', w: { F: 2, J: 1 } },
+        { t: '不回头，按自己的速度往上走', w: { T: 2, P: 1 } },
+        { t: '停下问他姓什么、为什么上塔', w: { T: 1, J: 2 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '天窗·星图',
+      text: '顶层前的天窗开着，星子密得像撒了一把盐。一个人靠在窗下，膝上摊着城图，血一直流到图上的塔顶。他抬眼看你：“扶我上去，还是自己走？”',
+      opts: [
+        { t: '蹲下去扶他，两个人一起上', w: { F: 2, J: 1 } },
+        { t: '先替他裹伤，再独自上去', w: { T: 1, J: 2 } },
+        { t: '不答，绕过去，把他的图带走', w: { T: 2, P: 1 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '灯前·独坐',
+      text: '塔顶前还有一间小屋，屋里只一盏灯、一张席。灯芯烧到一半，墙上你的影子比你先坐下了。有个声音说：“想知道你会变成谁吗？”',
+      opts: [
+        { t: '让它说，说完再自己判断', w: { F: 2, P: 1 } },
+        { t: '不听了，把灯拨亮，算清自己的账', w: { T: 2, J: 1 } },
+        { t: '反问它：那你先说说你是谁', w: { T: 1, P: 2 } },
+      ],
+    },
+    {
+      act: 3,
+      title: '塔顶·抉择',
+      text: '塔顶只有三样东西：一面照人的铜镜、一口不响的钟、一扇通向外面的门。雾在脚下翻涌，城里的灯一盏盏熄了，只等做一件事。',
+      opts: [
+        { t: '敲钟，让全城都听见这一声', w: { F: 2, J: 1 } },
+        { t: '照镜，把自己看清楚再决定', w: { T: 2, J: 1 } },
+        { t: '推门而出，不回头，也不解释', w: { P: 2, F: 1 } },
+      ],
+    },
+  ];
+
+  const TYPES = {
+    INTJ: {
+      name: '观星者',
+      sketch: '验牒时你没多话，垂着眼，让老吏自己看印。茶棚里你把两个行商的话拼成一张图，井台那晚又把每个字都记在心里。你习惯先看清，再落子，且极少解释。塔顶你大概会先照那面铜镜——你要照的不是城，是自己有没有偏离那张图。进城之前，你已经在心里把三天的路走过一遍。',
+      tags: ['先看三步', '独处蓄电', '谋定后动'],
+      affinity: '北门更楼上的旧星盘，铜锈里还卡着半粒去年的雪。',
+    },
+    INTP: {
+      name: '稽古客',
+      sketch: '验牒时你只报了投亲，把疑问留在心里。旧宅那扇门你没叩，绕到后墙去找缝——不是怕人，是怕错过别的说法。回廊里你不看镜中的脸，只听它说的第一句话。塔门的锁孔在你眼里是一个没写完的字。你脑子里总同时摆着三四种解释，谁说得太满，你先不信。最后你也许推门就走，因为答案比结局要紧。',
+      tags: ['追问来处', '夜里推演', '不肯轻信'],
+      affinity: '书肆后间那摞没人翻的残卷，纸角留着前任主人的批注。',
+    },
+    ENTJ: {
+      name: '执令者',
+      sketch: '城门下你先开口，还顺口问起夜里敲钟的人。石桥那声喊，你招呼岸上的人一齐动手——你信人多，也信自己喊得动。你不太解释，先给方向，再补理由；该担的事，你伸手就接。天窗下你会替他裹好伤，再独自上去。塔里那口停摆的钟，你要让整座城的时辰重新走起来。',
+      tags: ['先给方向', '扛得住事', '说到做到'],
+      affinity: '府衙门前那面裂了缝的惊堂鼓，敲起来仍比新的响。',
+    },
+    ENTP: {
+      name: '拆局人',
+      sketch: '茶棚里你端着茶过去，只问了一句塔上照什么，就把两个行商的话头接了过来。你爱看规矩露出破绽：灯市的队伍、祠堂的牌位、书肆那句“不该看”，你都忍不住伸手试。塔门锁孔像一个没写完的字，你想找的不是钥匙，是那支能改写它的笔。塔顶你多半推门就走——城里还有没拆完的局。',
+      tags: ['爱试边界', '话头快', '见招拆招'],
+      affinity: '灯市尽头那盏兔子灯，画眼睛的人每年都画歪一只。',
+    },
+    INFJ: {
+      name: '持灯人',
+      sketch: '验牒时你没多话，只把老吏指节上的抖看在眼里。茶棚那晚你听见“有的没回来”，就把这半句话记了很久。你替人留灯，也替自己留退路；该说的话，往往要等对方先开口。暗阶上有人问能否同行，你会侧身让开半步。塔顶你会敲钟——不全是为城，是为那一个还没回来的人。',
+      tags: ['替人留灯', '看得深', '少说多做'],
+      affinity: '祠堂最末一盏长明灯，添油的人总在四更来。',
+    },
+    INFP: {
+      name: '拾梦人',
+      sketch: '客栈那间空房，你没追问温褥子，闩好窗，一寸寸看过去。街角那两升米，你先看的是妇人的袖口；书肆里有人说“不该看”，你偏要问一句“怕谁看见”。你信有些事不必问破，也信人心里都藏着一盏没点的灯。灯前那个声音问你想变成谁，你会让它说下去，再自己判断。塔里那本书，你会一直翻到空白处。',
+      tags: ['心里有城', '护着微光', '慢热'],
+      affinity: '河边那家不挂招牌的旧书摊，雨天不出，晴天也不一定出。',
+    },
+    ENFJ: {
+      name: '照夜人',
+      sketch: '城门下你答得爽利，还顺口问了一句城里的怪事，把守门人也说笑了。灯市里你蹲下去帮小娘子翻碎纸，翻完才想起自己还有约。你总先看见人，再看见事，也总忍不住替别人把路铺平一段。暗阶上那声“能一起走吗”，你会侧身让开半步。塔顶你敲钟，是想让全城都听见：还有人没回来。',
+      tags: ['先顾人', '不肯冷场', '记得旧约'],
+      affinity: '西街茶棚的第二张桌子，掌柜会给熟客多添半盏。',
+    },
+    ENFP: {
+      name: '追萤人',
+      sketch: '你在长街问过摊主，又顺手买了块热糕，走着走着就忘了客栈的名字。茶棚里你端着茶过去问塔上照什么，问完又替邻座添了一次水。你容易被一句话、一个眼神带走，也总能自己走回来。河埠的船夫说过去就回不来，你偏跳上船。塔顶三样东西，你大概会推门而出——这城已经没有新的萤火了。',
+      tags: ['追着光走', '话多心软', '说走就走'],
+      affinity: '南巷口卖糖人的挑子，糖稀里总掺一点桂花。',
+    },
+    ISTJ: {
+      name: '守册人',
+      sketch: '验牒时你垂着眼，让老吏自己看印，一句多余的话也没有。长街上你把每块褪色的门牌认了一遍，井台那晚把听到的每个字都记在心里。你不喜欢事情含糊，宁可慢，也要慢得清楚。祠堂里你先数牌位，看少的是第几块；钟室那枚卡住齿轮的铜钱，你会取出来，照原样归位。',
+      tags: ['按册办事', '稳', '有始有终'],
+      affinity: '城门吏那本磨秃了边的过所簿，字小，却一笔不乱。',
+    },
+    ISFJ: {
+      name: '守夜人',
+      sketch: '客栈那间空房，你闩好窗，一寸寸查看屋子，又把被子替那位不知名的客人叠回去。药铺里你没让掌柜换药，只细问病人寒热，守到药煎完。你记得谁家孩子怕苦、谁家的门朝哪开。祠堂最末一盏长明灯，你会先添满油，再问老妇缺的是谁。暗阶上有人同行，你会答应。',
+      tags: ['记得口味', '守夜的人', '手比话暖'],
+      affinity: '客栈后厨的姜汤，掌柜娘留着给夜里咳嗽的客人。',
+    },
+    ESTJ: {
+      name: '掌契人',
+      sketch: '城门下你照实答话，一句不多。街角那场争执，你先问清米价与规矩，再决定管不管——你要的不是道理赢，是事办成。你替全城记着一笔账：谁欠谁、谁该在哪、几时换岗。城头上你问的是塔上几时换岗、从哪道门进。钟室里那口钟停在某个时辰，你会取出铜钱，让它重新走起来。',
+      tags: ['账目清楚', '扛得住', '讲规矩'],
+      affinity: '米铺柜台上的旧算盘，珠子被摸得发亮。',
+    },
+    ESFJ: {
+      name: '设宴人',
+      sketch: '你蹲下去帮灯市的小娘子翻碎纸，又替街角的妇人垫了两升米的钱。你把人认得很熟：谁家孩子病过、谁家的门朝哪开，你都记得。你不喜欢冷场，也不喜欢有人落单。祠堂里你先添灯，再问缺的是谁。暗阶上那声“能一起走吗”，你会答应，还会先问对方喝不喝得上热水。',
+      tags: ['爱张罗', '不叫人落单', '记性好'],
+      affinity: '灯市口卖汤圆的那家，认得半城人的口味。',
+    },
+    ISTP: {
+      name: '试剑人',
+      sketch: '石桥那声喊，你沉住气，先看清水势才伸手。客栈那间空房，你先闩窗，再一寸寸看过去。你不爱说，手比嘴快；能拆开的东西，你才信得过。塔门的锁孔像一个没写完的字，你会先摸门上的纹路，再想它缺哪一笔。灯前有人问你想变成谁，你大概会反问：你先说说你是谁。',
+      tags: ['话少手快', '拆了再装', '现场反应'],
+      affinity: '铁匠铺后墙挂着一把断剑，刃口修过三次。',
+    },
+    ISFP: {
+      name: '采薇人',
+      sketch: '你在长街的摊上买了块热糕，蹲在檐下吃完，看雨把灯笼洗亮。客栈那间空房，你闩好窗，把每一寸都查看过，才肯睡。祠堂里你没数牌位，只把那盏快灭的灯添满了油。你不争，也不解释；谁难受，你比谁先看见。塔里那本写着名字的书，你会在空白处落一笔，看看它会不会变。',
+      tags: ['看雨的人', '不和谁争', '手上有花'],
+      affinity: '城墙根下那片没人管的野蔷薇，五月开得最野。',
+    },
+    ESTP: {
+      name: '赶潮人',
+      sketch: '石桥有人落水，你脱了外衫就下去，托住孩子往岸上送。河埠的船夫说过去就回不来，你偏跳上船，让他现在就撑。你想得不多，下手却准。灯市里你帮小娘子翻完碎纸就走，连姓名也没留。塔门的锁，你会先掰一掰、敲一敲，再谈什么字不字。城里的怪事在你眼里都是活的。',
+      tags: ['先做再说', '胆子大', '眼明手快'],
+      affinity: '河埠头的渡船，船夫姓陈，只在放闸前后撑船。',
+    },
+    ESFP: {
+      name: '折花客',
+      sketch: '长街上你先买了块热糕，和摊主聊了两句，连雨都忘了躲。灯市里你蹲下帮小娘子翻碎纸，翻出一枚旧铜钱，逗得她笑起来。旧宅门口你敲了三下门，报上自己是过路人，顺手折了檐下一枝早开的野花。你走到哪里都带着热气，连守门的老吏也被你说得松了脸。塔顶三样东西，你会推门出去——城里还有没逛完的巷子。',
+      tags: ['走到哪热到哪', '爱笑', '折花一枝'],
+      affinity: '鼓楼底下那株老石榴，秋天落一地，没人扫。',
+    },
+  };
+
+  const { el, store, toast, swap } = DSHG;
+
+  const stage = document.getElementById('stage');
+  const hud = document.getElementById('hud');
+  const hudCount = document.getElementById('hudCount');
+  const hudMeter = document.getElementById('hudMeter');
+  const hudBar = document.getElementById('hudBar');
+  const hudAct = document.getElementById('hudAct');
+
+  const state = {
+    view: 'intro',
+    index: 0,
+    picks: new Array(TOTAL).fill(null),
+    resume: null,
+    result: null,
+  };
+  let busy = false;
+
+  /* ---------- 小工具 ---------- */
+  function blankPicks() {
+    return new Array(TOTAL).fill(null);
+  }
+
+  function reduceMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function toTop() {
+    try {
+      window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+    } catch (err) {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function unlock(ms) {
+    setTimeout(function () { busy = false; }, ms);
+  }
+
+  function mountView(node) {
+    if (stage.firstChild) {
+      swap(stage.firstChild, node);
+    } else {
+      stage.appendChild(node);
+      node.classList.add('screen');
+    }
+    toTop();
+  }
+
+  function setHud(on) {
+    hud.classList.toggle('is-on', !!on);
+  }
+
+  function updateHud() {
+    const scene = SCENES[state.index];
+    hudCount.textContent = '第 ' + (state.index + 1) + ' / ' + TOTAL + ' 场';
+    hudAct.textContent = ACTS[scene.act];
+    hudBar.style.width = (((state.index + 1) / TOTAL) * 100).toFixed(2) + '%';
+    hudMeter.setAttribute('aria-valuenow', String(state.index + 1));
+  }
+
+  /* ---------- 存档 ---------- */
+  function saveProgress() {
+    store.set('mbti.progress', {
+      v: 1,
+      index: state.index,
+      picks: state.picks.slice(),
+      at: Date.now(),
+    });
+  }
+
+  function loadProgress() {
+    const p = store.get('mbti.progress', null);
+    if (!p || p.v !== 1) return null;
+    if (!Array.isArray(p.picks) || p.picks.length !== TOTAL) return null;
+    const index = p.index;
+    if (!Number.isInteger(index) || index < 0 || index > TOTAL - 1) return null;
+    const picks = p.picks.map(function (v, i) {
+      const n = SCENES[i] ? SCENES[i].opts.length : 0;
+      return (Number.isInteger(v) && v >= 0 && v < n) ? v : null;
+    });
+    if (!picks.some(function (v) { return v !== null; })) return null;
+    return { index: index, picks: picks };
+  }
+
+  function loadResult() {
+    const r = store.get('mbti.result', null);
+    if (!r || r.v !== 1 || typeof r.code !== 'string' || !TYPES[r.code]) return null;
+    if (!r.scores || typeof r.scores !== 'object') return null;
+    for (let i = 0; i < AXIS_LETTERS.length; i++) {
+      const v = r.scores[AXIS_LETTERS[i]];
+      if (typeof v !== 'number' || !isFinite(v)) return null;
+    }
+    return r;
+  }
+
+  /* ---------- 计分 ---------- */
+  function tally(picks) {
+    const scores = {};
+    AXIS_LETTERS.forEach(function (k) { scores[k] = 0; });
+    picks.forEach(function (choice, i) {
+      if (!Number.isInteger(choice)) return;
+      const scene = SCENES[i];
+      if (!scene) return;
+      const opt = scene.opts[choice];
+      if (!opt) return;
+      Object.keys(opt.w).forEach(function (k) {
+        if (k in scores) scores[k] += opt.w[k];
+      });
+    });
+    return scores;
+  }
+
+  function decide(scores) {
+    let tied = false;
+    function pick(left, right, fallback) {
+      if (scores[left] > scores[right]) return left;
+      if (scores[left] < scores[right]) return right;
+      tied = true;
+      return fallback;
+    }
+    return {
+      code: pick('E', 'I', 'E') + pick('S', 'N', 'N') + pick('T', 'F', 'T') + pick('J', 'P', 'J'),
+      tie: tied,
+    };
+  }
+
+  function axisPct(axis, scores) {
+    const l = Number(scores[axis.left]) || 0;
+    const r = Number(scores[axis.right]) || 0;
+    const total = l + r;
+    let lp = total > 0 ? Math.round((l / total) * 100) : 50;
+    if (l !== r && lp === 50) lp = l > r ? 51 : 49;
+    lp = Math.max(0, Math.min(100, lp));
+    return { left: lp, right: 100 - lp, rawLeft: l, rawRight: r };
+  }
+
+  /* ---------- 卷首 ---------- */
+  const ART = [
+    '<svg viewBox="0 0 340 148" width="100%" height="auto" role="img" aria-label="雾中的城与塔">',
+    '<path d="M0 124c42-6 66 4 102 0s62-9 96-3 66 10 142 4" fill="none" stroke="#6fa89a" stroke-width="1.1" opacity=".4"/>',
+    '<path d="M0 133c48-5 74 5 112 0s66-8 104-2 76 7 124 2" fill="none" stroke="#6fa89a" stroke-width="1" opacity=".22"/>',
+    '<path d="M22 116V96l9-7 9 7v20M50 116V90l11-9 11 9v26M274 116V94l10-8 10 8v22" fill="none" stroke="#6c8fc4" stroke-width="1.2" opacity=".5"/>',
+    '<path d="M24 84h10M56 78h8M284 82h8" stroke="#c9a86a" stroke-width="1" opacity=".4"/>',
+    '<path d="M148 118V58M176 118V58M140 58h44M144 76h36M148 94h28M152 110h20" fill="none" stroke="#c9a86a" stroke-width="1.3" opacity=".85"/>',
+    '<path d="M160 40l-16 12h32z" fill="none" stroke="#e8cd97" stroke-width="1.4"/>',
+    '<path d="M160 24v16" stroke="#e8cd97" stroke-width="1.2"/>',
+    '<circle cx="160" cy="20" r="2.2" fill="#e8cd97" opacity=".9"/>',
+    '<circle cx="256" cy="38" r="14" fill="none" stroke="#c9a86a" stroke-width="1.2" opacity=".65"/>',
+    '<path d="M256 18v-6M256 64v-6M236 38h-6M282 38h-6" stroke="#8a744c" stroke-width="1" opacity=".45"/>',
+    '<path d="M108 112c14-14 26-14 38-24M228 116c10-12 22-16 34-26" fill="none" stroke="#a9a49a" stroke-width="1" opacity=".16"/>',
+    '<circle cx="84" cy="46" r="1.6" fill="#c9a86a" opacity=".6"/>',
+    '<circle cx="98" cy="58" r="1.2" fill="#c9a86a" opacity=".4"/>',
+    '<circle cx="70" cy="64" r="1.1" fill="#c9a86a" opacity=".35"/>',
+    '</svg>',
+  ].join('');
+
+  function paintIntro() {
+    state.view = 'intro';
+    setHud(false);
+    const resume = state.resume;
+    const last = loadResult();
+    const actions = [];
+
+    if (resume) {
+      actions.push(el('button', {
+        class: 'btn',
+        type: 'button',
+        onclick: resumeRun,
+      }, '续上一次（第 ' + (resume.index + 1) + ' 场）'));
+      actions.push(el('button', {
+        class: 'btn btn--ghost',
+        type: 'button',
+        onclick: newRun,
+      }, '重新开始'));
+    } else {
+      actions.push(el('button', {
+        class: 'btn',
+        type: 'button',
+        onclick: newRun,
+      }, '入城'));
+    }
+
+    const kids = [
+      el('div', { class: 'eyebrow', text: '卷一 · 问心局' }),
+      el('h1', {}, ['雾隐城，', el('em', { text: '三日' }), '。']),
+      el('div', { class: 'intro__art', html: ART }),
+      el('p', {
+        class: 'lede',
+        text: '你是初入雾隐城的旅人。城里正出怪事：夜里有人敲一口不响的钟，井底有人念你的名字，茶棚里的人说，三日后塔上要开一场“照心”。',
+      }),
+      el('p', {
+        class: 'lede',
+        text: '你只剩三天。遇见的人、听见的话、伸出去又收回的手，会在你看不见的地方落成四个字。没有题目，也没有对错——只是照见。',
+      }),
+      el('div', { class: 'intro__meta' }, [
+        el('span', { class: 'tag', text: '二十四场' }),
+        el('span', { class: 'tag', text: '约八分钟' }),
+        el('span', { class: 'tag', text: '进度自动存档' }),
+      ]),
+      el('div', { class: 'intro__actions' }, actions),
+    ];
+
+    if (last && !resume && TYPES[last.code]) {
+      const t = TYPES[last.code];
+      kids.push(el('p', { class: 'intro__last' }, [
+        '上次照见：',
+        el('button', {
+          class: 'linkish',
+          type: 'button',
+          onclick: function () { showResult(last); },
+        }, last.code + ' · ' + t.name),
+      ]));
+    }
+
+    mountView(el('section', { class: 'panel intro' }, kids));
+  }
+
+  /* ---------- 场景 ---------- */
+  function paintScene() {
+    state.view = 'play';
+    setHud(true);
+    updateHud();
+
+    const scene = SCENES[state.index];
+    const picked = state.picks[state.index];
+    const options = scene.opts.map(function (opt, k) {
+      const classes = 'opt' + (picked === k ? ' is-picked' : '');
+      return el('button', {
+        class: classes,
+        type: 'button',
+        'aria-label': '选项 ' + (k + 1) + '：' + opt.t,
+        onclick: function () { choose(k); },
+      }, [
+        el('span', { class: 'opt__no num', text: String(k + 1) }),
+        el('span', { class: 'opt__t', text: opt.t }),
+      ]);
+    });
+
+    const foot = [
+      state.index > 0
+        ? el('button', { class: 'back', type: 'button', onclick: back }, '← 上一场')
+        : el('span', { class: 'faint', text: '灯已点起' }),
+      el('span', { class: 'hint' }, [
+        '按 ', el('span', { class: 'kbd num', text: '1' }), ' / ',
+        el('span', { class: 'kbd num', text: '2' }), ' / ',
+        el('span', { class: 'kbd num', text: '3' }), ' 落子，',
+        el('span', { class: 'kbd num', text: '⌫' }), ' 退回上一场',
+      ]),
+    ];
+
+    mountView(el('section', { class: 'panel scene' }, [
+      el('div', { class: 'eyebrow', text: ACTS[scene.act] + ' · 其' + CN_NUM[state.index % 8] }),
+      el('h1', { class: 'scene__title', text: scene.title }),
+      el('p', { class: 'scene__text', text: scene.text }),
+      el('div', { class: 'opts' }, options),
+      el('div', { class: 'scene__foot' }, foot),
+    ]));
+  }
+
+  function choose(k) {
+    if (busy || state.view !== 'play') return;
+    const scene = SCENES[state.index];
+    if (!scene || !scene.opts[k]) return;
+
+    state.picks[state.index] = k;
+    for (let i = state.index + 1; i < TOTAL; i++) state.picks[i] = null;
+
+    if (state.index === TOTAL - 1) {
+      finish();
+      return;
+    }
+
+    state.index += 1;
+    saveProgress();
+    busy = true;
+    paintScene();
+    unlock(380);
+  }
+
+  function back() {
+    if (busy || state.view !== 'play') return;
+    if (state.index === 0) {
+      toast('这已是入城的第一步。');
+      return;
+    }
+    state.index -= 1;
+    saveProgress();
+    busy = true;
+    paintScene();
+    unlock(320);
+  }
+
+  /* ---------- 结果 ---------- */
+  function finish() {
+    const scores = tally(state.picks);
+    const verdict = decide(scores);
+    const result = {
+      v: 1,
+      code: verdict.code,
+      scores: scores,
+      tie: verdict.tie,
+      picks: state.picks.slice(),
+      at: Date.now(),
+    };
+    store.set('mbti.result', result);
+    store.del('mbti.progress');
+    state.resume = null;
+    state.result = result;
+    busy = true;
+    paintResult(result);
+    unlock(460);
+  }
+
+  function makeCopy(result) {
+    const t = TYPES[result.code];
+    const pairs = AXES.map(function (axis) {
+      const p = axisPct(axis, result.scores);
+      return axis.left + p.left + ' ' + axis.right + p.right;
+    });
+    return '问心局 · ' + result.code + ' ' + t.name + '｜' + pairs.join(' ');
+  }
+
+  function legacyCopy(text) {
+    let ok = false;
+    let area = null;
+    try {
+      area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.top = '-1000px';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      area.setSelectionRange(0, area.value.length);
+      ok = document.execCommand('copy');
+    } catch (err) {
+      ok = false;
+    }
+    if (area && area.parentNode) area.parentNode.removeChild(area);
+    return ok;
+  }
+
+  function copyResult(result) {
+    const text = makeCopy(result);
+    const done = function () { toast('四字已抄下，收好。'); };
+    const fail = function () { toast('没能抄下，长按结果也可。'); };
+    const fallback = function () {
+      if (legacyCopy(text)) done(); else fail();
+    };
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        const task = navigator.clipboard.writeText(text);
+        if (task && typeof task.then === 'function') task.then(done, fallback);
+        else done();
+      } else {
+        fallback();
+      }
+    } catch (err) {
+      fallback();
+    }
+  }
+
+  function axisRow(axis, result) {
+    const p = axisPct(axis, result.scores);
+    const win = result.code.indexOf(axis.left) !== -1 ? axis.left : axis.right;
+    const leftEnd = el('span', { class: 'axis__end' + (win === axis.left ? ' is-win' : '') }, [
+      axis.left + ' ', el('b', { text: p.left + '%' }),
+    ]);
+    const rightEnd = el('span', { class: 'axis__end' + (win === axis.right ? ' is-win' : '') }, [
+      el('b', { text: p.right + '%' }), ' ' + axis.right,
+    ]);
+    const fill = el('i');
+    requestAnimationFrame(function () { fill.style.width = p.left + '%'; });
+
+    return el('div', { class: 'axis' }, [
+      el('div', { class: 'axis__head' }, [
+        el('span', { text: axis.name + ' · ' + axis.key }),
+        el('span', { class: 'num', text: p.rawLeft + ' : ' + p.rawRight }),
+      ]),
+      el('div', { class: 'axis__row' }, [
+        leftEnd,
+        el('div', { class: 'axis__track' }, el('div', { class: 'bar' }, fill)),
+        rightEnd,
+      ]),
+      el('div', { class: 'axis__note', text: AXIS_NOTE[win] }),
+    ]);
+  }
+
+  function paintResult(result) {
+    state.view = 'result';
+    setHud(false);
+    const type = TYPES[result.code];
+    if (!type) {
+      toast('这笔字没有落成，请重走一次。');
+      paintIntro();
+      return;
+    }
+
+    const head = el('div', { class: 'result__head' }, [
+      el('div', { class: 'eyebrow', text: '照心 · 四字已落' }),
+      el('div', { class: 'code', text: result.code }),
+      el('h1', { class: 'pname', text: type.name }),
+      el('div', { class: 'result__tag', text: '问心局 · 卷终' }),
+    ]);
+    if (result.tie) {
+      head.appendChild(el('p', {
+        class: 'tie',
+        text: '有一轴，你停在两可之间——局中不替你选，便照旧例取字。',
+      }));
+    }
+
+    const axes = el('div', { class: 'axes' }, AXES.map(function (axis) {
+      return axisRow(axis, result);
+    }));
+
+    const tags = el('div', { class: 'tags' }, type.tags.map(function (tag) {
+      return el('span', { class: 'tag', text: tag });
+    }));
+
+    const easter = el('div', { class: 'easter' }, [
+      el('h3', { text: '与你相合的城中之物' }),
+      el('p', { text: type.affinity }),
+    ]);
+
+    const actions = el('div', { class: 'actions' }, [
+      el('button', {
+        class: 'btn',
+        type: 'button',
+        onclick: function () { copyResult(result); },
+      }, '复制我的结果'),
+      el('button', {
+        class: 'btn btn--ghost',
+        type: 'button',
+        onclick: restart,
+      }, '重走此城'),
+    ]);
+
+    mountView(el('section', { class: 'panel result' }, [
+      head,
+      el('hr', { class: 'rule' }),
+      el('p', { class: 'sketch', text: type.sketch }),
+      el('hr', { class: 'rule' }),
+      axes,
+      tags,
+      easter,
+      actions,
+      el('p', { class: 'result__fine', text: '此局只照一面，不作定论。' }),
+    ]));
+  }
+
+  function showResult(result) {
+    state.result = result;
+    paintResult(result);
+  }
+
+  /* ---------- 启程 / 重开 ---------- */
+  function newRun() {
+    state.index = 0;
+    state.picks = blankPicks();
+    state.resume = null;
+    store.del('mbti.progress');
+    paintScene();
+    busy = true;
+    unlock(320);
+  }
+
+  function resumeRun() {
+    const p = state.resume;
+    if (!p) {
+      newRun();
+      return;
+    }
+    state.index = p.index;
+    state.picks = p.picks.slice();
+    state.resume = null;
+    paintScene();
+    busy = true;
+    unlock(320);
+  }
+
+  function restart() {
+    store.del('mbti.progress');
+    store.del('mbti.result');
+    state.result = null;
+    newRun();
+    toast('雾重新起了。');
+  }
+
+  /* ---------- 键盘 ---------- */
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (state.view !== 'play') return;
+    if (e.key === '1' || e.key === '2' || e.key === '3') {
+      e.preventDefault();
+      choose(Number(e.key) - 1);
+      return;
+    }
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      back();
+    }
+  });
+
+  /* ---------- 启动 ---------- */
+  DSHG.mountChrome({ title: '卷一 · 问心局', meta: 'STORY · MBTI' });
+  state.resume = loadProgress();
+  paintIntro();
+})();
+</script>
+</body>
+</html>

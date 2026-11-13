@@ -1,0 +1,2668 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一念飞升 · 墨戏三卷</title>
+<meta name="description" content="快节奏中文修仙 Roguelite：九境之间，六十至一百息定生死。打坐、历练、炼丹、突破，转世传承再入山。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Cpath d='M12 46L26 24l8 10 10-16 12 28' fill='none' stroke='%23c9a86a' stroke-width='2'/%3E%3Ccircle cx='48' cy='15' r='4' fill='none' stroke='%23e0604f' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/theme.css">
+<style>
+  /* ============================================================
+     卷三 · 一念飞升
+     仅使用 theme.css 的令牌与组件，页面自己的布局与气韵都在这里。
+     ============================================================ */
+
+  :root {
+    --glow-gold: rgba(201, 168, 106, 0.28);
+    --glow-jade: rgba(111, 168, 154, 0.22);
+    --glow-red: rgba(224, 96, 79, 0.24);
+  }
+
+  html, body { overflow-x: hidden; }
+  body { min-height: 100vh; }
+
+  #stage { min-height: 64vh; }
+
+  .small { font-size: 12.5px; }
+  .tiny { font-size: 11.5px; letter-spacing: 0.04em; }
+  .nowrap { white-space: nowrap; }
+
+  /* ---------- 起始页 / 结束页通用 ---------- */
+  .start, .end { padding: 30px 0 10px; }
+
+  .hero { position: relative; padding: 10px 0 26px; }
+
+  .hero__art {
+    position: absolute; right: 0; top: -6px;
+    width: min(48%, 500px);
+    pointer-events: none;
+    opacity: 0.9;
+  }
+  .hero__art svg { display: block; width: 100%; height: auto; }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__art { animation: artDrift 16s ease-in-out infinite alternate; }
+    @keyframes artDrift { to { transform: translateY(-10px); } }
+  }
+
+  .title-xl {
+    position: relative;
+    margin: 2px 0 14px;
+    font-size: clamp(40px, 7.6vw, 72px);
+    line-height: 1.12;
+    letter-spacing: 0.08em;
+    color: var(--text);
+  }
+  .title-xl em {
+    font-style: normal;
+    background: linear-gradient(120deg, var(--gold-bright), var(--gold) 55%, var(--gold-dim));
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .title-xl .title-sub {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: var(--text-faint);
+    margin-top: 14px;
+  }
+
+  .lede {
+    max-width: 610px;
+    font-size: 16.4px;
+    line-height: 1.9;
+    color: var(--text-dim);
+    margin: 0 0 18px;
+  }
+  .lede strong { color: var(--gold-bright); font-weight: 500; }
+
+  .hero__tags { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .start__cta {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
+    margin: 22px 0 6px;
+  }
+
+  .start__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 10px;
+    margin: 24px 0 18px;
+  }
+  .stat {
+    padding: 13px 15px 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+  }
+  .stat__k { font-size: 10.5px; letter-spacing: 0.18em; color: var(--text-faint); margin-bottom: 5px; }
+  .stat__v { font-family: var(--font-num); font-size: 19px; color: var(--text); line-height: 1.3; }
+  .stat__s { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+  .resume {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    border: 1px dashed rgba(201, 168, 106, 0.38);
+    border-radius: var(--radius-sm);
+    background: rgba(201, 168, 106, 0.045);
+    margin: 20px 0 6px;
+  }
+  .resume__title { font-family: var(--font-serif); font-size: 19px; letter-spacing: 0.07em; margin: 3px 0 2px; }
+  .resume__btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  .resume__note { flex-basis: 100%; margin: -2px 0 0; font-size: 11px; line-height: 1.6; }
+
+  .start__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    gap: 18px;
+    margin-top: 20px;
+    align-items: start;
+  }
+
+  .panel--tight { padding: 20px 22px; }
+
+  .rules h2, .legacy h2, .logbox h2, .meta h2 {
+    font-size: 17px; margin: 0 0 4px; color: var(--gold-bright);
+    letter-spacing: 0.1em;
+  }
+  .rules__sub { font-size: 11.5px; color: var(--text-faint); letter-spacing: 0.12em; margin-bottom: 12px; }
+  .rules ol {
+    margin: 0; padding-left: 1.25em;
+    color: var(--text-dim); font-size: 13.8px; line-height: 1.85;
+  }
+  .rules li { margin-bottom: 8px; padding-left: 2px; }
+  .rules li::marker { color: var(--gold-dim); font-family: var(--font-num); }
+  .rules b { color: var(--text); font-weight: 500; }
+  .keys { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .keys span {
+    font-size: 11px; color: var(--text-dim);
+    border: 1px solid var(--line-soft); border-radius: 6px;
+    padding: 2px 7px;
+  }
+  .keys span kbd {
+    font-family: var(--font-num); color: var(--gold-bright);
+    background: none; border: 0; padding: 0; margin-right: 3px;
+  }
+
+  /* ---------- 传承面板 ---------- */
+  .legacy__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+  }
+  .legacy__points {
+    font-family: var(--font-num);
+    color: var(--gold-bright);
+    font-size: 22px;
+    line-height: 1;
+  }
+  .legacy__points small { font-family: var(--font-sans); font-size: 11px; color: var(--text-faint); margin-left: 5px; letter-spacing: 0.1em; }
+  .legacy__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--line-soft);
+  }
+  .legacy__row:first-of-type { border-top: 0; }
+  .legacy__name { font-family: var(--font-serif); font-size: 16px; letter-spacing: 0.07em; }
+  .legacy__effect { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
+  .legacy__pips { display: flex; gap: 4px; margin-top: 6px; }
+  .pip { width: 13px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.09); }
+  .pip.on { background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright)); }
+  .legacy__buy { display: flex; align-items: center; gap: 8px; }
+  .legacy__lvl { font-family: var(--font-num); font-size: 11.5px; color: var(--text-faint); }
+
+  .btn--small { padding: 7px 13px; font-size: 12px; letter-spacing: 0.05em; }
+  .legacy__note { margin: 12px 0 0; font-size: 11.5px; color: var(--text-faint); line-height: 1.65; }
+
+  /* ---------- HUD ---------- */
+  .game {
+    display: grid;
+    grid-template-columns: minmax(0, 1.42fr) minmax(290px, 0.78fr);
+    gap: 18px;
+    margin-top: 18px;
+    align-items: start;
+  }
+  .game__main { min-width: 0; }
+
+  .hud {
+    position: relative;
+    padding: 22px 24px 20px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  .hud::before {
+    content: "";
+    position: absolute; right: -70px; top: -110px;
+    width: 280px; height: 280px; border-radius: 50%;
+    background: radial-gradient(circle, var(--glow-gold), transparent 68%);
+    pointer-events: none;
+  }
+  .hud__top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 18px;
+  }
+  .hud__realm { min-width: 0; }
+  .realm {
+    margin: 0;
+    font-size: clamp(38px, 6.4vw, 60px);
+    line-height: 1.06;
+    letter-spacing: 0.1em;
+    background: linear-gradient(115deg, var(--gold-bright), var(--gold) 52%, #a8905f);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .realm__next { margin-top: 5px; font-size: 11.5px; letter-spacing: 0.18em; color: var(--text-faint); }
+
+  .hud__life { text-align: right; flex: 0 0 auto; }
+  .life {
+    display: flex; align-items: baseline; justify-content: flex-end; gap: 5px;
+    font-size: clamp(30px, 4.6vw, 42px);
+    line-height: 1.1;
+    color: var(--jade-bright);
+  }
+  .life__n { font-family: var(--font-num); }
+  .life__unit { font-family: var(--font-sans); font-size: 12px; color: var(--text-faint); letter-spacing: 0.1em; }
+  .life__hint { margin-top: 3px; font-size: 10.5px; letter-spacing: 0.07em; color: var(--text-faint); }
+  .life.is-low { color: var(--cinnabar-bright); }
+  @media (prefers-reduced-motion: no-preference) {
+    .life.is-low { animation: lifePulse 1.25s ease-in-out infinite; }
+  }
+  @keyframes lifePulse {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 0 rgba(224, 96, 79, 0)); }
+    50% { opacity: 0.68; filter: drop-shadow(0 0 14px rgba(224, 96, 79, 0.5)); }
+  }
+
+  .prog { margin-top: 18px; }
+  .prog__meta {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12px; margin-bottom: 7px;
+    font-size: 11px; letter-spacing: 0.16em; color: var(--text-faint);
+  }
+  .prog__num { font-size: 13px; color: var(--gold-bright); letter-spacing: 0.04em; }
+  .prog .meter { height: 8px; }
+  .prog .meter > i { background: linear-gradient(90deg, #8a6f3f, var(--gold-bright)); transition-duration: 0.28s; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.022);
+    font-size: 11.5px; color: var(--text-faint);
+    letter-spacing: 0.03em;
+  }
+  .chip b { font-family: var(--font-num); font-weight: 400; font-size: 12.5px; color: var(--text-dim); }
+  .chip--stone b { color: var(--gold-bright); }
+  .chip--demon b { color: var(--cinnabar-bright); }
+  .chip--pill b { color: var(--jade-bright); }
+
+  /* ---------- 行止按钮 ---------- */
+  .acts { padding: 20px 20px 18px; }
+  .acts__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+    margin-bottom: 13px;
+  }
+  .acts__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .act {
+    appearance: none;
+    position: relative;
+    display: flex; align-items: center; gap: 11px;
+    min-height: 72px;
+    padding: 12px 13px;
+    text-align: left;
+    font-family: var(--font-sans);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(158deg, rgba(201, 168, 106, 0.1), rgba(201, 168, 106, 0.022));
+    cursor: pointer;
+    transition: transform 0.16s ease, border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  }
+  .act:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(201, 168, 106, 0.55);
+    background: linear-gradient(158deg, rgba(201, 168, 106, 0.18), rgba(201, 168, 106, 0.04));
+  }
+  .act:active:not(:disabled) { transform: translateY(0) scale(0.995); }
+  .act:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .act:disabled { opacity: 0.4; cursor: not-allowed; }
+  .act--wide { grid-column: 1 / -1; }
+  .act--primary {
+    border-color: rgba(201, 168, 106, 0.5);
+    background: linear-gradient(158deg, rgba(201, 168, 106, 0.26), rgba(201, 168, 106, 0.05));
+  }
+  .act--break {
+    border-color: rgba(224, 96, 79, 0.42);
+    background: linear-gradient(158deg, rgba(184, 71, 60, 0.24), rgba(184, 71, 60, 0.035));
+  }
+  .act--break .act__name { color: var(--cinnabar-bright); }
+  .act--break:hover:not(:disabled) {
+    border-color: rgba(224, 96, 79, 0.75);
+    background: linear-gradient(158deg, rgba(184, 71, 60, 0.32), rgba(184, 71, 60, 0.06));
+  }
+  .act--ten {
+    min-height: 58px;
+    border-style: dashed;
+    background: rgba(255, 255, 255, 0.018);
+  }
+  .act__key {
+    flex: 0 0 26px;
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font-family: var(--font-num);
+    font-size: 11.5px;
+    color: var(--gold);
+    background: rgba(0, 0, 0, 0.14);
+  }
+  .act__body { min-width: 0; display: block; }
+  .act__name {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 17.5px;
+    line-height: 1.3;
+    letter-spacing: 0.09em;
+    color: var(--text);
+  }
+  .act__sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-dim);
+    letter-spacing: 0.015em;
+  }
+  .act__sub.loss { color: var(--cinnabar-bright); }
+  .act__sub.good { color: var(--jade-bright); }
+
+  .calc {
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .calc__head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+    font-size: 11px; letter-spacing: 0.14em; color: var(--text-faint);
+  }
+  .calc__pct { font-size: 15px; color: var(--gold-bright); letter-spacing: 0.03em; }
+  .calc__formula {
+    margin: 5px 0 0;
+    font-size: 11px;
+    line-height: 1.75;
+    color: var(--text-faint);
+    word-break: break-word;
+  }
+
+  /* ---------- 日志 / 副栏 ---------- */
+  .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .logbox { padding: 18px 18px 14px; }
+  .logbox__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .logbox__hint { font-size: 10.5px; color: var(--text-faint); letter-spacing: 0.1em; }
+  .log {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    max-height: 318px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .log__item {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 7px;
+    padding: 7px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.055);
+    font-size: 12.6px;
+    line-height: 1.55;
+    color: var(--text-dim);
+  }
+  .log__item:last-child { border-bottom: 0; }
+  .log__t {
+    text-align: right;
+    font-family: var(--font-num);
+    font-size: 10px;
+    color: var(--text-faint);
+    padding-top: 2px;
+  }
+  .log__x { min-width: 0; overflow-wrap: anywhere; }
+  .log--gain .log__x { color: var(--jade-bright); }
+  .log--loss .log__x { color: var(--cinnabar-bright); }
+  .log--event .log__x { color: var(--gold-bright); }
+  .log--break .log__x { color: var(--gold-bright); }
+  .log--info .log__x { color: var(--text-dim); }
+  @media (prefers-reduced-motion: no-preference) {
+    .log__item.is-new { animation: logIn 0.22s ease both; }
+  }
+  @keyframes logIn { from { opacity: 0; transform: translateX(-5px); } }
+
+  .meta { padding: 15px 18px; }
+  .meta__grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 11px 14px;
+    margin-top: 10px;
+  }
+  .meta__k { font-size: 10px; letter-spacing: 0.13em; color: var(--text-faint); }
+  .meta__v { font-family: var(--font-num); font-size: 15px; color: var(--text-dim); line-height: 1.4; }
+  .meta__v.gold { color: var(--gold-bright); }
+
+  /* ---------- 事件卡 ---------- */
+  body.is-locked { overflow: hidden; }
+
+  .event-layer {
+    position: fixed; inset: 0; z-index: 120;
+    display: grid; place-items: center;
+    padding: 20px;
+    background:
+      radial-gradient(680px 460px at 50% 42%, rgba(31, 42, 63, 0.5), transparent 72%),
+      rgba(4, 7, 11, 0.82);
+    backdrop-filter: blur(5px);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .event-layer { animation: veilIn 0.16s ease both; }
+    .event { animation: cardIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  }
+  @keyframes veilIn { from { opacity: 0; } }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(0.985); } }
+
+  .event {
+    width: min(580px, 100%);
+    max-height: min(86vh, 760px);
+    overflow-y: auto;
+    padding: 24px 24px 20px;
+  }
+  .event__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .event h2 { margin: 8px 0 10px; font-size: clamp(23px, 4vw, 30px); letter-spacing: 0.1em; }
+  .event__scene {
+    margin: 0 0 17px;
+    font-size: 14.5px;
+    line-height: 1.88;
+    color: var(--text-dim);
+  }
+  .event__opts { display: flex; flex-direction: column; gap: 9px; }
+  .event__opt {
+    appearance: none;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+    width: 100%;
+    padding: 12px 13px;
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 13.6px;
+    line-height: 1.6;
+    color: var(--text);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.024);
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.16s ease;
+  }
+  .event__opt:hover:not(:disabled) {
+    border-color: rgba(201, 168, 106, 0.6);
+    background: rgba(201, 168, 106, 0.075);
+    transform: translateX(2px);
+  }
+  .event__opt:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .event__opt:disabled { opacity: 0.38; cursor: not-allowed; }
+  .event__key {
+    width: 22px; height: 22px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font-family: var(--font-num);
+    font-size: 10.5px;
+    color: var(--gold);
+    margin-top: 1px;
+  }
+  .event__tag {
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 1px 8px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+  .event__tag.red { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.3); }
+  .event__tag.dim { color: var(--text-faint); border-color: var(--line-soft); }
+  .event__foot {
+    margin: 13px 0 0;
+    font-size: 10.8px;
+    letter-spacing: 0.09em;
+    color: var(--text-faint);
+    line-height: 1.6;
+  }
+
+  /* ---------- 结束页 ---------- */
+  .end__head { text-align: center; padding: 16px 0 8px; position: relative; }
+  .end__head h1 {
+    margin: 8px 0 10px;
+    font-size: clamp(42px, 8.4vw, 76px);
+    letter-spacing: 0.18em;
+    line-height: 1.15;
+  }
+  .end--ascend .end__head h1 {
+    background: linear-gradient(115deg, #fff2cf, var(--gold-bright) 36%, var(--gold) 64%, #f4e3b6);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 22px rgba(201, 168, 106, 0.32));
+  }
+  .end--death .end__head h1 { color: #cfc8bb; }
+  .end__lead {
+    max-width: 590px;
+    margin: 0 auto 18px;
+    font-size: 14.8px;
+    line-height: 1.9;
+    color: var(--text-dim);
+  }
+  .end__cause { color: var(--cinnabar-bright); }
+  .end__ash { color: var(--gold-bright); }
+  .end__art { display: flex; justify-content: center; margin: 4px 0 8px; opacity: 0.9; }
+
+  .end__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
+    gap: 10px;
+    margin: 20px 0 18px;
+  }
+
+  .earn {
+    text-align: center;
+    padding: 18px 18px 16px;
+    border: 1px solid rgba(201, 168, 106, 0.32);
+    border-radius: var(--radius-sm);
+    background: radial-gradient(400px 160px at 50% 0%, rgba(201, 168, 106, 0.15), transparent 72%), rgba(201, 168, 106, 0.03);
+    margin-bottom: 18px;
+  }
+  .earn__k { font-size: 10.5px; letter-spacing: 0.24em; color: var(--text-faint); }
+  .earn__n { font-family: var(--font-num); font-size: 38px; line-height: 1.2; color: var(--gold-bright); letter-spacing: 0.04em; }
+  .earn__n span { font-size: 15px; color: var(--gold-dim); margin-left: 4px; }
+  .earn__f { margin: 3px 0 0; font-size: 11.5px; color: var(--text-faint); line-height: 1.7; }
+
+  .end__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 18px;
+    align-items: start;
+    margin-top: 4px;
+  }
+  .end__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 22px 0 4px; }
+
+  /* ---------- 手机 360px ---------- */
+  @media (max-width: 980px) {
+    .hero__art { display: none; }
+  }
+  @media (max-width: 900px) {
+    .game { grid-template-columns: minmax(0, 1fr); }
+    .side { order: 2; }
+    .log { max-height: 250px; }
+  }
+  @media (max-width: 780px) {
+    .start__grid, .end__grid { grid-template-columns: minmax(0, 1fr); }
+    .hero__art { display: none; }
+    .title-xl { font-size: clamp(38px, 11.5vw, 58px); }
+  }
+  @media (max-width: 640px) {
+    .start, .end { padding-top: 20px; }
+    .hero { padding-bottom: 18px; }
+    .hud { padding: 18px 17px 16px; margin-top: 12px; }
+    .hud__top { gap: 12px; }
+    .realm { font-size: clamp(34px, 10.5vw, 46px); }
+    .hud__life { min-width: 96px; }
+    .life { font-size: clamp(28px, 8.4vw, 36px); }
+    .chips { gap: 6px; }
+    .chip { padding: 3px 8px; font-size: 10.8px; }
+    .acts { padding: 16px 13px 14px; }
+    .act { padding: 10px 10px; gap: 8px; min-height: 68px; }
+    .act__key { flex-basis: 22px; width: 22px; height: 22px; font-size: 10px; }
+    .act__name { font-size: 16px; }
+    .act__sub { font-size: 10.2px; }
+    .calc__formula { font-size: 10.3px; }
+    .event-layer { padding: 12px; }
+    .event { padding: 19px 16px 17px; max-height: 90vh; border-radius: 12px; }
+    .event__opt { grid-template-columns: 20px minmax(0, 1fr); font-size: 12.8px; padding: 11px; }
+    .event__tag { grid-column: 2; justify-self: start; margin-top: 1px; }
+    .end__head h1 { font-size: clamp(38px, 12vw, 56px); }
+    .end__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .resume { padding: 14px; }
+  }
+  @media (max-width: 380px) {
+    .acts__grid { gap: 8px; }
+    .act { min-height: 64px; }
+    .act__sub { font-size: 9.7px; }
+    .start__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .end__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar" data-chrome="topbar"></header>
+
+<main class="wrap">
+  <div id="stage">
+    <noscript>
+      <p class="center dim" style="padding: 60px 0;">此卷需要启用 JavaScript 方可入山。</p>
+    </noscript>
+  </div>
+</main>
+
+<footer class="foot" data-chrome="footer"></footer>
+
+<script src="./assets/common.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const DSHG = window.DSHG;
+  const { el, qs, store, rand, clamp, fmt, toast, mountChrome } = DSHG;
+
+  mountChrome({ title: '卷三 · 一念飞升', meta: 'XIANXIA · FAST RUN' });
+
+  const stage = qs('#stage');
+
+  /* ============================================================
+     常量与规则数值
+     ============================================================ */
+
+  const REALMS = ['炼气', '筑基', '金丹', '元婴', '化神', '炼虚', '合体', '大乘', '渡劫'];
+  const NEED = [16, 36, 72, 122, 193, 285, 407, 562, 763];
+  // 大关头：目标境为 金丹 / 元婴 / 化神 / 大乘 / 渡劫 / 飞升
+  const BIG_GATES = new Set([1, 2, 3, 6, 7, 8]);
+
+  const KEYS = {
+    SAVE: 'xiuxian.save',
+    LEGACY: 'xiuxian.legacy',
+    RECORDS: 'xiuxian.records'
+  };
+
+  const MAX = { insight: 20, luck: 30, root: 30, pills: 2, demon: 100, cooldown: 3 };
+  const LEGACY_MAX = 8;
+  const LEGACY_COST = 2;
+  const START_STONES = 15;
+  const START_LIFE = 120;
+  const BASE_ROOT = 5;
+  const BASE_INSIGHT = 10;
+  const BASE_LUCK = 6;
+  const MEDITATE_EPIPHANY = 0.08;
+
+  /* ============================================================
+     小工具
+     ============================================================ */
+
+  function int(value, fallback, lo, hi) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return clamp(Math.floor(n), lo, hi);
+  }
+
+  function num(value, fallback) {
+    return Number.isFinite(Number(value)) ? Number(value) : fallback;
+  }
+
+  function pct(p) {
+    const v = Math.round(p * 1000) / 10;
+    return (Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1)) + '%';
+  }
+
+  function signed(n) {
+    return (n >= 0 ? '+' : '−') + Math.abs(n);
+  }
+
+  function needOf(realm) {
+    return NEED[clamp(realm, 0, NEED.length - 1)];
+  }
+
+  function targetLabel(realm) {
+    return realm >= REALMS.length - 1 ? '飞升' : REALMS[realm + 1];
+  }
+
+  function formatTime(ms) {
+    const sec = Math.max(0, Math.round(num(ms, 0) / 1000));
+    if (sec < 60) return sec + ' 秒';
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m + ' 分 ' + s + ' 秒';
+  }
+
+  function scrollKeep(fn) {
+    const y = window.scrollY;
+    fn();
+    requestAnimationFrame(function () { window.scrollTo(0, y); });
+  }
+
+  /* ============================================================
+     存储
+     ============================================================ */
+
+  function emptyLegacy() {
+    return { points: 0, root: 0, insight: 0, luck: 0, lives: 0 };
+  }
+
+  function loadLegacy() {
+    const raw = store.get(KEYS.LEGACY, null);
+    if (!raw || typeof raw !== 'object') return emptyLegacy();
+    return {
+      points: int(raw.points, 0, 0, 99999),
+      root: int(raw.root, 0, 0, LEGACY_MAX),
+      insight: int(raw.insight, 0, 0, LEGACY_MAX),
+      luck: int(raw.luck, 0, 0, LEGACY_MAX),
+      lives: int(raw.lives, 0, 0, 99999)
+    };
+  }
+
+  function saveLegacy() {
+    store.set(KEYS.LEGACY, legacy);
+  }
+
+  function emptyRecords() {
+    return { bestRealm: -1, minAscend: null, ascensions: 0, deaths: 0 };
+  }
+
+  function loadRecords() {
+    const raw = store.get(KEYS.RECORDS, null);
+    if (!raw || typeof raw !== 'object') return emptyRecords();
+    return {
+      bestRealm: int(raw.bestRealm, -1, -1, 9),
+      minAscend: raw.minAscend === null || raw.minAscend === undefined
+        ? null
+        : int(raw.minAscend, 0, 0, 999999),
+      ascensions: int(raw.ascensions, 0, 0, 99999),
+      deaths: int(raw.deaths, 0, 0, 99999)
+    };
+  }
+
+  function saveRecords() {
+    store.set(KEYS.RECORDS, records);
+  }
+
+  function loadSave() {
+    const raw = store.get(KEYS.SAVE, null);
+    if (!raw || typeof raw !== 'object' || raw.v !== 1) return null;
+    if (!Number.isInteger(raw.realm) || raw.realm < 0 || raw.realm >= REALMS.length) return null;
+    if (!Number.isFinite(raw.life) || raw.life <= 0) return null;
+    if (!Number.isFinite(raw.turns) || raw.turns < 0) return null;
+
+    const log = (Array.isArray(raw.log) ? raw.log : [])
+      .filter(function (entry) {
+        return entry && typeof entry.text === 'string' && entry.text.length <= 80;
+      })
+      .slice(0, 8)
+      .map(function (entry) {
+        return {
+          id: int(entry.id, 0, 0, 999999999),
+          turn: int(entry.turn, 0, 0, 999999999),
+          text: entry.text,
+          kind: ['gain', 'loss', 'event', 'break', 'info'].indexOf(entry.kind) >= 0 ? entry.kind : 'info'
+        };
+      });
+
+    return {
+      v: 1,
+      realm: raw.realm,
+      exp: int(raw.exp, 0, 0, 999999999),
+      stones: int(raw.stones, 0, 0, 999999999),
+      life: int(raw.life, START_LIFE, 1, 999999),
+      root: int(raw.root, BASE_ROOT, 0, MAX.root),
+      insight: int(raw.insight, BASE_INSIGHT, 0, MAX.insight),
+      luck: int(raw.luck, BASE_LUCK, 0, MAX.luck),
+      demon: int(raw.demon, 0, 0, MAX.demon),
+      pills: int(raw.pills, 0, 0, MAX.pills),
+      lives: int(raw.lives, 0, 0, 99999),
+      turns: int(raw.turns, 0, 0, 999999999),
+      maxDemon: int(raw.maxDemon, 0, 0, MAX.demon),
+      cooldown: int(raw.cooldown, 0, 0, MAX.cooldown),
+      startedAt: num(raw.startedAt, Date.now()),
+      log: log,
+      logSeq: int(raw.logSeq, 0, 0, 999999999)
+    };
+  }
+
+  function saveGame(force) {
+    if (!s || finished) return;
+    if (!force && s.turns % 5 !== 0) return;
+    store.set(KEYS.SAVE, {
+      v: 1,
+      realm: s.realm,
+      exp: s.exp,
+      stones: s.stones,
+      life: s.life,
+      root: s.root,
+      insight: s.insight,
+      luck: s.luck,
+      demon: s.demon,
+      pills: s.pills,
+      lives: s.lives,
+      turns: s.turns,
+      maxDemon: s.maxDemon,
+      cooldown: s.cooldown,
+      startedAt: s.startedAt,
+      log: s.log.slice(0, 8),
+      logSeq: s.logSeq
+    });
+  }
+
+  function clearSave() {
+    store.del(KEYS.SAVE);
+  }
+
+  /* ============================================================
+     运行时状态（全部收在 IIFE 内）
+     ============================================================ */
+
+  let view = 'start';       // start | game | end
+  let s = null;             // 当前一世
+  let legacy = loadLegacy();
+  let records = loadRecords();
+  let finished = false;
+  let endInfo = null;
+  let ui = {};
+  let lastEventId = null;
+
+  /* ============================================================
+     日志
+     ============================================================ */
+
+  function pushLog(text, kind) {
+    if (!s) return;
+    s.logSeq += 1;
+    const entry = {
+      id: s.logSeq,
+      turn: s.turns,
+      text: String(text).slice(0, 60),
+      kind: kind || 'info'
+    };
+    s.log.unshift(entry);
+    if (s.log.length > 8) s.log.pop();
+
+    if (ui.logList) {
+      const node = logNode(entry);
+      if (ui.logList.firstElementChild) node.classList.add('is-new');
+      ui.logList.prepend(node);
+      while (ui.logList.children.length > 8) {
+        ui.logList.lastElementChild.remove();
+      }
+    }
+  }
+
+  function logNode(entry) {
+    return el('li', { class: 'log__item log--' + entry.kind }, [
+      el('span', { class: 'log__t', 'aria-hidden': 'true', text: String(entry.turn) }),
+      el('span', { class: 'log__x', text: entry.text })
+    ]);
+  }
+
+  function renderLogAll() {
+    if (!ui.logList) return;
+    ui.logList.textContent = '';
+    s.log.forEach(function (entry) {
+      ui.logList.appendChild(logNode(entry));
+    });
+  }
+
+  /* ============================================================
+     一世的生命周期
+     ============================================================ */
+
+  function newRun() {
+    if (view === 'game' && s && s.turns === 0 && !finished) return;
+    legacy = loadLegacy();
+    records = loadRecords();
+    finished = false;
+    endInfo = null;
+    lastEventId = null;
+    s = {
+      v: 1,
+      realm: 0,
+      exp: 0,
+      stones: START_STONES,
+      life: START_LIFE,
+      root: clamp(BASE_ROOT + legacy.root * 2, 0, MAX.root),
+      insight: clamp(BASE_INSIGHT + legacy.insight, 0, MAX.insight),
+      luck: clamp(BASE_LUCK + legacy.luck * 2, 0, MAX.luck),
+      demon: 0,
+      pills: 0,
+      lives: legacy.lives,
+      turns: 0,
+      maxDemon: 0,
+      cooldown: 0,
+      startedAt: Date.now(),
+      log: [],
+      logSeq: 0
+    };
+    pushLog('入山第一息，先定心神。', 'info');
+    saveGame(true);
+    mountGame();
+
+    const bonus = [];
+    if (legacy.root > 0) bonus.push('根骨 +' + (legacy.root * 2));
+    if (legacy.insight > 0) bonus.push('悟性 +' + legacy.insight);
+    if (legacy.luck > 0) bonus.push('气运 +' + (legacy.luck * 2));
+    if (bonus.length) {
+      toast('承前世之基：' + bonus.join(' · '), 2400);
+    }
+  }
+
+  function resumeRun(saved) {
+    if (view === 'game') return;
+    legacy = loadLegacy();
+    records = loadRecords();
+    s = saved;
+    finished = false;
+    endInfo = null;
+    lastEventId = null;
+    mountGame();
+    toast('续修：' + REALMS[s.realm] + '境 · 第 ' + s.turns + ' 息');
+  }
+
+  function finish(kind, cause) {
+    if (finished || !s) return;
+    finished = true;
+    closeEvent(true);
+
+    const realmIdx = s.realm;
+    const base = realmIdx * 3 + Math.floor(s.stones / 5) + s.lives;
+    const earned = kind === 'ascend' ? Math.round(base * 1.5) : base;
+
+    legacy = loadLegacy();
+    legacy.points = clamp(legacy.points + earned, 0, 99999);
+    legacy.lives = clamp(s.lives + 1, 0, 99999);
+    saveLegacy();
+
+    records = loadRecords();
+    if (kind === 'ascend') {
+      records.bestRealm = 9;
+      records.minAscend = records.minAscend === null
+        ? s.turns
+        : Math.min(records.minAscend, s.turns);
+      records.ascensions += 1;
+    } else {
+      records.bestRealm = Math.max(records.bestRealm, s.realm);
+      records.deaths += 1;
+    }
+    saveRecords();
+    clearSave();
+
+    endInfo = {
+      kind: kind,
+      cause: cause || '',
+      realm: s.realm,
+      turns: s.turns,
+      maxDemon: s.maxDemon,
+      stones: s.stones,
+      lives: s.lives,
+      base: base,
+      earned: earned,
+      timeMs: Math.max(0, Date.now() - s.startedAt)
+    };
+
+    showEnd();
+  }
+
+  function afterAction(forceSave) {
+    if (!s) return;
+    if (s.life <= 0) {
+      finish('death', '寿元耗尽，坐化于洞府');
+      return;
+    }
+    if (forceSave || s.turns % 5 === 0) saveGame(true);
+    renderGame();
+  }
+
+  /* ============================================================
+     数值计算
+     ============================================================ */
+
+  function meditateGain() {
+    return Math.floor((2 + s.insight + s.root) * (1 + 0.15 * s.realm));
+  }
+
+  function breakInfo() {
+    const base = 0.52;
+    const luckTerm = 0.02 * s.luck;
+    const pillTerm = 0.18 * s.pills;
+    const demonTerm = 0.004 * s.demon;
+    const big = BIG_GATES.has(s.realm) ? 0.12 : 0;
+    const raw = base + luckTerm + pillTerm - demonTerm - big;
+    return {
+      base: base,
+      luckTerm: luckTerm,
+      pillTerm: pillTerm,
+      demonTerm: demonTerm,
+      big: big,
+      raw: raw,
+      p: clamp(raw, 0.05, 0.95)
+    };
+  }
+
+  function spendTurn() {
+    if (!s) return;
+    s.turns += 1;
+    s.life -= 1;
+    if (s.cooldown > 0) s.cooldown -= 1;
+    if (s.demon > s.maxDemon) s.maxDemon = s.demon;
+  }
+
+  function addDemon(n) {
+    if (!s) return;
+    s.demon = clamp(s.demon + n, 0, MAX.demon);
+    if (s.demon > s.maxDemon) s.maxDemon = s.demon;
+  }
+
+  function addLife(n) {
+    if (!s) return;
+    s.life = clamp(s.life + n, 0, 999999);
+  }
+
+  function addStones(n) {
+    if (!s) return;
+    s.stones = clamp(s.stones + n, 0, 999999);
+  }
+
+  function giveExpFraction(frac) {
+    if (!s) return 0;
+    const n = Math.max(3, Math.round(needOf(s.realm) * frac));
+    s.exp += n;
+    return n;
+  }
+
+  function addStat(name, n) {
+    if (!s) return;
+    if (name === 'insight') s.insight = clamp(s.insight + n, 0, MAX.insight);
+    else if (name === 'luck') s.luck = clamp(s.luck + n, 0, MAX.luck);
+    else if (name === 'root') s.root = clamp(s.root + n, 0, MAX.root);
+  }
+
+  function addPill(n) {
+    if (!s) return;
+    s.pills = clamp(s.pills + n, 0, MAX.pills);
+  }
+
+  function canAct() {
+    return view === 'game' && !!s && !finished && !ui.event && s.life > 0;
+  }
+
+  /* ============================================================
+     行动
+     ============================================================ */
+
+  function actMeditate() {
+    if (!canAct()) return;
+    let gain = meditateGain();
+    let epiphany = false;
+    const insightBefore = s.insight;
+    if (rand.chance(MEDITATE_EPIPHANY)) {
+      epiphany = true;
+      gain = Math.floor(gain * 1.5);
+      addStat('insight', 1);
+    }
+    const insightUp = s.insight > insightBefore;
+    s.exp += gain;
+    spendTurn();
+    pushLog(
+      epiphany
+        ? '顿悟：修为 +' + gain + (insightUp ? '，悟性 +1' : '，悟性已满')
+        : '打坐一息，修为 +' + gain,
+      'gain'
+    );
+    afterAction(false);
+  }
+
+  function actTen() {
+    if (!canAct()) return;
+    let total = 0;
+    let epiphanies = 0;
+    let insightGains = 0;
+    let spent = 0;
+    let dead = false;
+
+    for (let i = 0; i < 10; i += 1) {
+      if (s.life <= 0) { dead = true; break; }
+      let gain = meditateGain();
+      if (rand.chance(MEDITATE_EPIPHANY)) {
+        epiphanies += 1;
+        gain = Math.floor(gain * 1.5);
+        const insightBefore = s.insight;
+        addStat('insight', 1);
+        if (s.insight > insightBefore) insightGains += 1;
+      }
+      s.exp += gain;
+      total += gain;
+      spendTurn();
+      spent += 1;
+      if (s.life <= 0) { dead = true; break; }
+    }
+
+    if (spent > 0) {
+      pushLog('连修 ' + spent + ' 息，修为 +' + total, 'gain');
+      if (epiphanies > 0) {
+        pushLog(
+          '其中顿悟 ' + epiphanies + ' 次' + (insightGains > 0 ? '，悟性 +' + insightGains : '，悟性已满'),
+          'gain'
+        );
+      }
+    }
+    if (dead) {
+      finish('death', '十息未尽，寿元已枯');
+      return;
+    }
+    saveGame(true);
+    renderGame();
+  }
+
+  function actAdventure() {
+    if (!canAct()) return;
+    openEvent();
+  }
+
+  function actAlchemy() {
+    if (!canAct()) return;
+    if (s.pills >= MAX.pills || s.stones < 3) return;
+    s.stones -= 3;
+    s.pills += 1;
+    spendTurn();
+    pushLog('炉火温养，得丹一枚', 'gain');
+    afterAction(false);
+  }
+
+  function actRest() {
+    if (!canAct()) return;
+    if (s.cooldown > 0) return;
+    s.demon = clamp(s.demon - 18, 0, MAX.demon);
+    s.life += 6;
+    spendTurn();
+    s.cooldown = 3;
+    pushLog('调息一炷香，心魔退散', 'gain');
+    afterAction(false);
+  }
+
+  function actBreak() {
+    if (!canAct()) return;
+    const need = needOf(s.realm);
+    if (s.exp < need) return;
+
+    const info = breakInfo();
+    const pillsUsed = s.pills;
+    s.pills = 0;
+    s.cooldown = 0;
+
+    const success = rand.chance(info.p);
+    let ascended = false;
+    let fatal = false;
+
+    if (success) {
+      s.exp = 0;
+      s.life += 15;
+      addStat('root', 1);
+      addStat('insight', 1);
+      addStat('luck', 1);
+      if (s.realm >= REALMS.length - 1) {
+        ascended = true;
+      } else {
+        s.realm += 1;
+      }
+    } else {
+      s.life -= 18;
+      addDemon(12);
+      // 早期境界不夺命：炼气/筑基失手只伤道基，不至于两息暴毙；
+      // 越高阶越凶险，心魔缠身时再加重。
+      const fatalOdds = s.realm <= 1 ? 0 : (s.realm <= 3 ? 0.12 : 0.25) + (s.demon >= 60 ? 0.1 : 0);
+      fatal = rand.chance(fatalOdds);
+    }
+
+    spendTurn();
+
+    if (ascended) {
+      finish('ascend', '九境已尽，天门为开');
+      return;
+    }
+    if (fatal) {
+      finish('death', '道基崩碎，身死道消');
+      return;
+    }
+    if (s.life <= 0) {
+      finish('death', '破境反噬，寿元耗尽');
+      return;
+    }
+
+    if (success) {
+      pushLog('破境成功，入' + REALMS[s.realm] + '境' + (pillsUsed ? '（耗丹 ' + pillsUsed + '）' : ''), 'break');
+    } else {
+      pushLog('破境失败，寿元 −18，心魔 +12' + (pillsUsed ? '（耗丹 ' + pillsUsed + '）' : ''), 'loss');
+    }
+
+    saveGame(true);
+    renderGame();
+  }
+
+  /* ============================================================
+     随机事件
+     ============================================================ */
+
+  const EVENTS = [
+    {
+      id: 'cave',
+      title: '古洞遗宝',
+      tag: '机缘',
+      scene: '山雨初歇，崖壁塌出半扇石门。苔下篆文未腐，门缝里透出淡淡丹香，也透出一线极细的杀机。',
+      options: [
+        {
+          label: '只拾门外散落的灵石，不碰门内禁制',
+          tag: '稳妥',
+          run: function () {
+            addStones(5);
+            giveExpFraction(0.08);
+            addDemon(2);
+            return '你在门槛外拾得几枚灵石，退开十步，石门在身后无声合拢。';
+          }
+        },
+        {
+          label: '推开石门，直入洞府深处寻那件遗宝',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.65)) {
+              giveExpFraction(0.35);
+              addStones(6);
+              addDemon(7);
+              addLife(-5);
+              return '你绕过残阵，从石匣中取出一枚玉简，指间却沾了洞中阴气。';
+            }
+            addLife(-12);
+            addDemon(10);
+            return '禁制骤然反噬，你仓皇退出，衣袖被血浸透，只带回一身阴寒。';
+          }
+        },
+        {
+          label: '以灵石布阵稳住禁制，再取那枚旧丹',
+          tag: '破财',
+          cost: 6,
+          run: function () {
+            addStones(-6);
+            addPill(1);
+            giveExpFraction(0.10);
+            addDemon(-3);
+            return '阵法压住禁制，你取走一枚温润旧丹，衣角未沾半点尘埃。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'market',
+      title: '坊市赌斗',
+      tag: '红尘',
+      scene: '坊市夜灯如豆，一名散修摆下灵石赌局。骰子在粗瓷碗里起落，围观的人时而喝彩，时而扼腕。',
+      options: [
+        {
+          label: '押一枚小注，见好就收，不恋战',
+          tag: '稳妥',
+          run: function () {
+            giveExpFraction(0.05);
+            if (rand.chance(0.6)) {
+              addStones(3);
+              return '骰子停在你要的点上，你收了灵石便走，身后有人懊恼地拍桌。';
+            }
+            addStones(-1);
+            return '这一把输了，你笑了笑，把空茶盏放回桌上，起身离席。';
+          }
+        },
+        {
+          label: '押上大半身家，赌一局大的',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.5)) {
+              addStones(10);
+              giveExpFraction(0.12);
+              addDemon(4);
+              return '骰盅揭开，满场寂静。你收走灵石，也收走了一束嫉妒的目光。';
+            }
+            addStones(-6);
+            addDemon(8);
+            return '骰子偏了半寸，你的灵石被扫进庄家袖中，胸口像堵了一块冷铁。';
+          }
+        },
+        {
+          label: '买下庄家手里那张旧签，换一缕气运',
+          tag: '破财',
+          cost: 6,
+          run: function () {
+            addStones(-6);
+            addStat('luck', 2);
+            return '旧签上的朱砂早已褪色，你握在掌心，却觉得前路亮了一线。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'demon',
+      title: '魔修拦路',
+      tag: '杀机',
+      scene: '山道尽头黑雾翻涌，一名魔修横刀而立。他不问姓名，只问你身上有多少灵石，又有几分胆气。',
+      options: [
+        {
+          label: '绕道而行，宁可多走半日山路',
+          tag: '稳妥',
+          run: function () {
+            addLife(-3);
+            addDemon(3);
+            giveExpFraction(0.05);
+            return '你从背阴的岔路绕开，鞋底沾满泥，回头时黑雾已经散了。';
+          }
+        },
+        {
+          label: '祭出法器，与魔修正面斗法',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.6)) {
+              giveExpFraction(0.32);
+              addStones(5);
+              addDemon(6);
+              addLife(-5);
+              return '刀光擦着眉骨过去，你一剑洞穿黑雾，从他腰间取走了储物袋。';
+            }
+            addLife(-14);
+            addDemon(12);
+            return '魔气顺着伤口钻入经脉，你且战且退，直到山道上只剩自己的血。';
+          }
+        },
+        {
+          label: '掷出灵石买路，破财免去一场死斗',
+          tag: '破财',
+          cost: 5,
+          run: function () {
+            addStones(-5);
+            addDemon(-8);
+            addLife(3);
+            return '魔修掂了掂灵石，侧身让开。你走过他身边，没有回头。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'sister',
+      title: '师姐赠丹',
+      tag: '同门',
+      scene: '同门师姐在溪畔唤住你，掌心托着一枚新出炉的丹药。她说自己用不上，你却看见她袖口沾着炉灰。',
+      options: [
+        {
+          label: '谢过师姐，收下这枚丹药',
+          tag: '稳妥',
+          run: function () {
+            addPill(1);
+            addStat('luck', 1);
+            return '丹药还带着余温。师姐摆摆手，转身去洗药炉，没再多说什么。';
+          }
+        },
+        {
+          label: '请她再开一炉，你替她护法三日',
+          tag: '涉险',
+          run: function () {
+            addLife(-6);
+            giveExpFraction(0.12);
+            addPill(1);
+            addDemon(3);
+            return '炉火三夜未熄，你守在门外，晨光落肩时又得了一枚新丹。';
+          }
+        },
+        {
+          label: '以灵石回赠，换她一句修行心得',
+          tag: '破财',
+          cost: 4,
+          run: function () {
+            addStones(-4);
+            addStat('insight', 1);
+            addStat('luck', 1);
+            return '师姐没有推辞，只说了七个字。你走到山下，才忽然听懂。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'thunder',
+      title: '雷雨悟道',
+      tag: '天时',
+      scene: '骤雨压山，雷光在云里游走。你站在崖边，忽觉天地呼吸与经脉同频，胸中有一线光亮欲破。',
+      options: [
+        {
+          label: '静立檐下，听雷观雨，不冒进',
+          tag: '稳妥',
+          run: function () {
+            giveExpFraction(0.15);
+            addDemon(-3);
+            return '雨脚扫过石阶，你听着雷声一远一近，心口那点躁意慢慢沉了下去。';
+          }
+        },
+        {
+          label: '引雷入体，借天威冲开经脉',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.65)) {
+              addStat('insight', 2);
+              giveExpFraction(0.28);
+              addLife(-8);
+              return '雷霆贯顶而过，你在焦土里睁开眼，第一次看清了灵气行走的纹路。';
+            }
+            addLife(-14);
+            addDemon(8);
+            return '雷光在经脉里炸开，你伏在崖边咳血，耳中只剩长久的轰鸣。';
+          }
+        },
+        {
+          label: '以灵石布一座引雷阵，稳住心神再引',
+          tag: '破财',
+          cost: 5,
+          run: function () {
+            addStones(-5);
+            addStat('insight', 1);
+            giveExpFraction(0.18);
+            addDemon(-4);
+            return '阵旗在雨里猎猎作响，雷光被拆成细丝，顺着阵纹缓缓流入体内。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'brothel',
+      title: '青楼问心',
+      tag: '红尘',
+      scene: '河畔灯火通明，有人唤你上楼听曲。丝竹声里，旧事与妄念一同浮起，心口微微发烫，你却在楼梯口停了半步。',
+      options: [
+        {
+          label: '只饮一盏清茶，听一曲便走',
+          tag: '稳妥',
+          run: function () {
+            addDemon(-8);
+            addLife(2);
+            return '曲罢，你放下茶钱下楼。夜风一吹，心里那点热已经散了。';
+          }
+        },
+        {
+          label: '留宿风月场，借红尘磨一磨心',
+          tag: '涉险',
+          run: function () {
+            addDemon(10);
+            addStat('luck', 2);
+            addStones(5);
+            return '天明时你从后门离开，袖中多了几枚灵石，心里却空了一块。';
+          }
+        },
+        {
+          label: '以灵石点一曲清心，独坐到天明',
+          tag: '破财',
+          cost: 5,
+          run: function () {
+            addStones(-5);
+            addDemon(-14);
+            addStat('insight', 1);
+            return '琴声初听缠绵，后来只剩一根弦。你在最后一个音里坐到了天明。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'beast',
+      title: '灵兽认主',
+      tag: '山灵',
+      scene: '林间一头小兽被藤蔓缠住，见了你不逃，只低低呜咽。它额心有一点未干的血纹，像是某种契印。',
+      options: [
+        {
+          label: '解开藤蔓，放它归林，不结因果',
+          tag: '稳妥',
+          run: function () {
+            addStat('luck', 1);
+            giveExpFraction(0.06);
+            return '小兽绕你转了两圈，才钻进草丛。你走出很远，还听见它回头叫。';
+          }
+        },
+        {
+          label: '以血喂它，强行结下主仆之契',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.6)) {
+              addStat('root', 2);
+              addStat('luck', 1);
+              giveExpFraction(0.08);
+              return '血纹亮了一瞬，小兽伏在你脚边。从此你行走山野，多了一双眼睛。';
+            }
+            addLife(-10);
+            addDemon(6);
+            return '契印反噬，小兽咬穿你的虎口逃走。伤口不深，却总在夜里发痒。';
+          }
+        },
+        {
+          label: '以灵石买下灵谷，慢慢将它养熟',
+          tag: '破财',
+          cost: 4,
+          run: function () {
+            addStones(-4);
+            addStat('root', 1);
+            addStat('luck', 1);
+            giveExpFraction(0.05);
+            return '它起初只肯在远处吃，后来会卧在你膝边。你出门时，它跟了很远。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'sect',
+      title: '宗门试炼',
+      tag: '试炼',
+      scene: '宗门试炼开启，外门弟子皆可登问心阶。阶上生幻象，也生真伤，执事在山巅敲钟计时，钟声一响便不容人回头。',
+      options: [
+        {
+          label: '走完外门九阶，不求名次，只求稳当',
+          tag: '稳妥',
+          run: function () {
+            giveExpFraction(0.12);
+            addStones(4);
+            return '你一步一步走完石阶，钟响时名次不高，执事却多看了你一眼。';
+          }
+        },
+        {
+          label: '直上内门问心阶，争一个首席',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.55)) {
+              giveExpFraction(0.35);
+              addStones(5);
+              addStat('luck', 1);
+              addLife(-8);
+              return '最后一级石阶上，你看见了从未见过的自己。钟声落下，满场无声。';
+            }
+            addLife(-12);
+            addDemon(8);
+            return '幻象里故人递酒，你伸手去接，醒来已躺在阶下，满口血腥。';
+          }
+        },
+        {
+          label: '向执事奉上灵石，换一次单独指点',
+          tag: '破财',
+          cost: 6,
+          run: function () {
+            addStones(-6);
+            addStat('insight', 1);
+            giveExpFraction(0.15);
+            return '执事收下灵石，在你掌心写半句口诀。你想了一夜，才补全另一半。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'plague',
+      title: '瘟疫救民',
+      tag: '人间',
+      scene: '山下村落起了瘟疫，家家闭户，只有药炉还冒着苦烟。老郎中拉住你，说缺一味药引，也缺一个敢试药的人。',
+      options: [
+        {
+          label: '在村口设棚施药，尽力而为',
+          tag: '稳妥',
+          run: function () {
+            addLife(-2);
+            addStat('luck', 1);
+            giveExpFraction(0.08);
+            addDemon(-3);
+            return '你守了三日药棚，救不回所有人，但活下来的孩子会记住你的手。';
+          }
+        },
+        {
+          label: '以身试药，替村民试出方子',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.6)) {
+              addStat('luck', 3);
+              addLife(-8);
+              giveExpFraction(0.15);
+              return '药性在腹中翻搅，你吐出一口黑血，却把方子试了出来。';
+            }
+            addLife(-14);
+            addDemon(6);
+            return '药性太烈，你昏了两日。醒来时瘟疫已退，你的经脉却留下暗伤。';
+          }
+        },
+        {
+          label: '捐出灵石，请城中铺子连夜送药',
+          tag: '破财',
+          cost: 7,
+          run: function () {
+            addStones(-7);
+            addStat('luck', 2);
+            addDemon(-8);
+            giveExpFraction(0.05);
+            return '药车半夜进村，灯火一盏盏亮起来。老郎中朝你深深揖了一礼。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'master',
+      title: '坐化洞府',
+      tag: '前尘',
+      scene: '荒山腹地有一座无主洞府，玉简散落一地。正中蒲团上坐着一具枯骨，指骨仍搭在膝前，像在等谁。',
+      options: [
+        {
+          label: '取走几卷玉简，向枯骨郑重一拜',
+          tag: '稳妥',
+          run: function () {
+            addStat('insight', 1);
+            giveExpFraction(0.08);
+            return '玉简里是前辈的修行札记。你拜了三拜，把蒲团上的灰拂净了。';
+          }
+        },
+        {
+          label: '强破核心禁制，取那件陪葬遗宝',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.55)) {
+              giveExpFraction(0.35);
+              addStones(8);
+              addLife(-10);
+              addDemon(8);
+              return '宝光破开尘土，你握住那件法器，也听见洞府深处有什么东西醒了。';
+            }
+            addLife(-16);
+            addDemon(12);
+            return '禁制合拢，你断了一臂才退出洞府。枯骨在你身后轻轻叹了口气。';
+          }
+        },
+        {
+          label: '以灵石供香，在洞府里静坐三日',
+          tag: '破财',
+          cost: 5,
+          run: function () {
+            addStones(-5);
+            giveExpFraction(0.18);
+            addDemon(-10);
+            return '香烟笔直上升，你在前辈坐化的位置坐了三日，像得到了很多。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'sword',
+      title: '剑冢残碑',
+      tag: '剑意',
+      scene: '剑冢无风，残碑上的字被岁月啃去一半。你以指腹描过凹痕，忽有一线锐意顺着指尖直上眉心。',
+      options: [
+        {
+          label: '拓下碑文，留待日后慢慢参悟',
+          tag: '稳妥',
+          run: function () {
+            giveExpFraction(0.15);
+            addDemon(2);
+            return '拓纸裂了一道口子。你把残碑的剑意收进袖中，转身下山。';
+          }
+        },
+        {
+          label: '以血启碑，承下碑中那一道剑意',
+          tag: '涉险',
+          run: function () {
+            if (rand.chance(0.55)) {
+              addStat('root', 2);
+              giveExpFraction(0.25);
+              addLife(-8);
+              return '碑面裂开一线，剑意冲入识海。你吐出一口浊气，指尖多了薄茧。';
+            }
+            addLife(-12);
+            addDemon(10);
+            return '剑意不肯认主，在经脉里横冲直撞。你抱残碑睡去，醒来满手是血。';
+          }
+        },
+        {
+          label: '以灵石请铸剑师拓下完整碑文',
+          tag: '破财',
+          cost: 4,
+          run: function () {
+            addStones(-4);
+            addStat('insight', 1);
+            giveExpFraction(0.10);
+            return '铸剑师拓了一夜，将碑文装订成册。你翻开首页，看见自己的名字。';
+          }
+        }
+      ]
+    },
+    {
+      id: 'qin',
+      title: '月下听琴',
+      tag: '清音',
+      scene: '夜宿江船，邻舟有人抚琴。曲调初时清冷，后来渐渐低回，像把一件旧事反复揉进月色里。',
+      options: [
+        {
+          label: '倚舷静听，不去惊扰琴人',
+          tag: '稳妥',
+          run: function () {
+            addDemon(-10);
+            addLife(3);
+            return '一曲终了，江面只剩月光。你想起很久以前，也有人弹过琴。';
+          }
+        },
+        {
+          label: '循声登舟，与琴人对坐论道',
+          tag: '涉险',
+          run: function () {
+            addStat('insight', 2);
+            addDemon(8);
+            addLife(-4);
+            return '你们从琴谈到道，从道谈到生死。天亮时琴人不见，只剩一根断弦。';
+          }
+        },
+        {
+          label: '以灵石换一壶酒，与琴人共饮',
+          tag: '破财',
+          cost: 5,
+          run: function () {
+            addStones(-5);
+            addStat('luck', 2);
+            addDemon(-4);
+            return '酒是冷的，琴是暖的。你喝到微醺，听见他说：下一次，走快些。';
+          }
+        }
+      ]
+    }
+  ];
+
+  function pickEvent() {
+    const pool = EVENTS.filter(function (ev) { return ev.id !== lastEventId; });
+    return rand.pick(pool.length ? pool : EVENTS);
+  }
+
+  function openEvent() {
+    if (!canAct()) return;
+    const ev = pickEvent();
+    const layer = el('div', { class: 'event-layer', role: 'presentation' });
+    const card = el('div', {
+      class: 'panel event',
+      role: 'dialog',
+      'aria-modal': 'true',
+      'aria-labelledby': 'eventTitle',
+      'aria-describedby': 'eventScene'
+    });
+
+    const head = el('div', { class: 'event__head' }, [
+      el('div', { class: 'eyebrow', style: { marginBottom: '0' }, text: '山野异闻' }),
+      el('span', { class: 'tag', text: ev.tag })
+    ]);
+
+    const title = el('h2', { id: 'eventTitle', text: ev.title });
+    const scene = el('p', { class: 'event__scene', id: 'eventScene', text: ev.scene });
+    const opts = el('div', { class: 'event__opts' });
+
+    const choices = ev.options.map(function (opt, idx) {
+      const enabled = !opt.cost || s.stones >= opt.cost;
+      const tagText = enabled ? opt.tag : '灵石不足';
+      const tagClass = 'event__tag' + (opt.tag === '涉险' ? ' red' : (enabled ? '' : ' dim'));
+      const btn = el('button', {
+        class: 'event__opt',
+        type: 'button',
+        disabled: !enabled,
+        'aria-label': opt.label + '（' + tagText + '）'
+      }, [
+        el('span', { class: 'event__key', 'aria-hidden': 'true', text: String(idx + 1) }),
+        el('span', { class: 'event__optText', text: opt.label }),
+        el('span', { class: tagClass, text: tagText })
+      ]);
+      btn.addEventListener('click', function () { chooseEvent(idx); });
+      opts.appendChild(btn);
+      return { opt: opt, enabled: enabled, node: btn };
+    });
+
+    card.appendChild(head);
+    card.appendChild(title);
+    card.appendChild(scene);
+    card.appendChild(opts);
+    card.appendChild(el('p', {
+      class: 'event__foot',
+      text: '此间事不可避。择定之后，耗去一息。数字键 1–3 亦可择路。'
+    }));
+
+    layer.appendChild(card);
+    document.body.appendChild(layer);
+    document.body.classList.add('is-locked');
+
+    ui.event = { ev: ev, layer: layer, card: card, choices: choices };
+
+    requestAnimationFrame(function () {
+      const first = qs('.event__opt:not([disabled])', card) || qs('.event__opt', card);
+      if (first) first.focus();
+    });
+  }
+
+  function closeEvent(silent) {
+    if (!ui.event) return;
+    const layer = ui.event.layer;
+    ui.event = null;
+    document.body.classList.remove('is-locked');
+    if (layer && layer.parentNode) layer.remove();
+    if (!silent && ui.btnAdventure) {
+      try { ui.btnAdventure.focus(); } catch (err) { /* focus 在部分环境会失败，忽略 */ }
+    }
+  }
+
+  function snapshot() {
+    return {
+      exp: s.exp,
+      stones: s.stones,
+      life: s.life,
+      demon: s.demon,
+      pills: s.pills,
+      insight: s.insight,
+      luck: s.luck,
+      root: s.root
+    };
+  }
+
+  function diffText(before) {
+    const parts = [];
+    if (s.exp !== before.exp) parts.push('修为 ' + signed(s.exp - before.exp));
+    if (s.stones !== before.stones) parts.push('灵石 ' + signed(s.stones - before.stones));
+    if (s.life !== before.life) parts.push('寿元 ' + signed(s.life - before.life));
+    if (s.demon !== before.demon) parts.push('心魔 ' + signed(s.demon - before.demon));
+    if (s.pills !== before.pills) parts.push('丹药 ' + signed(s.pills - before.pills));
+    if (s.insight !== before.insight) parts.push('悟性 ' + signed(s.insight - before.insight));
+    if (s.luck !== before.luck) parts.push('气运 ' + signed(s.luck - before.luck));
+    if (s.root !== before.root) parts.push('根骨 ' + signed(s.root - before.root));
+
+    // 日志以短句为主：超出二十八字时只保留前面几项，细节留在徽标里。
+    const kept = [];
+    for (const part of parts) {
+      const next = kept.concat(part);
+      if (next.join(' · ').length > 28) break;
+      kept.push(part);
+    }
+    return kept.join(' · ');
+  }
+
+  function diffKind(before) {
+    const gain = s.exp > before.exp || s.stones > before.stones || s.life > before.life
+      || s.demon < before.demon || s.insight > before.insight || s.luck > before.luck || s.root > before.root;
+    const loss = s.life < before.life || s.stones < before.stones || s.demon > before.demon;
+    if (loss && !gain) return 'loss';
+    if (gain && !loss) return 'gain';
+    return 'info';
+  }
+
+  function chooseEvent(idx) {
+    if (!ui.event || !s || finished) return;
+    const choice = ui.event.choices[idx];
+    if (!choice) return;
+    if (!choice.enabled) {
+      toast('灵石不足，另择一路');
+      return;
+    }
+
+    const evId = ui.event.ev.id;
+    const before = snapshot();
+    let result = '';
+    try {
+      result = choice.opt.run() || '你做了该做的事，山风替你掩去痕迹。';
+    } catch (err) {
+      result = '事情有些出入，你只记得山风很冷。';
+    }
+
+    closeEvent(true);
+    spendTurn();
+    lastEventId = evId;
+
+    pushLog(result, 'event');
+    const delta = diffText(before);
+    if (delta) pushLog(delta, diffKind(before));
+
+    if (s.life <= 0) {
+      finish('death', '山野历练伤重，身死道消');
+      return;
+    }
+
+    if (s.turns % 5 === 0) saveGame(true);
+    renderGame();
+    if (ui.btnAdventure) {
+      try { ui.btnAdventure.focus(); } catch (err) { /* ignore */ }
+    }
+  }
+
+  /* ============================================================
+     传承分配
+     ============================================================ */
+
+  function legacyRows() {
+    return [
+      { key: 'root', name: '根骨', effect: '打坐基础 +2 / 级', now: '打坐 +' + (legacy.root * 2) },
+      { key: 'insight', name: '悟性', effect: '打坐 +1 / 级', now: '悟性 +' + legacy.insight },
+      { key: 'luck', name: '气运', effect: '突破 +2% / 级', now: '突破 +' + (legacy.luck * 2) + '%' }
+    ];
+  }
+
+  function invest(key) {
+    legacy = loadLegacy();
+    if (legacy.points < LEGACY_COST) {
+      toast('传承点不足，需 ' + LEGACY_COST + ' 点');
+      return;
+    }
+    if (legacy[key] >= LEGACY_MAX) {
+      toast('此道已至尽头');
+      return;
+    }
+    legacy.points -= LEGACY_COST;
+    legacy[key] += 1;
+    saveLegacy();
+    const row = legacyRows().filter(function (r) { return r.key === key; })[0];
+    toast('传承已深：' + (row ? row.name : key) + ' +1 级');
+
+    scrollKeep(function () {
+      if (view === 'end') showEnd();
+      else showStart();
+    });
+  }
+
+  function buildLegacyPanel() {
+    const totalLevels = legacy.root + legacy.insight + legacy.luck;
+    const panel = el('section', { class: 'panel panel--tight legacy' }, [
+      el('div', { class: 'legacy__head' }, [
+        el('div', {}, [
+          el('div', { class: 'eyebrow', style: { marginBottom: '6px' }, text: '转世传承' }),
+          el('h2', { style: { marginBottom: '0' }, text: '三世积累，一念带过' })
+        ]),
+        el('div', { class: 'legacy__points' }, [
+          String(legacy.points),
+          el('small', { text: '可用' })
+        ])
+      ])
+    ]);
+
+    legacyRows().forEach(function (row) {
+      const level = legacy[row.key];
+      const maxed = level >= LEGACY_MAX;
+      const canBuy = legacy.points >= LEGACY_COST && !maxed;
+      const pips = el('div', { class: 'legacy__pips', 'aria-hidden': 'true' });
+      for (let i = 0; i < LEGACY_MAX; i += 1) {
+        pips.appendChild(el('span', { class: 'pip' + (i < level ? ' on' : '') }));
+      }
+
+      const buy = el('button', {
+        class: 'btn btn--ghost btn--small',
+        type: 'button',
+        disabled: !canBuy,
+        title: maxed ? '此道已满' : (legacy.points < LEGACY_COST ? '传承点不足' : '投入 ' + LEGACY_COST + ' 点传承')
+      }, maxed ? '已满' : '投入 2 点');
+      buy.addEventListener('click', function () { invest(row.key); });
+
+      panel.appendChild(el('div', { class: 'legacy__row' }, [
+        el('div', { class: 'legacy__info' }, [
+          el('div', { class: 'legacy__name' }, [
+            row.name,
+            el('span', { class: 'legacy__lvl', style: { marginLeft: '8px' }, text: 'Lv.' + level + ' / ' + LEGACY_MAX })
+          ]),
+          el('div', { class: 'legacy__effect', text: row.effect + (level > 0 ? ' · 当前 ' + row.now : '') }),
+          pips
+        ]),
+        el('div', { class: 'legacy__buy' }, [buy])
+      ]));
+    });
+
+    panel.appendChild(el('p', {
+      class: 'legacy__note',
+      text: totalLevels > 0
+        ? '已承前世之基。每次飞升或坐化后结算传承点，转世重修时生效。'
+        : '每级耗 2 点传承。飞升所得 ×1.5；传承不会随一世结束而消失。'
+    }));
+
+    return panel;
+  }
+
+  /* ============================================================
+     起始页
+     ============================================================ */
+
+  function startOrnament() {
+    return el('div', { class: 'hero__art', 'aria-hidden': 'true', html:
+      '<svg viewBox="0 0 520 210" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<circle cx="410" cy="56" r="34" stroke="#c9a86a" stroke-opacity=".5" stroke-width="1.2"/>' +
+        '<circle cx="410" cy="56" r="45" stroke="#c9a86a" stroke-opacity=".14" stroke-width="1"/>' +
+        '<path d="M4 176 L84 106 L136 146 L198 78 L262 152 L326 112 L402 168 L516 118" stroke="#c9a86a" stroke-opacity=".34" stroke-width="1.4" stroke-linejoin="round"/>' +
+        '<path d="M4 184 L98 126 L158 160 L222 104 L292 168 L356 132 L430 176 L516 142" stroke="#6c8fc4" stroke-opacity=".2" stroke-width="1"/>' +
+        '<path d="M300 180 L338 128 L354 148 L372 118 L408 180" stroke="#e0604f" stroke-opacity=".55" stroke-width="1.1" stroke-linejoin="round"/>' +
+        '<path d="M326 180 L344 152 L354 162 L366 142 L386 180" stroke="#c9a86a" stroke-opacity=".5" stroke-width="1"/>' +
+        '<circle cx="96" cy="52" r="2" fill="#c9a86a" fill-opacity=".8"/>' +
+        '<circle cx="150" cy="30" r="1.4" fill="#c9a86a" fill-opacity=".55"/>' +
+        '<circle cx="238" cy="44" r="1.7" fill="#6fa89a" fill-opacity=".6"/>' +
+        '<circle cx="468" cy="96" r="1.5" fill="#c9a86a" fill-opacity=".5"/>' +
+        '<path d="M56 64 h14 M63 57 v14" stroke="#c9a86a" stroke-opacity=".3"/>' +
+      '</svg>'
+    });
+  }
+
+  function showStart() {
+    s = null;
+    view = 'start';
+    finished = false;
+    ui = {};
+    legacy = loadLegacy();
+    records = loadRecords();
+    const saved = loadSave();
+    if (!saved) clearSave();
+
+    const screen = el('div', { class: 'start screen' });
+
+    const hero = el('section', { class: 'hero fade-up' }, [
+      startOrnament(),
+      el('div', { class: 'eyebrow', text: '卷三 · XIANXIA · FAST RUN' }),
+      el('h1', { class: 'title-xl' }, [
+        '一念',
+        el('em', { text: '飞升' }),
+        el('span', { class: 'title-sub', text: '九境 · 一世 · 六十至一百息' })
+      ]),
+      el('p', { class: 'lede' }, [
+        '一息一息地坐，一关一关地破。九境尽头，天门只为肯舍命的人开；',
+        '若道途断在中途，便把这副骨头里剩下的东西，留给下一世。'
+      ]),
+      el('div', { class: 'hero__tags' }, [
+        el('span', { class: 'tag', text: '快节奏 Roguelite' }),
+        el('span', { class: 'tag', text: '一世约 3–6 分钟' }),
+        el('span', { class: 'tag', text: '转世传承 · 本地存档' })
+      ])
+    ]);
+    screen.appendChild(hero);
+
+    screen.appendChild(el('div', { class: 'start__stats fade-up' }, [
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '最远境界' }),
+        el('div', { class: 'stat__v' }, [
+          records.bestRealm >= 9 ? '飞升' : (records.bestRealm >= 0 ? REALMS[records.bestRealm] : '未入山')
+        ]),
+        el('div', { class: 'stat__s', text: records.ascensions > 0 ? '已飞升 ' + records.ascensions + ' 次' : '尚无飞升' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '最短飞升' }),
+        el('div', { class: 'stat__v' }, [
+          records.minAscend === null ? '—' : records.minAscend + ' 息'
+        ]),
+        el('div', { class: 'stat__s', text: '以息计，不以时辰计' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '转世' }),
+        el('div', { class: 'stat__v' }, [legacy.lives + ' 世']),
+        el('div', { class: 'stat__s', text: '每一世都算数' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '传承点' }),
+        el('div', { class: 'stat__v gold' }, [String(legacy.points)]),
+        el('div', { class: 'stat__s', text: '可投入三项根基' })
+      ])
+    ]));
+
+    if (saved) {
+      screen.appendChild(el('div', { class: 'resume fade-up' }, [
+        el('div', {}, [
+          el('div', { class: 'eyebrow', style: { marginBottom: '2px' }, text: '未完的一世' }),
+          el('div', { class: 'resume__title', text: REALMS[saved.realm] + '境 · 第 ' + saved.turns + ' 息' }),
+          el('div', { class: 'dim small', text: '寿元 ' + saved.life + ' · 灵石 ' + saved.stones + ' · 心魔 ' + saved.demon })
+        ]),
+        el('div', { class: 'resume__btns' }, [
+          el('button', {
+            class: 'btn',
+            type: 'button',
+            text: '续修',
+            onclick: function () { resumeRun(saved); }
+          }),
+          el('button', {
+            class: 'btn btn--ghost',
+            type: 'button',
+            text: '转世重修',
+            onclick: newRun
+          })
+        ]),
+        el('p', {
+          class: 'resume__note tiny faint',
+          text: '续修保留本世进度；转世重修保留传承，舍弃本世。'
+        })
+      ]));
+    } else {
+      screen.appendChild(el('div', { class: 'start__cta fade-up' }, [
+        el('button', {
+          class: 'btn',
+          type: 'button',
+          text: legacy.lives > 0 ? '再入一世' : '入山问仙',
+          onclick: newRun
+        }),
+        el('span', {
+          class: 'dim small',
+          text: legacy.points > 0 ? '尚有 ' + legacy.points + ' 点传承可分配' : '一世很短，且行且惜'
+        })
+      ]));
+    }
+
+    screen.appendChild(el('div', { class: 'start__grid' }, [
+      el('section', { class: 'panel panel--tight rules fade-up' }, [
+        el('div', { class: 'eyebrow', text: '行路须知' }),
+        el('h2', { text: '一息一命，九境为梯' }),
+        el('div', { class: 'rules__sub', text: 'THE RULES OF ONE BREATH' }),
+        el('ol', {}, [
+          el('li', {}, [
+            '每次行动耗 ', el('b', { text: '一息寿元' }),
+            '。寿元归零，或破境失败时道基崩碎，本世即止。'
+          ]),
+          el('li', {}, [
+            el('b', { text: '打坐' }),
+            '积修为，偶有顿悟；',
+            el('b', { text: '历练' }),
+            '遇奇遇，收益大，风险也大。'
+          ]),
+          el('li', {}, [
+            '修为满后可行 ',
+            el('b', { text: '突破' }),
+            '。界面会显示确切成功率；丹药每枚添一成八，最多叠两枚。'
+          ]),
+          el('li', {}, [
+            el('b', { text: '心魔' }),
+            '每点压突破成功率，可借 ',
+            el('b', { text: '调息' }),
+            '压下；调息有冷却。'
+          ]),
+          el('li', {}, [
+            '坐化或飞升后结算 ',
+            el('b', { text: '传承点' }),
+            '，可永久强化根骨、悟性、气运。'
+          ])
+        ]),
+        el('div', { class: 'keys' }, [
+          el('span', {}, [el('kbd', { text: '1' }), '打坐']),
+          el('span', {}, [el('kbd', { text: '2' }), '历练']),
+          el('span', {}, [el('kbd', { text: '3' }), '炼丹']),
+          el('span', {}, [el('kbd', { text: '4' }), '突破']),
+          el('span', {}, [el('kbd', { text: '5' }), '调息'])
+        ])
+      ]),
+      buildLegacyPanel()
+    ]));
+
+    stage.replaceChildren(screen);
+  }
+
+  /* ============================================================
+     游戏界面
+     ============================================================ */
+
+  function buildChip(cls, label, valueText) {
+    const value = el('b', { text: valueText });
+    const chip = el('span', { class: 'chip ' + cls }, [
+      el('span', { text: label }),
+      value
+    ]);
+    return { node: chip, value: value };
+  }
+
+  function actionButton(opts) {
+    const sub = el('span', { class: 'act__sub', text: opts.sub || '' });
+    const btn = el('button', {
+      class: 'act ' + (opts.cls || '') + (opts.wide ? ' act--wide' : ''),
+      type: 'button'
+    }, [
+      el('span', { class: 'act__key', 'aria-hidden': 'true', text: opts.key || '' }),
+      el('span', { class: 'act__body' }, [
+        el('span', { class: 'act__name', text: opts.name }),
+        sub
+      ])
+    ]);
+    return { node: btn, sub: sub };
+  }
+
+  function mountGame() {
+    view = 'game';
+    finished = false;
+    ui = {};
+    const screen = el('div', { class: 'game-screen screen' });
+
+    /* --- HUD --- */
+    const realmName = el('h1', { class: 'realm' });
+    const realmSub = el('div', { class: 'realm__next' });
+    const lifeN = el('span', { class: 'life__n' });
+    const lifeWrap = el('div', { class: 'life' }, [
+      lifeN,
+      el('span', { class: 'life__unit', text: '息' })
+    ]);
+    const expNum = el('span', { class: 'prog__num num' });
+    const expBar = el('i');
+    const meter = el('div', {
+      class: 'meter',
+      role: 'progressbar',
+      'aria-label': '修为进度',
+      'aria-valuemin': '0'
+    }, [expBar]);
+
+    const chipStone = buildChip('chip--stone', '灵石', '0');
+    const chipDemon = buildChip('chip--demon', '心魔', '0');
+    const chipPill = buildChip('chip--pill', '丹药', '0');
+    const chipLuck = buildChip('', '气运', '0');
+    const chipRoot = buildChip('', '根骨', '0');
+    const chipInsight = buildChip('', '悟性', '0');
+
+    const hud = el('section', { class: 'hud panel' }, [
+      el('div', { class: 'hud__top' }, [
+        el('div', { class: 'hud__realm' }, [
+          el('div', { class: 'eyebrow', style: { marginBottom: '4px' }, text: '当前境界' }),
+          realmName,
+          realmSub
+        ]),
+        el('div', { class: 'hud__life' }, [
+          el('div', { class: 'eyebrow', style: { marginBottom: '2px' }, text: '寿元' }),
+          lifeWrap,
+          el('div', { class: 'life__hint', text: '低于廿五息，灯将枯' })
+        ])
+      ]),
+      el('div', { class: 'prog' }, [
+        el('div', { class: 'prog__meta' }, [
+          el('span', { text: '修为' }),
+          expNum
+        ]),
+        meter
+      ]),
+      el('div', { class: 'chips' }, [
+        chipStone.node, chipDemon.node, chipPill.node, chipLuck.node, chipRoot.node, chipInsight.node
+      ])
+    ]);
+    screen.appendChild(hud);
+
+    /* --- 主行动 --- */
+    const btnMeditate = actionButton({
+      key: '1', name: '打坐', cls: 'act--primary', sub: '凝神一息'
+    });
+    const btnAdventure = actionButton({
+      key: '2', name: '历练', sub: '奇遇与风险 · 择定耗一息'
+    });
+    const btnAlchemy = actionButton({
+      key: '3', name: '炼丹', sub: '三灵石一炉'
+    });
+    const btnRest = actionButton({
+      key: '5', name: '调息', sub: '清心魔 · 养寿元'
+    });
+    const btnBreak = actionButton({
+      key: '4', name: '突破', cls: 'act--break', wide: true, sub: '叩问下一境'
+    });
+    const btnTen = actionButton({
+      key: '×', name: '连修 ×10', cls: 'act--ten', wide: true, sub: '十息并作一息，即点即结'
+    });
+
+    btnMeditate.node.addEventListener('click', actMeditate);
+    btnAdventure.node.addEventListener('click', actAdventure);
+    btnAlchemy.node.addEventListener('click', actAlchemy);
+    btnRest.node.addEventListener('click', actRest);
+    btnBreak.node.addEventListener('click', actBreak);
+    btnTen.node.addEventListener('click', actTen);
+
+    const calcPct = el('span', { class: 'calc__pct num' });
+    const calcFormula = el('p', { class: 'calc__formula' });
+    const calcTarget = el('span', { text: '突破推演' });
+
+    const acts = el('section', { class: 'acts panel' }, [
+      el('div', { class: 'acts__head' }, [
+        el('div', { class: 'eyebrow', style: { marginBottom: '0' }, text: '行止 · 每次一息' }),
+        el('span', { class: 'tiny faint', text: '按住连修，不必等动画' })
+      ]),
+      el('div', { class: 'acts__grid' }, [
+        btnMeditate.node,
+        btnAdventure.node,
+        btnAlchemy.node,
+        btnRest.node,
+        btnBreak.node,
+        btnTen.node
+      ]),
+      el('div', { class: 'calc' }, [
+        el('div', { class: 'calc__head' }, [
+          calcTarget,
+          calcPct
+        ]),
+        calcFormula
+      ])
+    ]);
+
+    /* --- 日志 --- */
+    const logList = el('ol', {
+      class: 'log',
+      id: 'runLog',
+      'aria-live': 'polite',
+      'aria-relevant': 'additions',
+      'aria-atomic': 'false',
+      'aria-label': '修行日志'
+    });
+
+    const logbox = el('section', { class: 'panel logbox' }, [
+      el('div', { class: 'logbox__head' }, [
+        el('h2', { style: { marginBottom: '0' }, text: '山中日志' }),
+        el('span', { class: 'logbox__hint', text: '近八条' })
+      ]),
+      logList
+    ]);
+
+    const metaTurns = el('div', { class: 'meta__v' });
+    const metaMaxDemon = el('div', { class: 'meta__v' });
+    const metaLives = el('div', { class: 'meta__v' });
+    const metaTime = el('div', { class: 'meta__v' });
+
+    const meta = el('section', { class: 'panel meta' }, [
+      el('h2', { style: { marginBottom: '0' }, text: '此世' }),
+      el('div', { class: 'meta__grid' }, [
+        el('div', {}, [el('div', { class: 'meta__k', text: '已用息数' }), metaTurns]),
+        el('div', {}, [el('div', { class: 'meta__k', text: '最高心魔' }), metaMaxDemon]),
+        el('div', {}, [el('div', { class: 'meta__k', text: '转世次数' }), metaLives]),
+        el('div', {}, [el('div', { class: 'meta__k', text: '本世用时' }), metaTime])
+      ])
+    ]);
+
+    const main = el('div', { class: 'game__main' }, [acts]);
+    const side = el('div', { class: 'side' }, [logbox, meta]);
+    screen.appendChild(el('div', { class: 'game' }, [main, side]));
+
+    stage.replaceChildren(screen);
+
+    ui = {
+      realmName: realmName,
+      realmSub: realmSub,
+      lifeN: lifeN,
+      lifeWrap: lifeWrap,
+      expNum: expNum,
+      expBar: expBar,
+      meter: meter,
+      chipStone: chipStone.value,
+      chipDemon: chipDemon.value,
+      chipPill: chipPill.value,
+      chipLuck: chipLuck.value,
+      chipRoot: chipRoot.value,
+      chipInsight: chipInsight.value,
+      btnMeditate: btnMeditate.node,
+      btnMeditateSub: btnMeditate.sub,
+      btnAdventure: btnAdventure.node,
+      btnAdventureSub: btnAdventure.sub,
+      btnAlchemy: btnAlchemy.node,
+      btnAlchemySub: btnAlchemy.sub,
+      btnRest: btnRest.node,
+      btnRestSub: btnRest.sub,
+      btnBreak: btnBreak.node,
+      btnBreakSub: btnBreak.sub,
+      btnTen: btnTen.node,
+      btnTenSub: btnTen.sub,
+      calcPct: calcPct,
+      calcFormula: calcFormula,
+      calcTarget: calcTarget,
+      logList: logList,
+      metaTurns: metaTurns,
+      metaMaxDemon: metaMaxDemon,
+      metaLives: metaLives,
+      metaTime: metaTime
+    };
+
+    renderLogAll();
+    renderGame();
+  }
+
+  function renderGame() {
+    if (!s || !ui.realmName) return;
+    const need = needOf(s.realm);
+    const lifeLow = s.life < 25;
+
+    ui.realmName.textContent = REALMS[s.realm];
+    ui.realmSub.textContent = s.realm >= REALMS.length - 1
+      ? '九境之末 · 下一境 飞升'
+      : '第 ' + (s.realm + 1) + ' 境 · 下一境 ' + REALMS[s.realm + 1];
+
+    ui.lifeN.textContent = String(Math.max(0, s.life));
+    ui.lifeWrap.classList.toggle('is-low', lifeLow);
+
+    ui.expNum.textContent = fmt(s.exp) + ' / ' + fmt(need);
+    const ratio = clamp(s.exp / need, 0, 1);
+    ui.expBar.style.width = (ratio * 100).toFixed(1) + '%';
+    ui.meter.setAttribute('aria-valuemax', String(need));
+    ui.meter.setAttribute('aria-valuenow', String(Math.min(s.exp, need)));
+
+    ui.chipStone.textContent = fmt(s.stones);
+    ui.chipDemon.textContent = s.demon + ' / 100';
+    ui.chipPill.textContent = s.pills + ' / 2';
+    ui.chipLuck.textContent = String(s.luck);
+    ui.chipRoot.textContent = String(s.root);
+    ui.chipInsight.textContent = String(s.insight);
+
+    const active = canAct();
+    const info = breakInfo();
+    const ready = s.exp >= need;
+
+    ui.btnMeditate.disabled = !active;
+    ui.btnAdventure.disabled = !active;
+    ui.btnTen.disabled = !active;
+    ui.btnAlchemy.disabled = !active || s.pills >= MAX.pills || s.stones < 3;
+    ui.btnRest.disabled = !active || s.cooldown > 0;
+    ui.btnBreak.disabled = !active || !ready;
+
+    const gain = meditateGain();
+    ui.btnMeditateSub.textContent = '约 +' + gain + ' 修为 · 偶有顿悟';
+    ui.btnTenSub.textContent = '十息并作一次 · 约 +' + (gain * 10);
+    ui.btnAdventureSub.textContent = '奇遇与风险 · 择定耗一息';
+
+    if (s.pills >= MAX.pills) {
+      ui.btnAlchemySub.textContent = '丹已满二枚';
+    } else if (s.stones < 3) {
+      ui.btnAlchemySub.textContent = '灵石不足（需 3）';
+    } else {
+      ui.btnAlchemySub.textContent = '三灵石一炉 · 现有 ' + s.pills + ' 枚';
+    }
+
+    if (s.cooldown > 0) {
+      ui.btnRestSub.textContent = '冷却中 · 尚 ' + s.cooldown + ' 息';
+      ui.btnRestSub.classList.add('loss');
+    } else {
+      ui.btnRestSub.textContent = '心魔 −18 · 寿元 +6';
+      ui.btnRestSub.classList.remove('loss');
+    }
+
+    if (!ready) {
+      ui.btnBreakSub.textContent = '尚差 ' + fmt(need - s.exp) + ' 修为';
+      ui.btnBreakSub.classList.add('loss');
+    } else {
+      const caution = info.p < 0.62 ? ' · 宜先调息' : '';
+      ui.btnBreakSub.textContent = '成功率 ' + pct(info.p) + (BIG_GATES.has(s.realm) ? ' · 大关' : ' · 常关')
+        + (s.pills > 0 ? ' · 耗丹 ' + s.pills : '') + caution;
+      ui.btnBreakSub.classList.remove('loss');
+    }
+
+    ui.calcTarget.textContent = '突破至 ' + targetLabel(s.realm);
+    ui.calcPct.textContent = pct(info.p);
+    ui.calcPct.style.color = ready ? 'var(--gold-bright)' : 'var(--text-dim)';
+
+    const formulaParts = [
+      '基础 52%',
+      '气运 +' + (info.luckTerm * 100).toFixed(0) + '%',
+      '丹药 +' + (info.pillTerm * 100).toFixed(0) + '%',
+      '心魔 −' + (info.demonTerm * 100).toFixed(1) + '%'
+    ];
+    if (info.big > 0) formulaParts.push('大关 −12%');
+    let formula = formulaParts.join(' · ') + ' ＝ ' + (info.raw * 100).toFixed(1) + '%';
+    if (info.p !== info.raw) formula += '，按上下限取 ' + pct(info.p);
+    formula += '。丹药于叩关时尽数消耗。';
+    ui.calcFormula.textContent = formula;
+
+    ui.metaTurns.textContent = String(s.turns);
+    ui.metaMaxDemon.textContent = s.maxDemon + ' / 100';
+    ui.metaLives.textContent = s.lives + ' 世';
+    ui.metaTime.textContent = formatTime(Date.now() - s.startedAt);
+  }
+
+  /* ============================================================
+     结束页
+     ============================================================ */
+
+  function ascensionArt() {
+    return el('div', { class: 'end__art', 'aria-hidden': 'true', html:
+      '<svg width="196" height="86" viewBox="0 0 196 86" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<circle cx="98" cy="40" r="22" stroke="#e8cd97" stroke-opacity=".75" stroke-width="1.3"/>' +
+        '<circle cx="98" cy="40" r="31" stroke="#c9a86a" stroke-opacity=".28" stroke-width="1"/>' +
+        '<path d="M98 12v-9M98 77v-9M70 40H58M138 40h-12M78 20l-6-6M118 60l6 6M118 20l6-6M78 60l-6 6" stroke="#c9a86a" stroke-opacity=".65" stroke-width="1.2" stroke-linecap="round"/>' +
+        '<path d="M22 74c18-9 32-9 50 0s34 8 48 0 34-8 54 0" stroke="#6fa89a" stroke-opacity=".4" stroke-width="1.2" stroke-linecap="round"/>' +
+        '<path d="M34 82c14-6 26-6 39 0s28 6 41 0 30-6 45 0" stroke="#c9a86a" stroke-opacity=".22" stroke-width="1" stroke-linecap="round"/>' +
+      '</svg>'
+    });
+  }
+
+  function deathArt() {
+    return el('div', { class: 'end__art', 'aria-hidden': 'true', html:
+      '<svg width="180" height="80" viewBox="0 0 180 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<path d="M10 68L64 26l20 20 18-24 58 46" stroke="#8a744c" stroke-opacity=".62" stroke-width="1.3" stroke-linejoin="round"/>' +
+        '<path d="M10 74h160" stroke="#6f6b64" stroke-opacity=".4" stroke-width="1"/>' +
+        '<circle cx="142" cy="19" r="9" stroke="#a9a49a" stroke-opacity=".35" stroke-width="1"/>' +
+        '<path d="M24 30c10 4 16 12 18 24" stroke="#6f6b64" stroke-opacity=".3" stroke-width="1" stroke-dasharray="2 5"/>' +
+        '<circle cx="28" cy="28" r="1.7" fill="#c9a86a" fill-opacity=".45"/>' +
+      '</svg>'
+    });
+  }
+
+  function showEnd() {
+    view = 'end';
+    ui = {};
+    legacy = loadLegacy();
+    const info = endInfo;
+    if (!info) {
+      showStart();
+      return;
+    }
+    const asc = info.kind === 'ascend';
+    const screen = el('div', { class: 'end screen ' + (asc ? 'end--ascend' : 'end--death') });
+
+    const lead = asc
+      ? el('p', { class: 'end__lead' }, [
+          '九境已尽，天门自开。你踏碎最后一道雷光，回头时，来路已缩成一线细雪。'
+        ])
+      : el('p', { class: 'end__lead' }, [
+          '道途止于 ', el('span', { class: 'end__ash', text: REALMS[info.realm] + '境' }),
+          '。', el('span', { class: 'end__cause', text: info.cause }), '。',
+          '此身虽殒，余烬仍可照亮下一世。'
+        ]);
+
+    screen.appendChild(el('section', { class: 'end__head fade-up' }, [
+      el('div', { class: 'eyebrow', style: { marginBottom: '2px' }, text: asc ? 'ASCENSION · 天门已开' : 'MORTAL END · 灯枯坐化' }),
+      el('h1', { text: asc ? '飞升' : '坐化' }),
+      asc ? ascensionArt() : deathArt(),
+      lead
+    ]));
+
+    screen.appendChild(el('div', { class: 'end__stats fade-up' }, [
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '本世境界' }),
+        el('div', { class: 'stat__v' }, [asc ? '飞升' : REALMS[info.realm]]),
+        el('div', { class: 'stat__s', text: asc ? '九境之后' : '第 ' + (info.realm + 1) + ' 境' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '已用息数' }),
+        el('div', { class: 'stat__v' }, [info.turns + ' 息']),
+        el('div', { class: 'stat__s', text: '每一息都算数' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '最高心魔' }),
+        el('div', { class: 'stat__v cinnabar' }, [String(info.maxDemon)]),
+        el('div', { class: 'stat__s', text: '心魔未消，道途难稳' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '灵石结余' }),
+        el('div', { class: 'stat__v gold' }, [String(info.stones)]),
+        el('div', { class: 'stat__s', text: '五石折一点传承' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '转世次数' }),
+        el('div', { class: 'stat__v' }, [info.lives + ' 世']),
+        el('div', { class: 'stat__s', text: '本世之前' })
+      ]),
+      el('div', { class: 'stat' }, [
+        el('div', { class: 'stat__k', text: '本世用时' }),
+        el('div', { class: 'stat__v' }, [formatTime(info.timeMs)]),
+        el('div', { class: 'stat__s', text: '自入山起' })
+      ])
+    ]));
+
+    const earn = el('div', { class: 'earn fade-up' });
+    earn.appendChild(el('div', { class: 'earn__k', text: '本世传承' }));
+    earn.appendChild(el('div', { class: 'earn__n' }, [
+      '+' + info.earned,
+      el('span', { text: '点' })
+    ]));
+    const formula = info.realm + ' × 3 + ⌊' + info.stones + ' ÷ 5⌋ + ' + info.lives + ' ＝ ' + info.base
+      + (asc ? '，飞升 ×1.5 ＝ ' + info.earned : '');
+    earn.appendChild(el('p', { class: 'earn__f', text: formula }));
+    screen.appendChild(earn);
+
+    screen.appendChild(el('div', { class: 'end__grid' }, [
+      el('section', { class: 'panel panel--tight fade-up' }, [
+        el('div', { class: 'eyebrow', text: '下一世' }),
+        el('h2', { style: { marginBottom: '6px' }, text: '把这点余烬带下去' }),
+        el('p', { class: 'small dim', style: { marginBottom: '10px' }, text: '传承已存入本地。可将之投入三项根基，再入一世。' }),
+        el('div', { class: 'start__stats', style: { margin: '0' } }, [
+          el('div', { class: 'stat' }, [
+            el('div', { class: 'stat__k', text: '下一世根骨' }),
+            el('div', { class: 'stat__v' }, [String(BASE_ROOT + legacy.root * 2)]),
+            el('div', { class: 'stat__s', text: '打坐基础 ' + (BASE_ROOT + legacy.root * 2) })
+          ]),
+          el('div', { class: 'stat' }, [
+            el('div', { class: 'stat__k', text: '下一世悟性' }),
+            el('div', { class: 'stat__v' }, [String(BASE_INSIGHT + legacy.insight)]),
+            el('div', { class: 'stat__s', text: '每级 +1' })
+          ]),
+          el('div', { class: 'stat' }, [
+            el('div', { class: 'stat__k', text: '下一世气运' }),
+            el('div', { class: 'stat__v' }, [String(BASE_LUCK + legacy.luck * 2)]),
+            el('div', { class: 'stat__s', text: '突破 +' + (legacy.luck * 2) + '%' })
+          ])
+        ])
+      ]),
+      buildLegacyPanel()
+    ]));
+
+    screen.appendChild(el('div', { class: 'end__actions fade-up' }, [
+      el('button', {
+        class: 'btn',
+        type: 'button',
+        text: '转世重修',
+        onclick: newRun
+      }),
+      el('button', {
+        class: 'btn btn--ghost',
+        type: 'button',
+        text: '回山门',
+        onclick: showStart
+      })
+    ]));
+
+    stage.replaceChildren(screen);
+    window.scrollTo(0, 0);
+  }
+
+  /* ============================================================
+     键盘
+     ============================================================ */
+
+  function trapFocus(e) {
+    if (!ui.event) return;
+    const focusables = Array.from(ui.event.card.querySelectorAll('button:not([disabled])'));
+    if (!focusables.length) {
+      e.preventDefault();
+      return;
+    }
+    const active = document.activeElement;
+    const idx = focusables.indexOf(active);
+    if (e.shiftKey) {
+      if (idx <= 0) {
+        e.preventDefault();
+        focusables[focusables.length - 1].focus();
+      }
+    } else if (idx === -1 || idx === focusables.length - 1) {
+      e.preventDefault();
+      focusables[0].focus();
+    }
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+    const target = e.target;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+
+    if (view === 'game' && ui.event) {
+      if (e.key === 'Tab') {
+        trapFocus(e);
+        return;
+      }
+      const n = parseInt(e.key, 10);
+      if (n >= 1 && n <= 3) {
+        e.preventDefault();
+        if (!e.repeat) chooseEvent(n - 1);
+      }
+      return;
+    }
+
+    if (view !== 'game' || !s || finished) return;
+    if (['1', '2', '3', '4', '5'].indexOf(e.key) === -1) return;
+    if (e.repeat) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+    if (e.key === '1') actMeditate();
+    else if (e.key === '2') actAdventure();
+    else if (e.key === '3') actAlchemy();
+    else if (e.key === '4') actBreak();
+    else if (e.key === '5') actRest();
+  });
+
+  window.addEventListener('beforeunload', function () {
+    if (s && !finished && view === 'game') saveGame(true);
+  });
+
+  /* ============================================================
+     启动
+     ============================================================ */
+
+  showStart();
+})();
+</script>
+</body>
+</html>
