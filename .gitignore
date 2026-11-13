@@ -1,0 +1,17 @@
+# 系统 / 编辑器
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# 依赖与构建（本项目本身零依赖，留作保险）
+node_modules/
+dist/
+.astro/
+.svelte-kit/
+
+# 本地临时
+*.log
+tmp/
+.screenshots/

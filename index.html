@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>墨戏三卷 · Inkwash Arcade</title>
+<meta name="description" content="三个纯前端中文小游戏：故事式 MBTI 性格测试、中医五行行医录、快节奏修仙。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23c9a86a' stroke-width='2'/%3E%3Cpath d='M20 32h24M32 20v24' stroke='%23c9a86a' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/theme.css">
+<style>
+  .hero { padding: 74px 0 30px; }
+  .hero h1 { margin-bottom: 18px; }
+  .hero h1 em { font-style: normal; color: var(--gold-bright); }
+  .hero p.lead { font-size: 17px; max-width: 620px; color: var(--text-dim); }
+  .hero__meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 22px; margin-top: 34px; }
+
+  .game {
+    position: relative;
+    display: flex; flex-direction: column;
+    padding: 26px 24px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(165deg, rgba(28, 36, 54, 0.9), rgba(10, 14, 21, 0.94));
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+    transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.24s ease, box-shadow 0.24s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+  .game:hover, .game:focus-visible {
+    transform: translateY(-4px);
+    border-color: rgba(201, 168, 106, 0.55);
+    box-shadow: var(--shadow-2);
+    text-decoration: none;
+  }
+  .game:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+
+  .game::before {
+    content: "";
+    position: absolute; inset: -40% -30% auto auto;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow, rgba(201,168,106,0.18)), transparent 68%);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+  .game__no { font-family: var(--font-num); font-size: 13px; letter-spacing: 0.3em; color: var(--gold-dim); }
+  .game__art { height: 96px; margin: 10px 0 14px; display: flex; align-items: center; }
+  .game__title { font-family: var(--font-serif); font-size: 25px; letter-spacing: 0.06em; margin: 0 0 4px; }
+  .game__sub { font-size: 12px; letter-spacing: 0.22em; color: var(--text-faint); text-transform: uppercase; margin-bottom: 14px; }
+  .game__desc { font-size: 14.4px; color: var(--text-dim); margin: 0 0 20px; flex: 1; }
+  .game__foot { display: flex; align-items: center; gap: 10px; }
+  .game__time { font-size: 12px; color: var(--text-faint); letter-spacing: 0.08em; }
+  .game__go {
+    margin-left: auto;
+    font-size: 13px; letter-spacing: 0.14em;
+    color: var(--gold-bright);
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .game__go::after { content: "→"; transition: transform 0.2s ease; }
+  .game:hover .game__go::after { transform: translateX(4px); }
+
+  .g1 { --glow: rgba(108, 143, 196, 0.24); }
+  .g2 { --glow: rgba(111, 168, 154, 0.24); }
+  .g3 { --glow: rgba(184, 71, 60, 0.26); }
+
+  .section-head { margin-top: 64px; display: flex; align-items: baseline; gap: 14px; }
+  .section-head h2 { margin: 0; }
+  .section-head span { font-size: 12px; letter-spacing: 0.2em; color: var(--text-faint); }
+
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 22px; }
+  .note { padding: 18px 18px 16px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: rgba(255,255,255,0.02); }
+  .note h3 { font-size: 15px; margin-bottom: 6px; color: var(--gold); }
+  .note p { font-size: 13.4px; margin: 0; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<header class="topbar" data-chrome="topbar"></header>
+
+<main class="wrap">
+  <section class="hero fade-up">
+    <div class="eyebrow">Inkwash Arcade · 三卷</div>
+    <h1>三段故事，<em>三条路</em>。</h1>
+    <p class="lead">
+      一卷问心：用二十四个选择照见你的 MBTI。二卷行医：以木火土金水调理五脏，做一季游方郎中。
+      三卷问道：一念之间连破九境，用最短的路飞升。
+    </p>
+    <div class="hero__meta">
+      <span class="tag">纯前端 · 离线可玩</span>
+      <span class="tag">无账号 · 进度存本地</span>
+      <span class="tag">手机可玩</span>
+    </div>
+  </section>
+
+  <section class="grid" aria-label="三卷游戏">
+
+    <a class="game g1 fade-up" href="./mbti.html" style="animation-delay: 0.05s">
+      <div class="game__no">卷一</div>
+      <div class="game__art" aria-hidden="true">
+        <svg width="118" height="90" viewBox="0 0 118 90" fill="none">
+          <circle cx="80" cy="26" r="15" stroke="#8fa9cf" stroke-width="1.6" opacity=".85"/>
+          <path d="M6 72c14-4 20-20 30-20s14 12 24 12 16-26 26-26 16 10 26 10" stroke="#c9a86a" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M6 80h106" stroke="#4a5a75" stroke-width="1" stroke-dasharray="3 5"/>
+          <circle cx="36" cy="30" r="2" fill="#c9a86a"/>
+          <circle cx="48" cy="38" r="1.6" fill="#c9a86a" opacity=".7"/>
+          <circle cx="26" cy="40" r="1.3" fill="#c9a86a" opacity=".5"/>
+        </svg>
+      </div>
+      <h2 class="game__title">问心局</h2>
+      <div class="game__sub">Story · MBTI</div>
+      <p class="game__desc">你是初入雾隐城的旅人，二十四次抉择会悄悄把你推向某一个四字人格。没有题目，只有故事。</p>
+      <div class="game__foot">
+        <span class="game__time">约 8 分钟</span>
+        <span class="game__go">入局</span>
+      </div>
+    </a>
+
+    <a class="game g2 fade-up" href="./wuxing.html" style="animation-delay: 0.12s">
+      <div class="game__no">卷二</div>
+      <div class="game__art" aria-hidden="true">
+        <svg width="118" height="90" viewBox="0 0 118 90" fill="none">
+          <circle cx="59" cy="45" r="27" stroke="#7fb3a5" stroke-width="1.4" opacity=".8"/>
+          <path d="M59 18v54M32 45h54" stroke="#4a6b64" stroke-width="1" stroke-dasharray="2 5"/>
+          <circle cx="59" cy="18" r="4" fill="#b8473c" opacity=".9"/>
+          <circle cx="85" cy="38" r="4" fill="#c9a86a" opacity=".9"/>
+          <circle cx="75" cy="66" r="4" fill="#6fa89a" opacity=".9"/>
+          <circle cx="43" cy="66" r="4" fill="#6c8fc4" opacity=".9"/>
+          <circle cx="33" cy="38" r="4" fill="#8a744c" opacity=".9"/>
+        </svg>
+      </div>
+      <h2 class="game__title">五行医馆</h2>
+      <div class="game__sub">TCM · Five Phases</div>
+      <p class="game__desc">一季坐诊，病人带着症候上门。以相生相克配伍汤方，养护元气，最终照见你自身体质属哪一行。</p>
+      <div class="game__foot">
+        <span class="game__time">约 10 分钟</span>
+        <span class="game__go">开馆</span>
+      </div>
+    </a>
+
+    <a class="game g3 fade-up" href="./xiuxian.html" style="animation-delay: 0.19s">
+      <div class="game__no">卷三</div>
+      <div class="game__art" aria-hidden="true">
+        <svg width="118" height="90" viewBox="0 0 118 90" fill="none">
+          <path d="M8 78L44 34l12 14 18-26 30 40" stroke="#e0604f" stroke-width="1.6" stroke-linejoin="round" opacity=".9"/>
+          <path d="M8 84h102" stroke="#5a3a35" stroke-width="1"/>
+          <circle cx="92" cy="20" r="7" stroke="#c9a86a" stroke-width="1.4"/>
+          <path d="M92 13v-5M92 32v-5M85 20h-5M104 20h-5" stroke="#c9a86a" stroke-width="1.2" opacity=".8"/>
+        </svg>
+      </div>
+      <h2 class="game__title">一念飞升</h2>
+      <div class="game__sub">Xianxia · Fast Run</div>
+      <p class="game__desc">炼气到渡劫，每一息都在推演。打坐、机缘、天劫与转世传承，速度快到没有一次点击是浪费的。</p>
+      <div class="game__foot">
+        <span class="game__time">约 5 分钟 / 一世</span>
+        <span class="game__go">入山</span>
+      </div>
+    </a>
+
+  </section>
+
+  <section class="fade-up">
+    <div class="section-head">
+      <h2>关于这套东西</h2>
+      <span>HOW IT WORKS</span>
+    </div>
+    <div class="notes">
+      <div class="note">
+        <h3>没有任何后端</h3>
+        <p>三个游戏都是单页静态文件，逻辑跑在浏览器里，不联网也能玩，因此可以直接托管在 GitHub Pages。</p>
+      </div>
+      <div class="note">
+        <h3>进度只在你手里</h3>
+        <p>存档写在 localStorage，清浏览器数据即清档。没有账号、没有埋点、没有上传。</p>
+      </div>
+      <div class="note">
+        <h3>可以自己改</h3>
+        <p>题库、药材、境界都写在页面里的配置对象中，改完刷新即可生效，不必构建。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot" data-chrome="footer"></footer>
+
+<script src="./assets/common.js"></script>
+<script>
+  DSHG.mountChrome({ title: '墨戏三卷', meta: 'INKWASH ARCADE · 3 GAMES' });
+</script>
+</body>
+</html>
