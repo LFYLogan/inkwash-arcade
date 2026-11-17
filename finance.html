@@ -3,2438 +3,2041 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>理财诊室 · 银行从业 | 墨戏五卷</title>
-<meta name="description" content="理财诊室：面向银行、基金、证券从业者的知识训练与实务判断。知识闯关、适当性实战、资产配置模拟器与错题本，纯前端离线可玩。">
+<title>理财诊室 · 银行从业 · 墨戏五卷</title>
+<meta name="description" content="案例式决策训练：一位客户进门，分四步处理——了解客户、定级与事实判断、方案与产品、销售动作与后续。每选一步立刻反馈，走完给总分、评级、逐步复盘与知识要点。纯前端离线可玩。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Cpath d='M14 48V22l10 8 8-14 8 14 10-8v26' fill='none' stroke='%23c9a86a' stroke-width='2'/%3E%3Ccircle cx='44' cy='17' r='4' fill='none' stroke='%23e0604f' stroke-width='1.6'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="./assets/theme.css">
 <style>
   /* ============================================================
-     理财诊室 · 页面布局
-     仅复用 theme.css 的令牌与组件，版式与状态样式写在这里。
+     理财诊室 · 页面样式
+     只复用 theme.css 的设计令牌与基础组件；版式与业务状态写在这里。
      ============================================================ */
 
-  :root {
-    --ok: var(--jade-bright);
-    --risk: var(--cinnabar-bright);
-    --alloc-cash: #6fa89a;
-    --alloc-bond: #6c8fc4;
-    --alloc-mixed: #c9a86a;
-    --alloc-equity: #b8473c;
-  }
-
   html, body { overflow-x: hidden; }
-  body { min-height: 100vh; }
 
-  .game { width: 100%; max-width: 900px; margin: 0 auto; padding: 26px 0 8px; }
+  #app { width: min(900px, calc(100% - 40px)); padding: 22px 0 0; }
 
-  .small { font-size: 12.5px; }
-  .tiny { font-size: 11.5px; letter-spacing: 0.04em; }
-  .nowrap { white-space: nowrap; }
-  .accent {
-    color: var(--gold-bright);
-    background: linear-gradient(120deg, var(--gold-bright), var(--gold) 58%, var(--gold-dim));
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent;
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
 
-  h1, h2, h3 { word-break: break-word; }
-
-  .stack { display: grid; gap: 16px; }
-  .stack--tight { display: grid; gap: 10px; }
-
-  /* ---------- 首屏 ---------- */
-  .hero { padding: 8px 0 6px; }
-  .hero .eyebrow { margin-bottom: 10px; }
-  .title-xl {
-    margin: 0 0 14px;
-    font-size: clamp(32px, 5.8vw, 52px);
-    line-height: 1.24;
-    letter-spacing: 0.06em;
+  button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+    outline: 2px solid var(--gold-bright); outline-offset: 2px;
   }
-  .lede {
-    max-width: 660px;
-    margin: 0 0 16px;
-    font-size: 15.5px;
-    line-height: 1.85;
-    color: var(--text-dim);
+
+  .linkish {
+    border: 0; background: none; padding: 0;
+    font: inherit; color: var(--gold-bright); cursor: pointer;
+    border-bottom: 1px solid var(--line);
   }
-  .lede strong { color: var(--gold-bright); font-weight: 500; }
-  .hero__tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .linkish:hover { border-bottom-color: var(--gold); }
+  button.back {
+    border: 0; background: none; padding: 6px 0;
+    font-family: var(--font-sans); cursor: pointer;
+    justify-self: start;
+  }
+
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin: 28px 0 12px; }
+  .section-head h2 { margin: 0; font-size: 20px; }
+  .section-head span { font-size: 10.5px; letter-spacing: 0.24em; color: var(--text-faint); }
+
+  /* ---------- 数据自检提示条 ---------- */
+  .databar {
+    display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap;
+    margin: 0 0 16px; padding: 10px 14px;
+    border: 1px solid rgba(224, 96, 79, 0.32);
+    background: rgba(184, 71, 60, 0.08);
+    border-radius: 9px;
+    font-size: 12.5px; line-height: 1.7; color: var(--text-dim);
+  }
+  .databar b { color: var(--cinnabar-bright); font-weight: 600; }
+  .databar__hint { color: var(--text-faint); font-size: 11px; }
+
+  /* ---------- 首页 ---------- */
+  .hero { padding: 6px 0 0; }
+  .hero h1 {
+    margin: 0 0 12px;
+    font-size: clamp(30px, 5.4vw, 46px);
+    line-height: 1.3;
+  }
+  .hero h1 em { font-style: normal; color: var(--gold-bright); }
+  .hero .lede {
+    max-width: 41em; margin: 0 0 8px;
+    font-size: 14.5px; line-height: 1.88; color: var(--text-dim);
+  }
+  .hero__acts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .hero__acts .btn { padding: 9px 18px; font-size: 13.5px; }
 
   .stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    padding: 0;
-    margin: 18px 0 0;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px; margin: 22px 0 0;
   }
   .stat {
-    min-width: 0;
-    padding: 13px 15px 12px;
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-sm);
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012));
+    min-width: 0; padding: 13px 14px 12px;
+    border: 1px solid var(--line-soft); border-radius: var(--radius-sm);
+    background: linear-gradient(160deg, rgba(31, 41, 61, 0.62), rgba(12, 16, 24, 0.5));
+    position: relative; overflow: hidden;
   }
-  .stat__k { font-size: 10.5px; letter-spacing: 0.18em; color: var(--text-faint); margin-bottom: 4px; }
-  .stat__v { font-family: var(--font-num); font-size: 26px; line-height: 1.25; color: var(--text); }
-  .stat__v small { font-family: var(--font-sans); font-size: 12px; color: var(--text-faint); margin-left: 3px; }
-  .stat__s { font-size: 11px; color: var(--text-faint); line-height: 1.5; margin-top: 2px; }
-  .stat--warn .stat__v { color: var(--cinnabar-bright); }
+  .stat::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg, var(--gold), transparent); opacity: 0.65;
+  }
+  .stat__k { display: block; font-size: 10.5px; letter-spacing: 0.18em; color: var(--text-faint); }
+  .stat__v {
+    display: block; font-family: var(--font-num);
+    font-size: clamp(22px, 5.4vw, 30px); line-height: 1.3;
+    color: var(--gold-bright); margin: 2px 0 1px;
+    overflow-wrap: anywhere;
+  }
+  .stat__n { display: block; font-size: 10.5px; line-height: 1.5; color: var(--text-faint); }
+  .stat--jade::before { background: linear-gradient(180deg, var(--jade), transparent); }
+  .stat--jade .stat__v { color: var(--jade-bright); }
+  .stat--cin::before { background: linear-gradient(180deg, var(--cinnabar), transparent); }
+  .stat--cin .stat__v { color: var(--cinnabar-bright); }
+  .stat--azure::before { background: linear-gradient(180deg, var(--azure), transparent); }
+  .stat--azure .stat__v { color: var(--azure); }
 
-  .entries {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 13px;
-    margin-top: 14px;
+  .filters-panel { margin-top: 10px; padding: 18px 20px; }
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+  .filters select {
+    flex: 0 1 150px; min-width: 128px; min-height: 44px;
+    padding: 8px 11px;
+    font-family: inherit; font-size: 13px; color: var(--text);
+    background: rgba(18, 24, 36, 0.94);
+    border: 1px solid var(--line-soft); border-radius: 8px;
   }
-  .entry {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    padding: 19px 18px 17px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: linear-gradient(160deg, rgba(26, 34, 51, 0.82), rgba(11, 15, 22, 0.88));
-    box-shadow: var(--shadow-1);
-    transition: transform 0.18s ease, border-color 0.18s ease;
+  .search { flex: 1 1 220px; position: relative; min-width: 180px; }
+  .search input {
+    width: 100%; min-height: 44px;
+    padding: 9px 13px 9px 40px;
+    font-family: inherit; font-size: 13.5px; color: var(--text);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line-soft); border-radius: 8px;
   }
-  .entry:hover { transform: translateY(-2px); border-color: rgba(201, 168, 106, 0.5); }
-  .entry__no { font-family: var(--font-num); font-size: 11px; letter-spacing: 0.24em; color: var(--gold-dim); }
-  .entry h3 { margin: 8px 0 6px; font-size: 20px; color: var(--text); }
-  .entry p { margin: 0 0 12px; font-size: 13px; line-height: 1.75; color: var(--text-dim); }
-  .entry__meta { margin-top: auto; font-size: 11px; color: var(--text-faint); line-height: 1.6; }
-  .entry .btn { margin-top: 12px; align-self: flex-start; padding: 8px 15px; font-size: 12.5px; }
+  .search input::placeholder { color: var(--text-faint); }
+  .search input:focus { outline: none; border-color: rgba(201, 168, 106, 0.55); box-shadow: 0 0 0 3px rgba(201, 168, 106, 0.1); }
+  .search::before {
+    content: "搜"; position: absolute; left: 13px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-serif); font-size: 12px; color: var(--gold-dim);
+    pointer-events: none;
+  }
 
-  .wrongbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-    padding: 15px 18px;
-    border: 1px dashed rgba(201, 168, 106, 0.4);
-    border-radius: var(--radius-sm);
-    background: rgba(201, 168, 106, 0.045);
-  }
-  .wrongbar__title { display: flex; align-items: baseline; gap: 9px; font-family: var(--font-serif); font-size: 17px; letter-spacing: 0.06em; }
-  .wrongbar__title b { font-family: var(--font-num); font-size: 22px; color: var(--gold-bright); }
-  .wrongbar__sub { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
-
-  .home__tools {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: wrap;
-    margin-top: 14px;
-  }
-  .clearbox {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: wrap;
-    margin-top: 14px; padding: 13px 15px;
-    border: 1px solid rgba(224, 96, 79, 0.48);
-    border-radius: var(--radius-sm);
-    background: rgba(184, 71, 60, 0.1);
-  }
-  .clearbox__txt { font-size: 12.5px; color: var(--text); line-height: 1.6; }
-  .clearbox__btns { display: flex; gap: 8px; flex-wrap: wrap; }
-
-  /* ---------- 按钮尺寸 / 标签 ---------- */
-  .btn--small { padding: 7px 13px; font-size: 12px; letter-spacing: 0.05em; }
-  .tag--jade {
-    color: var(--jade-bright);
-    border-color: rgba(111, 168, 154, 0.45);
-    background: rgba(111, 168, 154, 0.09);
-  }
-  .tag--cinnabar {
-    color: var(--cinnabar-bright);
-    border-color: rgba(184, 71, 60, 0.5);
-    background: rgba(184, 71, 60, 0.1);
-  }
-  .tag--muted { color: var(--text-dim); border-color: var(--line-soft); background: transparent; }
-
-  /* ---------- 面板通用头部 ---------- */
-  .headblock { margin-bottom: 16px; }
-  .headblock h2 { margin: 0 0 7px; color: var(--text); }
-  .headblock p { margin: 0; font-size: 13px; line-height: 1.75; color: var(--text-dim); }
-  .headblock .eyebrow { margin-bottom: 8px; }
-
-  .field { margin-top: 20px; }
-  .field:first-of-type { margin-top: 4px; }
-  .field__lab {
+  .count-line {
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 10px; flex-wrap: wrap;
-    font-size: 11.5px; letter-spacing: 0.2em; color: var(--gold-dim);
-    margin-bottom: 9px;
+    margin: 16px 0 10px; font-size: 11.5px; color: var(--text-faint);
   }
-  .field__lab span { letter-spacing: 0.04em; color: var(--text-faint); }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip {
-    appearance: none;
-    min-height: 38px;
-    padding: 7px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--line-soft);
-    background: transparent;
-    color: var(--text-dim);
-    font-family: var(--font-sans);
-    font-size: 13.5px;
-    letter-spacing: 0.04em;
+  .count-line .linkish { font-size: 11.5px; color: var(--text-dim); }
+
+  .case-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .case-card {
+    display: flex; flex-direction: column; gap: 7px;
+    width: 100%; min-height: 152px; padding: 15px 16px 13px;
+    text-align: left; font-family: var(--font-sans); color: inherit;
+    border: 1px solid var(--line-soft); border-radius: 11px;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
     cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
   }
-  .chip:hover { border-color: var(--line); color: var(--text); }
-  .chip[aria-pressed="true"] {
-    border-color: rgba(201, 168, 106, 0.75);
-    background: rgba(201, 168, 106, 0.14);
-    color: var(--gold-bright);
+  .case-card:hover { border-color: var(--line); background: rgba(201, 168, 106, 0.06); transform: translateY(-2px); }
+  .case-card:active { transform: translateY(0); }
+  .case-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .case-card__title {
+    margin: 0; font-family: var(--font-serif); font-size: 18.5px;
+    font-weight: 600; line-height: 1.45; letter-spacing: 0.03em; color: var(--text);
   }
-  .chip:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .case-card__client { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--gold); }
+  .case-card__goal {
+    margin: 0; font-size: 11.8px; line-height: 1.65; color: var(--text-faint);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .case-card__tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .case-card__tags .tag { font-size: 10.5px; padding: 1px 8px; }
+  .case-card__foot {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    margin-top: auto; padding-top: 8px; border-top: 1px solid var(--line-soft);
+    font-size: 11px; color: var(--text-faint);
+  }
+  .case-card__done { color: var(--jade-bright); }
+  .case-card__done b { font-family: var(--font-num); font-size: 14px; font-weight: 400; }
+  .case-card__best { color: var(--text-faint); }
+  .case-card__go { color: var(--gold-dim); letter-spacing: 0.08em; white-space: nowrap; }
 
-  .setup__foot {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 14px; flex-wrap: wrap;
-    margin-top: 24px; padding-top: 18px;
-    border-top: 1px solid var(--line-soft);
+  .lv {
+    flex: 0 0 auto; font-size: 10px; letter-spacing: 0.1em;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid; white-space: nowrap;
   }
-  .setup__count { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; }
-  .setup__count b { color: var(--gold-bright); font-family: var(--font-num); font-size: 17px; }
-  .setup__actions { display: flex; gap: 9px; flex-wrap: wrap; }
+  .lv--1 { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.42); background: rgba(111, 168, 154, 0.1); }
+  .lv--2 { color: var(--gold-bright); border-color: rgba(201, 168, 106, 0.46); background: rgba(201, 168, 106, 0.09); }
+  .lv--3 { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.46); background: rgba(184, 71, 60, 0.1); }
 
-  .notice {
-    padding: 11px 14px;
-    border-left: 2px solid var(--gold-dim);
-    background: rgba(201, 168, 106, 0.055);
-    border-radius: 6px;
-    font-size: 12.5px;
-    line-height: 1.65;
-    color: var(--text-dim);
+  .home__foot {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap; margin-top: 24px;
+    font-size: 11.5px; color: var(--text-faint);
   }
-  .notice--warn { border-left-color: var(--cinnabar); background: rgba(184, 71, 60, 0.08); color: var(--text); }
-  .notice b { color: var(--gold-bright); font-weight: 500; }
+  .home__foot .linkish { font-size: 12px; color: var(--text-dim); }
+  .home__foot .linkish:hover { color: var(--gold-bright); }
 
-  /* ---------- 答题 ---------- */
-  .quiz-top {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: wrap;
-    margin-bottom: 10px;
+  .pager { display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; margin-top: 18px; }
+  .pager__btn {
+    min-width: 36px; min-height: 36px; padding: 5px 10px;
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    background: none; color: var(--text-dim);
+    font-family: var(--font-num); font-size: 12.5px; cursor: pointer;
   }
-  .quiz-top__count { display: flex; align-items: baseline; gap: 5px; color: var(--text-faint); font-size: 12px; letter-spacing: 0.12em; }
-  .quiz-top__count b { font-family: var(--font-num); font-size: 25px; color: var(--gold-bright); letter-spacing: 0.03em; }
-  .quiz-top__right { display: flex; gap: 6px; flex-wrap: wrap; }
-  .quiz-top__right .tag { font-size: 11px; padding: 2px 9px; }
+  .pager__btn:hover:not([disabled]) { border-color: var(--line); color: var(--gold-bright); background: rgba(201, 168, 106, 0.07); }
+  .pager__btn[disabled] { opacity: 0.32; cursor: not-allowed; }
+  .pager__btn.is-on { border-color: var(--gold); background: var(--gold); color: var(--ink-0); }
+  .pager__dots { color: var(--text-faint); font-size: 12px; padding: 0 2px; }
+  .pager__info { font-size: 11px; color: var(--text-faint); margin-left: 4px; }
 
-  .qpanel { padding: 22px 24px 20px; }
-  .qmeta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .qtext {
-    margin: 0 0 4px;
-    font-family: var(--font-serif);
-    font-size: clamp(18px, 2.5vw, 22px);
-    line-height: 1.72;
-    letter-spacing: 0.025em;
-    color: var(--text);
-  }
-  .qsub { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; }
+  /* ---------- 案例页 ---------- */
+  .case-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .case-head .back { color: var(--text-dim); font-size: 12.5px; letter-spacing: 0.08em; }
+  .case-head .back:hover { color: var(--gold-bright); }
+  .case-head__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .case-head__title { margin: 0; font-size: clamp(22px, 3.8vw, 30px); line-height: 1.35; }
 
-  .choices { display: grid; gap: 10px; margin-top: 16px; }
-  .choice {
-    appearance: none;
-    display: grid;
-    grid-template-columns: 30px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    min-height: 56px;
-    padding: 11px 14px;
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.025);
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 15px;
-    line-height: 1.55;
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease, opacity 0.16s ease;
-  }
-  .choice:hover:not([disabled]) { border-color: var(--line); background: rgba(201, 168, 106, 0.07); }
-  .choice:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
-  .choice[disabled] { cursor: default; }
-  .choice__mark {
-    width: 28px; height: 28px;
-    display: grid; place-items: center;
-    border: 1px solid var(--line);
-    border-radius: 50%;
-    font-family: var(--font-num);
-    font-size: 13px;
-    color: var(--gold);
-    flex: none;
-  }
-  .choice__body { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .choice__kicker { font-size: 10px; letter-spacing: 0.18em; color: var(--text-faint); }
-  .choice__txt { color: var(--text); }
-  .choice__flag {
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    padding: 2px 8px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-  .choice.is-correct {
-    border-color: rgba(111, 168, 154, 0.72);
-    background: rgba(111, 168, 154, 0.13);
-  }
-  .choice.is-correct .choice__mark { border-color: var(--jade); color: var(--jade-bright); }
-  .choice.is-correct .choice__flag { border-color: rgba(111, 168, 154, 0.6); color: var(--jade-bright); }
-  .choice.is-wrong {
-    border-color: rgba(224, 96, 79, 0.75);
-    background: rgba(184, 71, 60, 0.13);
-  }
-  .choice.is-wrong .choice__mark { border-color: var(--cinnabar); color: var(--cinnabar-bright); }
-  .choice.is-wrong .choice__flag { border-color: rgba(224, 96, 79, 0.6); color: var(--cinnabar-bright); }
-  .choice.is-dim { opacity: 0.56; }
-  .choices--product .choice { background: rgba(201, 168, 106, 0.035); }
-  .choices--product .choice.is-correct { background: rgba(111, 168, 154, 0.13); }
-  .choices--product .choice.is-wrong { background: rgba(184, 71, 60, 0.13); }
+  .step-hud { display: flex; flex-direction: column; gap: 6px; }
+  .step-hud__row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .step-hud__label { font-family: var(--font-serif); font-size: 12.5px; letter-spacing: 0.12em; color: var(--gold); }
+  .step-hud__count { font-size: 11.5px; color: var(--text-faint); }
+  .step-hud .meter { height: 5px; }
 
-  .actions {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; flex-wrap: wrap;
-    margin-top: 18px;
-  }
-  .actions__right { display: flex; gap: 9px; flex-wrap: wrap; }
-  .actions__hint { font-size: 11.5px; color: var(--text-faint); }
-
-  .feedback {
-    margin-top: 16px;
-    padding: 14px 16px 13px;
-    border: 1px solid var(--line-soft);
+  .client-card {
+    position: relative; margin-bottom: 14px; padding: 17px 19px 15px;
+    border: 1px solid rgba(201, 168, 106, 0.46);
     border-left: 3px solid var(--gold);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.026);
-  }
-  .feedback--ok { border-left-color: var(--jade); }
-  .feedback--bad { border-left-color: var(--cinnabar); }
-  .feedback__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 7px; }
-  .feedback__icon { font-family: var(--font-num); font-size: 17px; line-height: 1; color: var(--gold-bright); }
-  .feedback--ok .feedback__icon { color: var(--jade-bright); }
-  .feedback--bad .feedback__icon { color: var(--cinnabar-bright); }
-  .feedback__head b { font-family: var(--font-serif); font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
-  .feedback__sub { font-size: 11.5px; color: var(--text-faint); }
-  .feedback__body { display: flex; gap: 9px; align-items: flex-start; }
-  .feedback__label {
-    flex: none;
-    margin-top: 2px;
-    padding: 1px 7px;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    color: var(--gold);
-  }
-  .feedback__text { margin: 0; font-size: 13.6px; line-height: 1.78; color: var(--text-dim); }
-  .metaline { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .metaline .tag { font-size: 10.5px; padding: 2px 8px; }
-
-  /* ---------- 结果页 ---------- */
-  .scoreboard {
-    display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap;
-    margin: 14px 0 4px;
-  }
-  .scoreboard__main { display: flex; align-items: baseline; gap: 8px; }
-  .scoreboard__main b { font-family: var(--font-num); font-size: 58px; line-height: 1; color: var(--gold-bright); letter-spacing: 0.02em; }
-  .scoreboard__main span { font-size: 12px; color: var(--text-faint); letter-spacing: 0.14em; }
-  .scoreboard__sub { display: grid; gap: 3px; font-size: 12.5px; color: var(--text-dim); }
-  .scoreboard__sub b { font-family: var(--font-num); color: var(--text); font-size: 17px; }
-
-  .reviewlist { display: grid; gap: 8px; margin-top: 12px; }
-  .reviewitem {
-    padding: 11px 13px;
-    border: 1px solid var(--line-soft);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
-  }
-  .reviewitem__q { font-size: 13px; line-height: 1.65; color: var(--text); margin: 0 0 5px; }
-  .reviewitem__a { font-size: 11.5px; color: var(--jade-bright); line-height: 1.6; }
-
-  /* ---------- 适当性 ---------- */
-  .client {
-    padding: 19px 20px 17px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: 12px;
     background:
-      radial-gradient(420px 200px at 100% 0%, rgba(108, 143, 196, 0.13), transparent 70%),
-      linear-gradient(158deg, rgba(26, 34, 51, 0.9), rgba(11, 15, 22, 0.92));
+      linear-gradient(150deg, rgba(201, 168, 106, 0.11), rgba(201, 168, 106, 0.028) 58%, rgba(11, 15, 22, 0.55));
     box-shadow: var(--shadow-1);
   }
-  .client__head { display: flex; align-items: center; gap: 12px; }
-  .client__seal {
-    width: 42px; height: 42px; flex: none;
-    display: grid; place-items: center;
-    border: 1px solid rgba(201, 168, 106, 0.62);
-    border-radius: 50%;
-    font-family: var(--font-serif);
-    font-size: 18px;
-    color: var(--gold-bright);
-    box-shadow: inset 0 0 14px rgba(201, 168, 106, 0.2);
+  .client-card__head { display: flex; align-items: baseline; gap: 9px 11px; flex-wrap: wrap; margin-bottom: 10px; }
+  .client-card__kicker { font-size: 10px; letter-spacing: 0.24em; color: var(--gold-dim); }
+  .client-card__name { font-family: var(--font-serif); font-size: 21px; line-height: 1.3; letter-spacing: 0.06em; color: var(--text); }
+  .client-card__meta { font-size: 12px; color: var(--text-dim); }
+  .client-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px 18px; margin: 0;
   }
-  .client__name { font-family: var(--font-serif); font-size: 22px; letter-spacing: 0.08em; line-height: 1.3; }
-  .client__sub { font-size: 10.5px; letter-spacing: 0.2em; color: var(--text-faint); margin-top: 1px; }
-  .client__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 8px;
-    margin-top: 13px;
+  .client-field { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-size: 13px; line-height: 1.7; }
+  .client-field--wide { grid-column: 1 / -1; }
+  .client-grid dt { flex: 0 0 2.9em; font-size: 11px; letter-spacing: 0.08em; color: var(--text-faint); }
+  .client-grid dd { margin: 0; min-width: 0; color: var(--text); overflow-wrap: anywhere; }
+  .client-quote {
+    margin: 11px 0 0; padding: 9px 12px;
+    border-left: 2px solid var(--line);
+    border-radius: 0 8px 8px 0;
+    background: rgba(7, 10, 15, 0.45);
+    font-family: var(--font-serif); font-size: 13.8px; line-height: 1.85; color: var(--text);
   }
-  .client__cell {
-    padding: 8px 11px;
-    border: 1px solid var(--line-soft);
-    border-radius: 8px;
+  .client-quote cite {
+    display: block; margin-top: 2px;
+    font-family: var(--font-sans); font-style: normal;
+    font-size: 10px; letter-spacing: 0.16em; color: var(--text-faint);
+  }
+
+  .panel.case-q { padding: 22px 24px 20px; }
+  .q-label { font-size: 10.5px; letter-spacing: 0.26em; color: var(--gold-dim); margin-bottom: 8px; }
+  .q-text {
+    margin: 0; font-family: var(--font-serif);
+    font-size: clamp(17px, 2.5vw, 20.5px); line-height: 1.85;
+    color: var(--text); text-align: justify;
+  }
+
+  .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .opt {
+    position: relative; display: flex; gap: 12px;
+    width: 100%; min-height: 56px; padding: 13px 15px;
+    text-align: left; font-family: var(--font-sans); color: var(--text);
     background: rgba(255, 255, 255, 0.025);
-    min-width: 0;
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
   }
-  .client__k { font-size: 10px; letter-spacing: 0.18em; color: var(--text-faint); margin-bottom: 1px; }
-  .client__v { font-size: 14.5px; color: var(--text); line-height: 1.5; word-break: break-word; }
-  .client__v--risk { color: var(--cinnabar-bright); }
-  .client__raw {
-    margin-top: 13px;
-    padding-top: 11px;
-    border-top: 1px solid var(--line-soft);
-    font-size: 13.5px;
-    line-height: 1.75;
+  .opt:hover:not([disabled]) { border-color: var(--line); background: rgba(201, 168, 106, 0.075); transform: translateY(-1px); }
+  .opt[disabled] { cursor: default; }
+  .opt__no {
+    flex: 0 0 auto; width: 24px; height: 24px; margin-top: 1px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 50%;
+    font-size: 11.5px; color: var(--gold);
+  }
+  .opt__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+  .opt__row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .opt__t { flex: 1; min-width: 0; font-size: 14.5px; line-height: 1.7; color: var(--text); overflow-wrap: anywhere; }
+  .opt__badge {
+    flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border: 1px solid; border-radius: 999px;
+    font-size: 10.5px; letter-spacing: 0.06em; white-space: nowrap;
+  }
+  .opt__badge--best { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.5); background: rgba(111, 168, 154, 0.12); }
+  .opt__badge--ok { color: var(--gold-bright); border-color: rgba(201, 168, 106, 0.48); background: rgba(201, 168, 106, 0.1); }
+  .opt__badge--bad { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.5); background: rgba(184, 71, 60, 0.12); }
+  .opt__picked {
+    align-self: flex-start;
+    font-size: 10px; letter-spacing: 0.14em; color: var(--text-dim);
+    border: 1px solid var(--line-soft); border-radius: 999px; padding: 0 7px;
+  }
+  .opt.is-best { border-color: rgba(148, 201, 186, 0.55); background: rgba(111, 168, 154, 0.1); }
+  .opt.is-best .opt__no { border-color: var(--jade); color: var(--jade-bright); }
+  .opt.is-ok { border-color: rgba(201, 168, 106, 0.46); background: rgba(201, 168, 106, 0.08); }
+  .opt.is-ok .opt__no { border-color: var(--gold); color: var(--gold-bright); }
+  .opt.is-bad { border-color: rgba(224, 96, 79, 0.5); background: rgba(184, 71, 60, 0.1); }
+  .opt.is-bad .opt__no { border-color: var(--cinnabar); color: var(--cinnabar-bright); }
+  .opt.is-picked { box-shadow: 0 0 0 2px rgba(230, 226, 216, 0.18); }
+  .opt.is-picked.is-best { box-shadow: 0 0 0 2px rgba(148, 201, 186, 0.24); }
+  .opt.is-picked.is-ok { box-shadow: 0 0 0 2px rgba(201, 168, 106, 0.22); }
+  .opt.is-picked.is-bad { box-shadow: 0 0 0 2px rgba(224, 96, 79, 0.24); }
+  .opt.is-muted { opacity: 0.72; }
+
+  .prod { margin-top: 1px; padding-top: 8px; border-top: 1px dashed var(--line-soft); }
+  .prod__head { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; margin-bottom: 5px; }
+  .prod__name { font-family: var(--font-serif); font-size: 12.5px; letter-spacing: 0.04em; color: var(--gold-bright); }
+  .prod__type {
+    font-size: 9.5px; letter-spacing: 0.08em; color: var(--text-faint);
+    border: 1px solid var(--line-soft); border-radius: 999px; padding: 0 6px;
+  }
+  .prod__grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 14px; font-size: 11.2px; line-height: 1.65; color: var(--text-dim);
+  }
+  .prod__grid b { margin-right: 4px; font-weight: 400; color: var(--text-faint); font-size: 10.5px; }
+  .prod__risk { font-family: var(--font-num); font-style: normal; color: var(--cinnabar-bright); }
+  .prod__note { margin: 5px 0 0; font-size: 11px; line-height: 1.65; color: var(--text-faint); }
+
+  .qfoot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap; margin-top: 15px;
+  }
+  .hint { font-size: 11.5px; letter-spacing: 0.03em; color: var(--text-faint); }
+  .kbd {
+    display: inline-grid; place-items: center;
+    min-width: 18px; height: 18px; margin: 0 2px; padding: 0 4px;
+    font-family: var(--font-num); font-size: 10.5px; line-height: 1;
     color: var(--text-dim);
+    border: 1px solid var(--line-soft); border-radius: 4px;
+    background: rgba(255, 255, 255, 0.03);
   }
-  .client__raw b { display: block; font-size: 10px; font-weight: 400; letter-spacing: 0.2em; color: var(--gold-dim); margin-bottom: 3px; }
 
-  .verdict {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 16px;
-    margin-top: 16px;
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.025);
+  .fb {
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px solid var(--line-soft);
+    animation: fadeUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    scroll-margin-top: 80px;
   }
-  .verdict--ok { border-color: rgba(111, 168, 154, 0.55); background: rgba(111, 168, 154, 0.1); }
-  .verdict--bad { border-color: rgba(224, 96, 79, 0.58); background: rgba(184, 71, 60, 0.11); }
-  .verdict__icon {
-    width: 34px; height: 34px; flex: none;
+  .fb__verdict {
+    display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+    margin-bottom: 10px;
+    font-family: var(--font-serif); font-size: 17px; letter-spacing: 0.04em;
+  }
+  .fb__icon {
+    width: 26px; height: 26px; flex: 0 0 auto;
     display: grid; place-items: center;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    font-family: var(--font-num);
-    font-size: 17px;
-    color: var(--jade-bright);
+    border-radius: 50%; border: 1px solid; font-size: 13px; line-height: 1;
   }
-  .verdict--bad .verdict__icon { color: var(--cinnabar-bright); }
-  .verdict__title { display: block; font-family: var(--font-serif); font-size: 18px; letter-spacing: 0.08em; color: var(--jade-bright); margin-bottom: 2px; }
-  .verdict--bad .verdict__title { color: var(--cinnabar-bright); }
-  .verdict__text { margin: 0; font-size: 13px; line-height: 1.7; color: var(--text-dim); }
+  .fb__earn { margin-left: auto; font-family: var(--font-num); font-size: 12px; color: var(--text-faint); }
+  .fb--best .fb__verdict { color: var(--jade-bright); }
+  .fb--best .fb__icon { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.5); background: rgba(111, 168, 154, 0.13); }
+  .fb--ok .fb__verdict { color: var(--gold-bright); }
+  .fb--ok .fb__icon { color: var(--gold-bright); border-color: rgba(201, 168, 106, 0.5); background: rgba(201, 168, 106, 0.13); }
+  .fb--bad .fb__verdict { color: var(--cinnabar-bright); }
+  .fb--bad .fb__icon { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.5); background: rgba(184, 71, 60, 0.13); }
+  .fb__chosen { margin: 0 0 6px; font-size: 12px; line-height: 1.7; color: var(--text-faint); }
+  .fb__text { margin: 0 0 12px; font-size: 14px; line-height: 1.88; color: var(--text); }
+  .teach {
+    padding: 10px 13px;
+    border: 1px solid var(--line); border-radius: 9px;
+    background: rgba(201, 168, 106, 0.055);
+  }
+  .teach__k { display: block; margin-bottom: 3px; font-size: 9.5px; letter-spacing: 0.24em; color: var(--gold-dim); }
+  .teach p { margin: 0; font-size: 12.8px; line-height: 1.8; color: var(--text-dim); }
+  .fb__acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .fb__acts .hint { margin-left: auto; }
 
-  .explainbox {
-    margin-top: 12px;
-    padding: 13px 15px;
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-sm);
+  /* ---------- 结算 ---------- */
+  .result-head { text-align: center; }
+  .result-head .eyebrow { margin-bottom: 7px; }
+  .result-big {
+    font-family: var(--font-num); line-height: 1.1;
+    font-size: clamp(46px, 11vw, 64px); letter-spacing: 0.02em;
+    color: var(--gold-bright);
+  }
+  .result-big small { font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.08em; color: var(--text-faint); margin-left: 6px; }
+  .rating {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 8px; padding: 3px 14px;
+    border: 1px solid; border-radius: 999px;
+    font-family: var(--font-serif); font-size: 15px; letter-spacing: 0.12em;
+  }
+  .rating--r4 { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.52); background: rgba(111, 168, 154, 0.12); }
+  .rating--r3 { color: var(--gold-bright); border-color: rgba(201, 168, 106, 0.52); background: rgba(201, 168, 106, 0.11); }
+  .rating--r2 { color: var(--text-dim); border-color: var(--line); background: rgba(255, 255, 255, 0.03); }
+  .rating--r1 { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.52); background: rgba(184, 71, 60, 0.12); }
+  .result-note { margin: 8px 0 0; font-size: 12.5px; color: var(--text-dim); }
+  .metrics { display: flex; justify-content: center; gap: 9px; flex-wrap: wrap; margin-top: 18px; }
+  .metric {
+    min-width: 90px; padding: 9px 13px;
+    border: 1px solid var(--line-soft); border-radius: 9px;
     background: rgba(255, 255, 255, 0.022);
   }
-  .explainbox__head { font-size: 10.5px; letter-spacing: 0.22em; color: var(--gold-dim); margin-bottom: 5px; }
-  .explainbox p { margin: 0; font-size: 13.4px; line-height: 1.78; color: var(--text-dim); }
-  .compliance {
-    display: flex; align-items: flex-start; gap: 8px;
-    margin-top: 12px; padding: 10px 13px;
-    border-left: 2px solid var(--cinnabar);
-    background: rgba(184, 71, 60, 0.075);
-    border-radius: 5px;
-    font-size: 12.4px;
-    line-height: 1.68;
-    color: var(--text);
-  }
-  .compliance__icon {
-    flex: none;
-    width: 18px; height: 18px;
-    display: grid; place-items: center;
-    border: 1px solid var(--cinnabar);
-    border-radius: 50%;
-    font-family: var(--font-num);
-    font-size: 11px;
-    color: var(--cinnabar-bright);
-    margin-top: 1px;
-  }
+  .metric b { display: block; font-family: var(--font-num); font-weight: 400; font-size: 18px; line-height: 1.35; color: var(--text); }
+  .metric span { display: block; font-size: 10px; letter-spacing: 0.14em; color: var(--text-faint); }
 
-  /* ---------- 错题本 ---------- */
-  .wronglist { display: grid; gap: 10px; }
-  .wrongcard {
-    padding: 15px 17px;
-    border: 1px solid var(--line-soft);
-    border-radius: var(--radius-sm);
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012));
-  }
-  .wrongcard__top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .wrongcard__q { margin: 8px 0 9px; font-size: 14.5px; line-height: 1.7; color: var(--text); }
-  .wrongcard__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .wrongcard__stat { font-size: 11.5px; color: var(--text-faint); line-height: 1.6; }
-  .wrongcard__stat b { color: var(--cinnabar-bright); font-family: var(--font-num); font-size: 14px; }
-  .wrongcard__meter { width: 100%; margin-top: 7px; }
-  .wrongcard__meter .bar { height: 4px; }
-  .wrongcard__meter .bar > i { background: linear-gradient(90deg, #4f7d71, var(--jade-bright)); }
-
-  /* ---------- 资产配置 ---------- */
-  .profiles {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 4px;
-  }
-  .profile {
-    appearance: none;
-    min-width: 0;
-    padding: 10px 11px;
-    border: 1px solid var(--line-soft);
-    border-radius: 9px;
+  .result-panel { margin-top: 0; }
+  .result-section { margin-top: 20px; }
+  .result-section .section-head { margin-top: 0; }
+  .review {
+    padding: 14px 15px 12px;
+    border: 1px solid var(--line-soft); border-radius: 10px;
     background: rgba(255, 255, 255, 0.02);
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease;
   }
-  .profile:hover { border-color: var(--line); }
-  .profile[aria-pressed="true"] {
-    border-color: rgba(201, 168, 106, 0.78);
-    background: rgba(201, 168, 106, 0.12);
+  .review + .review { margin-top: 9px; }
+  .review__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .review__step { font-family: var(--font-serif); font-size: 13.5px; letter-spacing: 0.07em; color: var(--gold); }
+  .vdict {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 1px 8px; border: 1px solid; border-radius: 999px;
+    font-size: 10.5px; letter-spacing: 0.06em; white-space: nowrap;
   }
-  .profile b { display: block; font-family: var(--font-serif); font-size: 15px; letter-spacing: 0.06em; margin-bottom: 1px; }
-  .profile span { display: block; font-size: 10.5px; line-height: 1.45; color: var(--text-faint); }
-  .profile[aria-pressed="true"] span { color: var(--gold); }
+  .vdict--best { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.46); background: rgba(111, 168, 154, 0.1); }
+  .vdict--ok { color: var(--gold-bright); border-color: rgba(201, 168, 106, 0.46); background: rgba(201, 168, 106, 0.09); }
+  .vdict--bad { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.46); background: rgba(184, 71, 60, 0.1); }
+  .review__q { margin: 0 0 8px; font-size: 12.5px; line-height: 1.75; color: var(--text-faint); }
+  .review__row {
+    display: grid; grid-template-columns: 4.7em minmax(0, 1fr); gap: 8px;
+    padding: 6px 0; border-top: 1px dashed var(--line-soft);
+    font-size: 13px; line-height: 1.78;
+  }
+  .review__row dt { padding-top: 1px; font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-faint); }
+  .review__row dd { margin: 0; min-width: 0; color: var(--text-dim); overflow-wrap: anywhere; }
+  .review__row--why dd { color: var(--text); }
+  .review__row--better dd { color: var(--jade-bright); }
 
-  .alloc-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-    gap: 18px;
-    align-items: start;
-    margin-top: 17px;
+  .lessons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  .lessons li {
+    display: flex; align-items: baseline; gap: 9px;
+    padding: 9px 12px;
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 13px; line-height: 1.8; color: var(--text-dim);
   }
-  .alloc-panel { padding: 18px 19px 14px; }
-  .alloc-row { padding: 11px 0 8px; border-top: 1px solid var(--line-soft); }
-  .alloc-row:first-child { border-top: 0; padding-top: 2px; }
-  .alloc-row__top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-  .alloc-row__name { display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--text); }
-  .alloc-row__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-  .alloc-row__risk { font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
-  .alloc-row__val { font-family: var(--font-num); font-size: 17px; color: var(--gold-bright); }
-  .alloc-range {
-    appearance: none;
-    -webkit-appearance: none;
-    display: block;
-    width: 100%;
-    height: 32px;
-    margin: 1px 0 0;
-    border: 0;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--gold) 0%, var(--gold) 25%, rgba(255, 255, 255, 0.09) 25%, rgba(255, 255, 255, 0.09) 100%) center / 100% 8px no-repeat;
-    cursor: pointer;
+  .lesson__no { flex: 0 0 auto; font-family: var(--font-num); font-size: 10.5px; color: var(--gold-dim); }
+  .reg {
+    margin-top: 11px; padding: 11px 13px;
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(255, 255, 255, 0.035);
+    font-size: 12.8px; line-height: 1.82; color: var(--text-dim);
   }
-  .alloc-range::-webkit-slider-runnable-track { height: 8px; background: transparent; border-radius: 999px; }
-  .alloc-range::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px; height: 20px;
-    margin-top: -6px;
-    border: 1px solid rgba(7, 10, 15, 0.7);
-    border-radius: 50%;
-    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-  }
-  .alloc-range::-moz-range-track { height: 8px; background: transparent; border-radius: 999px; }
-  .alloc-range::-moz-range-thumb {
-    width: 18px; height: 18px;
-    border: 1px solid rgba(7, 10, 15, 0.7);
-    border-radius: 50%;
-    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  }
-  .alloc-range:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
-  .alloc-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+  .reg b { display: block; margin-bottom: 2px; font-size: 9.5px; font-weight: 400; letter-spacing: 0.24em; color: var(--text-faint); }
+  .result-acts { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 22px; }
+  .result-acts .btn { padding: 9px 17px; font-size: 13.5px; }
+  .result-fine { margin: 16px 0 0; font-size: 11px; color: var(--text-faint); text-align: center; }
 
-  .alloc-summary {
-    padding: 17px 18px 15px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background:
-      radial-gradient(360px 200px at 100% 0%, rgba(201, 168, 106, 0.1), transparent 70%),
-      linear-gradient(158deg, rgba(26, 34, 51, 0.86), rgba(11, 15, 22, 0.92));
+  /* ---------- 知识库 ---------- */
+  .kb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .kb-head h1 { margin: 2px 0 6px; }
+  .kb-head p { margin: 0; font-size: 13px; color: var(--text-dim); }
+  .kb-panel { margin-top: 16px; padding: 20px 22px; }
+  .kb-count { margin: 14px 0 0; font-size: 11.5px; color: var(--text-faint); }
+  .kb-group { margin-top: 22px; }
+  .kb-group:first-child { margin-top: 4px; }
+  .kb-group__head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 8px; }
+  .kb-group__head h2 { margin: 0; font-size: 16.5px; }
+  .kb-group__count { font-family: var(--font-num); font-size: 10.5px; color: var(--text-faint); }
+  .kb-list { display: flex; flex-direction: column; gap: 7px; }
+  .kb-item {
+    padding: 10px 13px;
+    border: 1px solid var(--line-soft); border-left: 2px solid rgba(201, 168, 106, 0.38);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
   }
-  .alloc-summary__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .alloc-summary__head .eyebrow { margin: 0; }
-  .riskbig { display: flex; align-items: baseline; gap: 7px; margin: 5px 0 2px; }
-  .riskbig b { font-family: var(--font-num); font-size: 44px; line-height: 1; color: var(--gold-bright); letter-spacing: 0.02em; }
-  .riskbig span { font-size: 11px; color: var(--text-faint); }
-  .riskline { font-size: 11.5px; color: var(--text-dim); line-height: 1.6; }
-  .riskline b { color: var(--text); font-weight: 500; }
-  .kvgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
-  .kv { padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: rgba(255, 255, 255, 0.02); min-width: 0; }
-  .kv__k { font-size: 10px; letter-spacing: 0.14em; color: var(--text-faint); }
-  .kv__v { font-family: var(--font-num); font-size: 18px; color: var(--text); line-height: 1.35; }
-  .kv__v.cinnabar { color: var(--cinnabar-bright); }
-  .kv__v.jade { color: var(--jade-bright); }
-  .kv__s { font-size: 10px; color: var(--text-faint); line-height: 1.45; }
-
-  .mixbar { display: flex; height: 12px; margin-top: 14px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.07); }
-  .mixbar i { display: block; height: 100%; min-width: 0; transition: width 0.22s ease; }
-  .mixlegend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 7px; font-size: 10.5px; color: var(--text-faint); }
-  .mixlegend span { display: inline-flex; align-items: center; gap: 5px; }
-  .mixlegend i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-  .capmeter { margin-top: 5px; }
-  .capmeter .meter { height: 5px; }
-  .capmeter .meter > i { background: linear-gradient(90deg, #6c8fc4, var(--jade-bright)); }
-  .capmeter.is-over .meter > i { background: linear-gradient(90deg, var(--cinnabar), var(--cinnabar-bright)); }
-
-  .disclaimer {
-    margin-top: 10px;
-    font-size: 10.5px;
-    line-height: 1.55;
-    color: var(--text-faint);
-    letter-spacing: 0.03em;
+  .kb-item--reg {
+    border-left-color: rgba(230, 226, 216, 0.24);
+    background: rgba(255, 255, 255, 0.035);
   }
-  .disclaimer::before { content: "※ "; color: var(--cinnabar); }
+  .kb-item__text { margin: 0 0 6px; font-size: 13px; line-height: 1.82; color: var(--text); }
+  .kb-item__meta { display: flex; align-items: baseline; gap: 5px 9px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-faint); }
+  .kb-item__meta .tag { font-size: 9.5px; padding: 0 7px; }
+  .kb-type { padding: 0 6px; border: 1px solid var(--line-soft); border-radius: 4px; color: var(--text-faint); }
+  .kb-type--reg { color: var(--text-dim); border-color: rgba(230, 226, 216, 0.16); }
+  .kb-src { color: var(--text-faint); }
 
-  .result {
-    margin-top: 17px;
-    padding: 18px 19px 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: linear-gradient(158deg, rgba(26, 34, 51, 0.84), rgba(11, 15, 22, 0.9));
+  /* ---------- 空状态 / 弹层 ---------- */
+  .empty { text-align: center; padding: 40px 18px 32px; }
+  .empty__mark { margin-bottom: 10px; font-family: var(--font-serif); font-size: 36px; line-height: 1; color: var(--gold-dim); opacity: 0.62; }
+  .empty h3 { margin: 0 0 7px; font-size: 20px; color: var(--text); }
+  .empty p { max-width: 33em; margin: 0 auto 16px; font-size: 13px; line-height: 1.85; color: var(--text-dim); }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 120;
+    display: grid; place-items: center; padding: 18px;
+    background: rgba(4, 6, 10, 0.78);
+    backdrop-filter: blur(5px);
+    animation: overlayIn 0.2s ease both;
   }
-  .result__empty { margin: 0; font-size: 12px; color: var(--text-faint); line-height: 1.6; }
-  .result__top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
-  .scorebig { display: flex; align-items: baseline; gap: 6px; }
-  .scorebig b { font-family: var(--font-num); font-size: 52px; line-height: 1; color: var(--gold-bright); }
-  .scorebig span { font-size: 11px; color: var(--text-faint); letter-spacing: 0.12em; }
-  .verdictlabel {
-    font-family: var(--font-serif);
-    font-size: 15px;
-    letter-spacing: 0.08em;
-    color: var(--jade-bright);
+  @keyframes overlayIn { from { opacity: 0; } }
+  .overlay__panel {
+    position: relative;
+    width: min(520px, 100%);
+    max-height: min(82vh, 720px);
+    overflow: auto;
+    padding: 24px 25px 21px;
+    animation: panelIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .verdictlabel--mid { color: var(--gold-bright); }
-  .verdictlabel--bad { color: var(--cinnabar-bright); }
-  .breakdown { display: grid; gap: 8px; margin-top: 14px; }
-  .bd { display: grid; grid-template-columns: 78px minmax(0, 1fr) 54px; gap: 10px; align-items: center; font-size: 11.5px; color: var(--text-dim); }
-  .bd .bar { height: 6px; }
-  .bd .bar > i { background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright)); }
-  .bd__v { text-align: right; font-family: var(--font-num); color: var(--text); }
-  .comments { margin: 13px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-  .comments li { position: relative; padding-left: 15px; font-size: 12.3px; line-height: 1.68; color: var(--text-dim); }
-  .comments li::before { content: "·"; position: absolute; left: 3px; top: 0; color: var(--gold); font-size: 16px; line-height: 1.35; }
-  .comments li.is-risk { color: var(--text); }
-  .comments li.is-risk::before { content: "!"; color: var(--cinnabar-bright); font-family: var(--font-num); font-size: 11px; top: 2px; }
-  .result .compliance { margin-top: 12px; }
-  .result__note { margin: 8px 0 0; font-size: 10.5px; color: var(--text-faint); }
-
-  /* ---------- 空态 / 错误 ---------- */
-  .empty {
-    padding: 34px 22px;
-    border: 1px dashed var(--line);
-    border-radius: var(--radius);
-    text-align: center;
-    background: rgba(255, 255, 255, 0.018);
+  @keyframes panelIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } }
+  .overlay__close {
+    position: absolute; top: 9px; right: 11px;
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    border: 1px solid transparent; border-radius: 50%;
+    background: none; color: var(--text-dim);
+    font-size: 20px; line-height: 1; cursor: pointer;
   }
-  .empty h2 { margin-bottom: 7px; }
-  .empty p { max-width: 480px; margin: 0 auto 14px; font-size: 13px; line-height: 1.75; }
-  .empty__mark { font-family: var(--font-serif); font-size: 30px; color: var(--gold-dim); margin-bottom: 4px; }
+  .overlay__close:hover { color: var(--gold-bright); border-color: var(--line-soft); background: rgba(255, 255, 255, 0.04); }
+  .overlay__head { padding-right: 34px; margin-bottom: 13px; }
+  .overlay__head h2 { margin: 2px 0 0; font-family: var(--font-serif); font-size: clamp(24px, 5.4vw, 31px); letter-spacing: 0.1em; }
+  .overlay__body p { font-size: 13.2px; line-height: 1.85; color: var(--text-dim); }
+  .overlay__acts { display: flex; justify-content: flex-end; gap: 9px; flex-wrap: wrap; margin-top: 18px; }
 
-  .foot a { color: var(--text-faint); }
-
-  /* ---------- 响应式 ---------- */
-  @media (max-width: 820px) {
-    .entries { grid-template-columns: 1fr; }
-    .entry { padding: 17px 17px 15px; }
-    .entry h3 { font-size: 19px; }
-    .alloc-grid { grid-template-columns: 1fr; }
-    .profiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 720px) {
+    .case-grid { grid-template-columns: 1fr; }
+    .case-card { min-height: 0; }
   }
-
   @media (max-width: 640px) {
-    .game { padding-top: 18px; }
-    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .stat__v { font-size: 23px; }
-    .qpanel { padding: 18px 15px 16px; }
-    .choice { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; padding: 11px 12px; font-size: 14.4px; }
-    .choice__flag { font-size: 10px; padding: 1px 6px; }
-    .profiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .client { padding: 16px 15px 14px; }
-    .client__name { font-size: 20px; }
-    .scoreboard__main b { font-size: 48px; }
-    .feedback__body { display: block; }
-    .feedback__label { display: inline-block; margin-bottom: 5px; }
-    .result { padding: 16px 14px 14px; }
-    .bd { grid-template-columns: 72px minmax(0, 1fr) 48px; }
+    #app { width: calc(100% - 28px); }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 11px 12px 10px; }
+    .filters-panel, .kb-panel { padding: 16px 15px; }
+    .panel.case-q { padding: 19px 16px 17px; }
+    .client-card { padding: 15px 15px 13px; }
+    .client-grid { grid-template-columns: 1fr; gap: 3px; }
+    .client-field--wide { grid-column: auto; }
+    .result-acts .btn { flex: 1 1 auto; }
+    .overlay__panel { padding: 21px 17px 17px; }
+    .search input, .filters select { font-size: 16px; }
+    .fb__acts .hint { display: none; }
+    .prod__grid { grid-template-columns: 1fr; }
   }
-
-  @media (max-width: 380px) {
-    .choice { grid-template-columns: 26px minmax(0, 1fr) auto; }
-    .choice__flag { font-size: 9px; padding: 1px 4px; letter-spacing: 0; }
-    .alloc-range { height: 36px; }
+  @media (max-width: 400px) {
+    .hero h1 { font-size: 28px; }
+    .stat__k { font-size: 9.5px; letter-spacing: 0.12em; }
+    .stat__n { font-size: 9.5px; }
+    .opt { padding: 12px 12px; gap: 10px; }
+    .opt__t { font-size: 13.8px; }
+    .opt__badge { font-size: 9.5px; padding: 1px 6px; }
+    .review__row { grid-template-columns: 1fr; gap: 1px; }
+    .review__row dt { padding-top: 0; }
+    .case-card__title { font-size: 17px; }
+    .case-head__title { font-size: 21px; }
   }
 </style>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0f16">
+<meta property="og:type" content="website">
+<meta property="og:title" content="理财诊室 · 银行从业 · 墨戏五卷">
+<meta property="og:description" content="案例式决策训练：了解客户、定级判断、方案匹配、销售动作，四步走完给评级与复盘。">
+<meta name="twitter:card" content="summary">
 </head>
 <body>
 
 <header class="topbar" data-chrome="topbar"></header>
 
-<main class="wrap">
-  <div id="app" class="game">
-    <noscript>
-      <section class="panel">
-        <h2>需要启用 JavaScript</h2>
-        <p>理财诊室在浏览器本地运行，不会联网，也不会上传你的答题记录。</p>
-      </section>
-    </noscript>
-  </div>
+<main class="wrap" id="app">
+  <p class="sr-only" id="live" aria-live="polite"></p>
+  <div id="stage"></div>
 </main>
 
 <footer class="foot" data-chrome="footer"></footer>
 
 <script src="./assets/common.js"></script>
-<script src="./assets/finance-data.js"></script>
-<script id="finance-app">
+<script src="./data/finance-products.js"></script>
+<script src="./data/finance-cases.js"></script>
+<script>
 (function () {
   'use strict';
 
-  /* ============================================================
-     一、纯函数（浏览器与 Node 自测共用）
-     ============================================================ */
-
-  const CATEGORIES = ['基金', '股票', '债券', '银行', '合规', '适当性'];
-  const DIFFICULTY_NAMES = { 1: '基础', 2: '进阶', 3: '高阶' };
-
-  const ASSETS = [
-    { key: 'cash', name: '货币类', short: '货币', risk: 1, color: '#6fa89a' },
-    { key: 'bond', name: '债券类', short: '债券', risk: 2, color: '#6c8fc4' },
-    { key: 'mixed', name: '混合类', short: '混合', risk: 3.5, color: '#c9a86a' },
-    { key: 'equity', name: '权益类', short: '权益', risk: 5, color: '#b8473c' }
+  /* ===== CORE:BEGIN 纯逻辑（无 DOM，可被 Node 自测） ===== */
+  const LEVEL_NAMES = { 1: '基础', 2: '进阶', 3: '高阶' };
+  const KIND_SCORE = { best: 2, ok: 1, bad: 0 };
+  const VERDICT = {
+    best: { label: '最佳', icon: '✓' },
+    ok: { label: '欠妥', icon: '△' },
+    bad: { label: '错误', icon: '✕' },
+  };
+  const STEP_NAMES = ['了解客户', '定级与事实判断', '方案与产品', '销售动作与后续'];
+  const RATINGS = [
+    { min: 90, key: 'expert', label: '专业投顾', cls: 'r4', note: '判断稳、动作规范，已经能独立坐诊。' },
+    { min: 70, key: 'pass', label: '合格', cls: 'r3', note: '方向正确，几个细节还能更稳。' },
+    { min: 50, key: 'improve', label: '待提升', cls: 'r2', note: '关键规则还没吃透，回看复盘再走一遍。' },
+    { min: -1, key: 'redline', label: '触碰红线', cls: 'r1', note: '这些做法在真实业务里会踩线，必须纠正。' },
   ];
 
-  /* 目标风险分与权益上限按「可同时满足分散度（每类 5%–65%）」的组合校准：
-     保守 65/25/5/5 → 1.6；稳健 65/10/5/20 → 2.0；
-     平衡 50/5/5/40 → 2.8；进取 30/5/5/60 → 3.6；
-     激进 25/5/5/65 → 3.8（权益上限可更高，但分散度上限为 65%）。 */
-  const PROFILES = [
-    { key: 'conservative', name: '保守型', target: 1.6, cap: 10, desc: '本金优先，随时可用' },
-    { key: 'steady', name: '稳健型', target: 2.0, cap: 25, desc: '小幅波动，稳中求进' },
-    { key: 'balanced', name: '平衡型', target: 2.8, cap: 45, desc: '收益与波动兼顾' },
-    { key: 'growth', name: '进取型', target: 3.6, cap: 65, desc: '承受波动，追求增长' },
-    { key: 'aggressive', name: '激进型', target: 3.8, cap: 85, desc: '高风险高预期' }
-  ];
-
-  function clampNumber(value, min, max, fallback) {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return fallback === undefined ? min : fallback;
-    return Math.min(max, Math.max(min, n));
+  function isObj(v) {
+    return !!v && typeof v === 'object' && !Array.isArray(v);
   }
 
-  function round1(value) {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return 0;
-    return Math.round((n + Number.EPSILON) * 10) / 10;
+  function asText(v) {
+    if (v === null || v === undefined) return '';
+    return String(v).replace(/\s+/g, ' ').trim();
   }
 
-  function fmt1(value) {
-    const n = round1(value);
-    return Number.isInteger(n) ? n.toFixed(1) : String(n);
-  }
-
-  /** 题干前 40 个字符的稳定短键（FNV-1a），不用数组下标。 */
-  function hashKey(text) {
-    const s = String(text === null || text === undefined ? '' : text).trim().slice(0, 40);
-    let h = 2166136261;
-    for (let i = 0; i < s.length; i += 1) {
-      h ^= s.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    h = (h ^ (h >>> 13)) >>> 0;
-    return h.toString(36);
-  }
-
-  function normalizeItem(raw) {
-    if (!raw || typeof raw !== 'object') return null;
-    const q = typeof raw.q === 'string' ? raw.q.trim() : '';
-    if (!q) return null;
-    const o = Array.isArray(raw.o) ? raw.o.slice(0, 4).map(function (v) {
-      return v === null || v === undefined ? '' : String(v).trim();
-    }) : [];
-    if (o.length !== 4 || o.some(function (v) { return !v; })) return null;
-    const a = Number(raw.a);
-    if (!Number.isInteger(a) || a < 0 || a > 3) return null;
-    const t = CATEGORIES.indexOf(raw.t) >= 0 ? raw.t : '未分类';
-    const d = clampNumber(Math.round(Number(raw.d)), 1, 3, 1);
-    const x = typeof raw.x === 'string' && raw.x.trim() ? raw.x.trim() : '题库暂未提供解析，可结合题干与选项自行复盘。';
-    const h = typeof raw.h === 'string' && raw.h.trim() ? raw.h.trim() : hashKey(q);
-    return { q: q, o: o, a: a, x: x, t: t, d: d, h: h };
-  }
-
-  function normalizeData(raw) {
-    if (!Array.isArray(raw)) return [];
+  function uniqueStrings(arr) {
     const out = [];
-    raw.forEach(function (item) {
-      const n = normalizeItem(item);
-      if (n) out.push(n);
-    });
+    for (let i = 0; i < arr.length; i += 1) {
+      const s = asText(arr[i]);
+      if (s && out.indexOf(s) === -1) out.push(s);
+    }
     return out;
   }
 
-  function filterQuiz(data, category, difficulty) {
-    const cat = category && category !== '全部' ? category : null;
-    const diff = Number(difficulty);
-    const useDiff = Number.isInteger(diff) && diff >= 1 && diff <= 3;
-    return normalizeData(data).filter(function (item) {
-      return (!cat || item.t === cat) && (!useDiff || item.d === diff);
-    });
+  function clampScore(n) {
+    const num = Number(n);
+    if (!Number.isFinite(num)) return 0;
+    return Math.max(0, Math.min(100, Math.round(num)));
   }
 
-  function filterSuitability(data) {
-    return normalizeData(data).filter(function (item) {
-      return item.t === '适当性' || item.t === '合规';
-    });
+  function levelName(level) {
+    return LEVEL_NAMES[level] || LEVEL_NAMES[1];
   }
 
-  function normalizeWrong(raw) {
-    if (!raw || typeof raw !== 'object') return null;
-    const base = normalizeItem(raw);
-    if (!base) return null;
-    return {
-      h: base.h,
-      q: base.q,
-      o: base.o,
-      a: base.a,
-      x: base.x,
-      t: base.t,
-      d: base.d,
-      n: Math.round(clampNumber(raw.n, 1, 999, 1)),
-      c: Math.round(clampNumber(raw.c, 0, 2, 0)),
-      ts: Number.isFinite(Number(raw.ts)) ? Number(raw.ts) : 0
-    };
+  function stepName(index, total) {
+    if (total === 4 && STEP_NAMES[index]) return STEP_NAMES[index];
+    return '第 ' + (index + 1) + ' 步';
   }
 
-  function normalizeProgress(raw) {
-    const p = { seen: {}, wrong: [], best: { streak: 0 }, rounds: 0 };
-    if (!raw || typeof raw !== 'object') return p;
-
-    if (raw.seen && typeof raw.seen === 'object' && !Array.isArray(raw.seen)) {
-      Object.keys(raw.seen).forEach(function (key) {
-        const s = raw.seen[key];
-        if (!s || typeof s !== 'object') return;
-        const r = Math.max(0, Math.round(clampNumber(s.r, 0, 9999, 0)));
-        const w = Math.max(0, Math.round(clampNumber(s.w, 0, 9999, 0)));
-        if (r + w <= 0) return;
-        p.seen[key] = {
-          r: r,
-          w: w,
-          t: Number.isFinite(Number(s.t)) ? Number(s.t) : 0
-        };
-      });
+  function ratingOf(pct) {
+    const n = clampScore(pct);
+    for (let i = 0; i < RATINGS.length; i += 1) {
+      if (n >= RATINGS[i].min) return RATINGS[i];
     }
-
-    if (Array.isArray(raw.wrong)) {
-      const byHash = {};
-      raw.wrong.forEach(function (entry) {
-        const w = normalizeWrong(entry);
-        if (!w) return;
-        const prev = byHash[w.h];
-        if (!prev) { byHash[w.h] = w; return; }
-        if (w.ts >= prev.ts) {
-          w.n = Math.max(w.n, prev.n);
-          w.c = Math.max(w.c, prev.c);
-          byHash[w.h] = w;
-        } else {
-          prev.n = Math.max(prev.n, w.n);
-          prev.c = Math.max(prev.c, w.c);
-        }
-      });
-      p.wrong = Object.keys(byHash).map(function (k) { return byHash[k]; });
-    }
-
-    if (raw.best && typeof raw.best === 'object') {
-      p.best.streak = Math.max(0, Math.round(clampNumber(raw.best.streak, 0, 9999, 0)));
-    }
-    p.rounds = Math.max(0, Math.round(clampNumber(raw.rounds, 0, 99999, 0)));
-    return p;
+    return RATINGS[RATINGS.length - 1];
   }
 
-  /**
-   * 记录一次作答：正确累计 seen.r 并推进错题「连续答对」计数；
-   * 错误累计 seen.w 并把题目放进错题本 / 增加错误次数。
-   * 连续答对 2 次即从错题本移出。
-   */
-  function recordResult(progress, item, correct, time) {
-    const p = normalizeProgress(progress);
-    const it = normalizeItem(item);
-    if (!it) return p;
-    const ok = !!correct;
-    const stamp = Number.isFinite(Number(time)) ? Number(time) : Date.now();
+  function noteIssue(health, message, skipped) {
+    if (!health) return;
+    if (!Array.isArray(health.issues)) health.issues = [];
+    if (typeof health.skipped !== 'number') health.skipped = 0;
+    health.issues.push(message);
+    if (skipped) health.skipped += 1;
+  }
 
-    const s = p.seen[it.h] || { r: 0, w: 0, t: 0 };
-    if (ok) s.r += 1;
-    else s.w += 1;
-    s.t = stamp;
-    p.seen[it.h] = s;
+  function normRisk(v) {
+    const s = asText(v).toUpperCase();
+    return /^R[1-5]$/.test(s) ? s : '';
+  }
 
-    let idx = -1;
-    for (let i = 0; i < p.wrong.length; i += 1) {
-      if (p.wrong[i].h === it.h) { idx = i; break; }
+  function normClientRisk(v) {
+    const s = asText(v).toUpperCase();
+    return /^C[1-5]$/.test(s) ? s : '';
+  }
+
+  function normalizeProducts(raw, health) {
+    const list = [];
+    const byId = new Map();
+    if (!Array.isArray(raw)) {
+      noteIssue(health, '产品目录 window.FINANCE_PRODUCTS 不是数组，产品信息按空目录处理。', true);
+      return { list: list, byId: byId };
     }
-
-    if (ok) {
-      if (idx >= 0) {
-        const w = p.wrong[idx];
-        w.c = (w.c || 0) + 1;
-        w.ts = stamp;
-        if (w.c >= 2) p.wrong.splice(idx, 1);
+    raw.forEach(function (p, index) {
+      const where = '产品 #' + (index + 1);
+      if (!isObj(p)) {
+        noteIssue(health, where + ' 不是对象，已跳过。', true);
+        return;
       }
-    } else if (idx >= 0) {
-      const w = p.wrong[idx];
-      w.n = Math.min(999, (w.n || 1) + 1);
-      w.c = 0;
-      w.ts = stamp;
-      w.q = it.q;
-      w.o = it.o;
-      w.a = it.a;
-      w.x = it.x;
-      w.t = it.t;
-      w.d = it.d;
-    } else {
-      p.wrong.push({
-        h: it.h, q: it.q, o: it.o, a: it.a, x: it.x, t: it.t, d: it.d,
-        n: 1, c: 0, ts: stamp
+      const id = asText(p.id);
+      if (!id) {
+        noteIssue(health, where + ' 缺少 id，已跳过。', true);
+        return;
+      }
+      if (byId.has(id)) {
+        noteIssue(health, where + ' 的 id「' + id + '」重复，已跳过。', true);
+        return;
+      }
+      const name = asText(p.name);
+      if (!name) noteIssue(health, where + '（' + id + '）缺少产品名，已用 id 顶替。');
+      const item = {
+        id: id,
+        name: name || id,
+        type: asText(p.type),
+        risk: normRisk(p.risk),
+        term: asText(p.term),
+        liq: asText(p.liq),
+        min: asText(p.min),
+        note: asText(p.note),
+      };
+      byId.set(id, item);
+      list.push(item);
+    });
+    return { list: list, byId: byId };
+  }
+
+  function normalizeClient(raw, health, where) {
+    if (!isObj(raw)) {
+      noteIssue(health, where + ' 缺少 client 客户档案，相关字段显示为 —。');
+    }
+    const c = isObj(raw) ? raw : {};
+    const labels = [
+      ['name', '姓名'], ['age', '年龄'], ['job', '职业'], ['income', '收入'],
+      ['assets', '资产'], ['family', '家庭'], ['goal', '目标'], ['stated', '客户原话'], ['risk', '风险等级'],
+    ];
+    const missing = [];
+    labels.forEach(function (pair) {
+      if (!asText(c[pair[0]])) missing.push(pair[1]);
+    });
+    if (missing.length) {
+      noteIssue(health, where + ' 客户档案缺少：' + missing.join('、') + '（显示为 —）。');
+    }
+    return {
+      name: asText(c.name) || '未署名客户',
+      age: asText(c.age),
+      job: asText(c.job),
+      income: asText(c.income),
+      assets: asText(c.assets),
+      family: asText(c.family),
+      goal: asText(c.goal),
+      stated: asText(c.stated),
+      risk: normClientRisk(c.risk),
+    };
+  }
+
+  function normalizeCases(raw, byProduct, health) {
+    const list = [];
+    const byId = new Map();
+    if (!Array.isArray(raw)) {
+      noteIssue(health, '案例库 window.FINANCE_CASES 不是数组，案例列表为空白。', true);
+      return { list: list, byId: byId };
+    }
+    raw.forEach(function (rc, index) {
+      const where = '案例 #' + (index + 1);
+      if (!isObj(rc)) {
+        noteIssue(health, where + ' 不是对象，已跳过。', true);
+        return;
+      }
+      const id = asText(rc.id);
+      if (!id) {
+        noteIssue(health, where + ' 缺少 id，已跳过。', true);
+        return;
+      }
+      if (byId.has(id)) {
+        noteIssue(health, where + ' 的 id「' + id + '」重复，已跳过。', true);
+        return;
+      }
+      const title = asText(rc.title);
+      if (!title) {
+        noteIssue(health, where + '（' + id + '）缺少标题，已跳过。', true);
+        return;
+      }
+      let level = Number(rc.level);
+      if (!Number.isInteger(level) || level < 1 || level > 3) {
+        noteIssue(health, where + '（' + id + '）难度无效，已按基础处理。');
+        level = 1;
+      }
+      if (!Array.isArray(rc.tags)) {
+        noteIssue(health, where + '（' + id + '）缺少 tags 数组，按无标签处理。');
+      }
+      const tags = Array.isArray(rc.tags) ? uniqueStrings(rc.tags) : [];
+      const client = normalizeClient(rc.client, health, where + '（' + id + '）');
+
+      const rawSteps = Array.isArray(rc.steps) ? rc.steps : [];
+      if (!rawSteps.length) noteIssue(health, where + '（' + id + '）缺少 steps 步骤。');
+      const steps = [];
+      let caseBroken = false;
+
+      rawSteps.forEach(function (rawStep, si) {
+        const sw = where + ' 第 ' + (si + 1) + ' 步';
+        if (!isObj(rawStep)) {
+          noteIssue(health, sw + ' 不是对象，已跳过该步。', true);
+          return;
+        }
+        const q = asText(rawStep.q);
+        if (!q) {
+          noteIssue(health, sw + ' 缺少问题文本 q，已跳过该步。', true);
+          return;
+        }
+        const rawOpts = Array.isArray(rawStep.options) ? rawStep.options : [];
+        if (!rawOpts.length) {
+          noteIssue(health, sw + ' 没有 options 选项，已跳过该步。', true);
+          return;
+        }
+        const options = [];
+        rawOpts.forEach(function (ro, oi) {
+          const ow = sw + ' 选项 ' + (oi + 1);
+          if (!isObj(ro)) {
+            noteIssue(health, ow + ' 不是对象，已跳过。', true);
+            return;
+          }
+          const t = asText(ro.t);
+          const kind = ro.kind;
+          const fb = asText(ro.fb);
+          if (!t || KIND_SCORE[kind] === undefined || !fb) {
+            noteIssue(health, ow + ' 缺少 t / kind / fb 或 kind 非法，已跳过。', true);
+            return;
+          }
+          let product = null;
+          if (ro.product !== undefined && ro.product !== null && ro.product !== '') {
+            const pid = asText(ro.product);
+            if (byProduct && byProduct.has(pid)) {
+              product = byProduct.get(pid);
+            } else {
+              noteIssue(health, ow + ' 引用的产品「' + pid + '」不在目录中，已隐藏产品信息。');
+            }
+          }
+          options.push({ t: t, kind: kind, fb: fb, product: product });
+        });
+        if (options.length < 2) {
+          noteIssue(health, sw + ' 有效选项不足 2 个，已跳过该步。', true);
+          return;
+        }
+        const bests = options.filter(function (o) { return o.kind === 'best'; });
+        if (!bests.length) {
+          noteIssue(health, sw + ' 没有 kind 为 best 的选项，整个案例不可用。', true);
+          caseBroken = true;
+          return;
+        }
+        if (bests.length > 1) {
+          noteIssue(health, sw + ' 有 ' + bests.length + ' 个最佳选项，已保留第一个，其余按欠妥计。');
+          bests.slice(1).forEach(function (o) { o.kind = 'ok'; });
+        }
+        steps.push({ q: q, options: options, teach: asText(rawStep.teach) });
+      });
+
+      if (caseBroken) return;
+      if (!steps.length) {
+        noteIssue(health, where + '（' + id + '）没有可用步骤，已跳过。', true);
+        return;
+      }
+      if (steps.length !== 4) {
+        noteIssue(health, where + '（' + id + '）有 ' + steps.length + ' 个步骤（常规为 4 个），按实际步骤计分。');
+      }
+      if (!Array.isArray(rc.lessons)) {
+        noteIssue(health, where + '（' + id + '）缺少 lessons 知识要点。');
+      }
+      const lessons = Array.isArray(rc.lessons) ? uniqueStrings(rc.lessons) : [];
+      if (Array.isArray(rc.lessons) && !lessons.length) {
+        noteIssue(health, where + '（' + id + '）的 lessons 为空。');
+      }
+      const reg = asText(rc.reg);
+      if (!reg) noteIssue(health, where + '（' + id + '）缺少 reg 相关原则。');
+
+      const item = {
+        id: id,
+        title: title,
+        level: level,
+        tags: tags,
+        client: client,
+        steps: steps,
+        lessons: lessons,
+        reg: reg,
+        order: index,
+      };
+      list.push(item);
+      byId.set(id, item);
+    });
+    return { list: list, byId: byId };
+  }
+
+  function filterCases(cases, filters) {
+    const f = filters || {};
+    let arr = cases || [];
+    if (f.level) {
+      arr = arr.filter(function (c) { return String(c.level) === String(f.level); });
+    }
+    if (f.tag) {
+      arr = arr.filter(function (c) { return (c.tags || []).indexOf(f.tag) !== -1; });
+    }
+    const q = asText(f.q).toLowerCase();
+    if (q) {
+      const terms = q.split(/\s+/).filter(Boolean);
+      arr = arr.filter(function (c) {
+        const hay = (c.title + ' ' + (c.client ? c.client.name : '') + ' ' + (c.tags || []).join(' ')).toLowerCase();
+        return terms.every(function (t) { return hay.indexOf(t) !== -1; });
       });
     }
-    return p;
+    return arr;
   }
 
-  function normalizeAllocation(weights) {
-    const list = ASSETS.map(function (_, i) {
-      return clampNumber(weights && weights[i], 0, 100, 0);
+  function scoreRun(caseObj, picks) {
+    const steps = caseObj && Array.isArray(caseObj.steps) ? caseObj.steps : [];
+    let raw = 0;
+    steps.forEach(function (step, i) {
+      const index = picks ? picks[i] : null;
+      const opt = Number.isInteger(index) ? step.options[index] : null;
+      if (opt && KIND_SCORE[opt.kind] !== undefined) raw += KIND_SCORE[opt.kind];
     });
-    const total = list.reduce(function (sum, v) { return sum + v; }, 0);
-    if (total <= 0) return { weights: [0, 0, 0, 0], total: 0, normalized: false };
-    if (Math.abs(total - 100) < 0.001) return { weights: list, total: total, normalized: false };
-    return {
-      weights: list.map(function (v) { return v / total * 100; }),
-      total: total,
-      normalized: true
-    };
+    const max = steps.length * 2;
+    const pct = max > 0 ? Math.round((raw / max) * 100) : 0;
+    return { raw: raw, max: max, pct: pct, rating: ratingOf(pct) };
   }
 
-  /** 组合风险分 = 四类权重 × 风险系数(1/2/3.5/5) 的加权平均，保留 1 位小数。 */
-  function portfolioMetrics(weights) {
-    const n = normalizeAllocation(weights);
-    let risk = 0;
-    if (n.total > 0) {
-      for (let i = 0; i < ASSETS.length; i += 1) risk += n.weights[i] * ASSETS[i].risk;
-      risk = risk / 100;
+  function buildKnowledge(cases) {
+    const map = new Map();
+    function add(text, kind, c) {
+      const key = asText(text);
+      if (!key) return;
+      let entry = map.get(key);
+      if (!entry) {
+        entry = { text: key, kind: kind, tags: [], sources: [] };
+        map.set(key, entry);
+      }
+      (c.tags || []).forEach(function (t) {
+        if (entry.tags.indexOf(t) === -1) entry.tags.push(t);
+      });
+      if (!entry.sources.some(function (s) { return s.id === c.id; })) {
+        entry.sources.push({ id: c.id, title: c.title });
+      }
     }
-    risk = round1(risk);
-    const equity = n.total > 0 ? round1(n.weights[3]) : 0;
-    const vol = n.total > 0 ? round1(Math.max(0.6, risk * 4.2)) : 0;
-    return {
-      weights: n.weights.map(function (v) { return round1(v); }),
-      rawWeights: n.weights,
-      total: n.total,
-      normalized: n.normalized,
-      risk: risk,
-      equity: equity,
-      vol: vol,
-      range: [round1(-vol), vol]
-    };
-  }
-
-  /**
-   * 0–100 评分：
-   *   风险匹配 60：60 × (1 − |风险分 − 目标| / 2.5)，下限 0；
-   *   权益上限 20：权益占比 ≤ 画像上限得 20，否则 0；
-   *   分散度   20：四类中每类落在 5%–65% 得 5 分。
-   */
-  function scorePortfolio(weights, profile) {
-    let prof = profile;
-    if (typeof prof === 'string') {
-      prof = PROFILES.filter(function (x) { return x.key === prof || x.name === prof; })[0];
-    }
-    if (!prof || typeof prof !== 'object') prof = PROFILES[2];
-
-    const target = clampNumber(prof.target, 1, 5, 2.8);
-    const cap = clampNumber(prof.cap, 0, 100, 45);
-    const name = typeof prof.name === 'string' ? prof.name : '平衡型';
-    const m = portfolioMetrics(weights);
-
-    if (m.total <= 0) {
+    (cases || []).forEach(function (c) {
+      (c.lessons || []).forEach(function (l) { add(l, 'lesson', c); });
+      if (c.reg) add(c.reg, 'reg', c);
+    });
+    return Array.from(map.values()).map(function (e) {
       return {
-        score: 0, risk: 0, equity: 0, vol: 0, range: [0, 0],
-        target: target, cap: cap, profile: name, weights: [0, 0, 0, 0],
-        breakdown: { risk: 0, cap: 0, div: 0, divCount: 0 },
-        comments: ['四类配置合计为 0，无法评分。请先分配资产比例。'],
-        normalized: false, total: 0
+        text: e.text,
+        kind: e.kind,
+        tags: e.tags,
+        sources: e.sources,
+        tag: e.tags[0] || '未分类',
       };
-    }
-
-    const diff = Math.abs(m.risk - target);
-    const riskPts = Math.round(60 * clampNumber(1 - diff / 2.5, 0, 1, 0));
-    const capPts = m.equity <= cap + 0.05 ? 20 : 0;
-    let divCount = 0;
-    ASSETS.forEach(function (_, i) {
-      const w = m.weights[i];
-      if (w >= 5 - 0.05 && w <= 65 + 0.05) divCount += 1;
     });
-    const divPts = divCount * 5;
-    const score = Math.max(0, Math.min(100, Math.round(riskPts + capPts + divPts)));
-
-    const notes = [];
-    if (m.equity > cap + 0.05) {
-      notes.push('权益占比 ' + fmt1(m.equity) + '%，超出' + name + ' ' + cap + '% 的权益上限，应先下调。');
-    } else if (diff > 0.6) {
-      notes.push('组合风险分 ' + fmt1(m.risk) + '，与' + name + '目标 ' + fmt1(target) + ' 偏离 ' + fmt1(diff) + '，可调整权益与货币类比例。');
-    }
-    ASSETS.forEach(function (asset, i) {
-      const w = m.weights[i];
-      if (w < 5 - 0.05) notes.push(asset.name + '仅 ' + fmt1(w) + '%，低于 5% 的分散下限。');
-      else if (w > 65 + 0.05) notes.push(asset.name + '达 ' + fmt1(w) + '%，超过 65% 的集中上限。');
-    });
-    if (!notes.length) {
-      notes.push('风险分贴近目标，权益在上限内，四类配置均在 5%–65% 区间，结构较均衡。');
-    }
-
-    return {
-      score: score,
-      risk: m.risk,
-      equity: m.equity,
-      vol: m.vol,
-      range: m.range,
-      target: target,
-      cap: cap,
-      profile: name,
-      weights: m.weights,
-      breakdown: { risk: riskPts, cap: capPts, div: divPts, divCount: divCount },
-      comments: notes.slice(0, 3),
-      normalized: m.normalized,
-      total: m.total
-    };
   }
 
-  /** 调整某一类到新值，其余三类按原比例分配剩余份额，合计恒为 100。 */
-  function rebalanceWeights(weights, index, value) {
-    const idx = Math.round(clampNumber(index, 0, 3, 0));
-    const v = Math.round(clampNumber(value, 0, 100, 0));
-    const w = ASSETS.map(function (_, i) {
-      return Math.round(clampNumber(weights && weights[i], 0, 100, 0));
+  function groupKnowledge(entries) {
+    const map = new Map();
+    (entries || []).forEach(function (e) {
+      const tags = e.tags && e.tags.length ? e.tags : ['未分类'];
+      tags.forEach(function (tag) {
+        if (!map.has(tag)) map.set(tag, []);
+        map.get(tag).push(e);
+      });
     });
-    const others = [0, 1, 2, 3].filter(function (i) { return i !== idx; });
-    const rest = 100 - v;
-    const oldSum = others.reduce(function (sum, i) { return sum + w[i]; }, 0);
-    const targets = oldSum <= 0
-      ? others.map(function () { return rest / others.length; })
-      : others.map(function (i) { return w[i] / oldSum * rest; });
-    const base = targets.map(function (t) { return Math.floor(t); });
-    let remaining = rest - base.reduce(function (a, b) { return a + b; }, 0);
-    const order = targets.map(function (t, i) {
-      return { i: i, frac: t - Math.floor(t) };
-    }).sort(function (a, b) { return b.frac - a.frac || a.i - b.i; });
-    for (let k = 0; k < remaining; k += 1) {
-      base[order[k % order.length].i] += 1;
-    }
-    const out = [0, 0, 0, 0];
-    out[idx] = v;
-    others.forEach(function (oi, k) { out[oi] = base[k]; });
-    const total = out.reduce(function (a, b) { return a + b; }, 0);
-    if (total !== 100) out[others[0]] += 100 - total;
+    return Array.from(map.keys()).sort(function (a, b) {
+      return a.localeCompare(b, 'zh-Hans-CN');
+    }).map(function (tag) {
+      return { tag: tag, items: map.get(tag) };
+    });
+  }
+
+  function knowledgeStats(entries, doneIds) {
+    const set = new Set(doneIds || []);
+    let got = 0;
+    (entries || []).forEach(function (e) {
+      if (e.sources.some(function (s) { return set.has(s.id); })) got += 1;
+    });
+    return { got: got, all: (entries || []).length };
+  }
+
+  function normalizeProgress(raw, byId) {
+    const out = { cases: {}, done: 0 };
+    if (!isObj(raw)) return out;
+    const src = isObj(raw.cases) ? raw.cases : {};
+    Object.keys(src).forEach(function (id) {
+      if (byId && !byId.has(id)) return;
+      const e = src[id];
+      if (!isObj(e)) return;
+      const score = clampScore(e.score);
+      const best = Math.max(score, clampScore(e.best));
+      const ts = Number.isFinite(Number(e.ts)) ? Number(e.ts) : 0;
+      out.cases[id] = { score: score, best: best, ts: ts };
+    });
+    out.done = Object.keys(out.cases).length;
     return out;
   }
+  /* ===== CORE:END ===== */
 
-  function parseClient(q) {
-    const text = String(q === null || q === undefined ? '' : q);
-    const nameMatch = text.match(/客户\s*([\u4e00-\u9fa5]{1,4}(?:先生|女士|经理|老师|阿姨|叔叔))/);
-    const ageMatch = text.match(/(\d{2,3})\s*岁/);
-    const riskMatch = text.match(/(保守|稳健|平衡|进取|激进|谨慎|积极)(?:型)?/);
-    const traits = [];
-    function add(re, label) {
-      if (re.test(text) && traits.indexOf(label) < 0) traits.push(label);
+  const G = window.DSHG;
+  if (!G || typeof G.el !== 'function') {
+    const host = document.getElementById('stage');
+    if (host) {
+      const msg = document.createElement('p');
+      msg.className = 'dim';
+      msg.textContent = '页面依赖 assets/common.js，未能加载。请检查文件是否存在后刷新。';
+      host.appendChild(msg);
     }
-    add(/退休/, '退休收入');
-    add(/医疗|看病|医药/, '医疗支出');
-    add(/随时|流动|应急/, '高流动性');
-    add(/养老|长期/, '长期目标');
-    add(/首付|购房|买房/, '购房目标');
-    add(/房贷|负债|贷款/, '负债压力');
-    add(/收入稳定|工资|固定收入/, '稳定收入');
-    add(/五年|三年|一年|短期/, '期限明确');
-    return {
-      name: nameMatch ? nameMatch[1] : '客户',
-      age: ageMatch ? Number(ageMatch[1]) : null,
-      risk: riskMatch ? riskMatch[1] + '型' : null,
-      traits: traits.slice(0, 3),
-      found: !!(ageMatch || riskMatch || traits.length)
-    };
-  }
-
-  /* Node 自测入口：仅在 CommonJS 且无 document 时导出纯函数。 */
-  if (typeof module !== 'undefined' && module.exports && typeof document === 'undefined') {
-    module.exports = {
-      CATEGORIES: CATEGORIES,
-      DIFFICULTY_NAMES: DIFFICULTY_NAMES,
-      ASSETS: ASSETS,
-      PROFILES: PROFILES,
-      hashKey: hashKey,
-      normalizeItem: normalizeItem,
-      normalizeData: normalizeData,
-      filterQuiz: filterQuiz,
-      filterSuitability: filterSuitability,
-      normalizeProgress: normalizeProgress,
-      recordResult: recordResult,
-      normalizeAllocation: normalizeAllocation,
-      portfolioMetrics: portfolioMetrics,
-      scorePortfolio: scorePortfolio,
-      rebalanceWeights: rebalanceWeights,
-      parseClient: parseClient,
-      round1: round1
-    };
     return;
   }
 
-  /* ============================================================
-     二、浏览器端 · 启动与状态
-     ============================================================ */
+  const el = G.el;
+  const store = G.store;
+  const toast = G.toast;
+  const stage = document.getElementById('stage');
+  const live = document.getElementById('live');
 
-  const DSHG = window.DSHG;
-  const app = document.getElementById('app');
-  if (!DSHG || !app) return;
-
-  const el = DSHG.el;
-  const qs = DSHG.qs;
-  const qsa = DSHG.qsa;
-  const store = DSHG.store;
-  const rand = DSHG.rand;
-  const clamp = DSHG.clamp;
-  const toast = DSHG.toast;
-
-  const DATA = normalizeData(window.FINANCE_DATA);
-  const DATA_BY_HASH = {};
-  DATA.forEach(function (item) { DATA_BY_HASH[item.h] = item; });
-
-  const QUIZ_SIZE = 12;
-  const SUIT_SIZE = 6;
-  const LETTERS = ['A', 'B', 'C', 'D'];
-
-  let progress = normalizeProgress(store.get('finance.progress', null));
+  const health = { issues: [], skipped: 0 };
+  const productsData = normalizeProducts(window.FINANCE_PRODUCTS, health);
+  const casesData = normalizeCases(window.FINANCE_CASES, productsData.byId, health);
 
   const state = {
     view: 'home',
-    busy: false,
-    clearArmed: false,
-    quizOpts: { category: '全部', difficulty: 0 },
-    quiz: null,
-    suit: null,
-    alloc: { profile: 2, weights: [25, 25, 25, 25], submitted: null },
-    redo: null
+    cases: casesData.list,
+    byId: casesData.byId,
+    products: productsData.byId,
+    health: health,
+    knowledge: buildKnowledge(casesData.list),
+    progress: normalizeProgress(store.get('finance.progress', null), casesData.byId),
+    filters: { level: '', tag: '', q: '', page: 1 },
+    kb: { q: '' },
+    run: null,
+    summary: null,
   };
 
-  function save() {
-    store.set('finance.progress', progress);
+  let overlayEl = null;
+  let overlayReturn = null;
+  let overlayPrevOverflow = '';
+
+  health.issues.forEach(function (msg) {
+    if (window.console && typeof console.warn === 'function') console.warn('[理财诊室] ' + msg);
+  });
+  if (health.issues.length && window.console && typeof console.warn === 'function') {
+    console.warn('[理财诊室] 数据自检完成：' + health.issues.length + ' 条提示，跳过 ' + health.skipped + ' 条数据。');
   }
 
-  function persistProgress(next) {
-    progress = next;
-    save();
+  /* ---------- 小工具 ---------- */
+  function reduceMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
   function scrollTop() {
-    try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-    catch (err) { try { window.scrollTo(0, 0); } catch (err2) {} }
+    try { window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); }
+    catch (err) { try { window.scrollTo(0, 0); } catch (err2) { /* 忽略 */ } }
   }
 
-  function go(view) {
-    state.view = view;
-    state.clearArmed = false;
-    render();
-    scrollTop();
+  function announce(text) {
+    if (live) live.textContent = text;
   }
 
-  function statCard(label, value, suffix, sub, mod) {
-    return el('div', { class: 'stat' + (mod ? ' ' + mod : '') }, [
-      el('div', { class: 'stat__k', text: label }),
-      el('div', { class: 'stat__v' }, [
-        el('span', { class: 'num', text: value }),
-        suffix ? el('small', { text: suffix }) : null
-      ]),
-      el('div', { class: 'stat__s', text: sub })
+  function mount(node, opts) {
+    const o = opts || {};
+    stage.replaceChildren(node);
+    if (o.animate !== false) node.classList.add('screen');
+    if (!o.keepScroll) scrollTop();
+  }
+
+  function tagNode(text, cls) {
+    return el('span', { class: 'tag' + (cls ? ' ' + cls : ''), text: text });
+  }
+
+  function levelBadge(level) {
+    return el('span', { class: 'lv lv--' + level, text: levelName(level) });
+  }
+
+  function ageText(age) {
+    const s = asText(age);
+    if (!s) return '—';
+    return /^\d+$/.test(s) ? s + ' 岁' : s;
+  }
+
+  function clientBrief(client, withRisk) {
+    if (!client) return '';
+    const parts = [];
+    if (client.age) parts.push(ageText(client.age));
+    if (client.job) parts.push(client.job);
+    if (withRisk && client.risk) parts.push(client.risk);
+    return parts.join(' · ');
+  }
+
+  function sectionHead(title, en) {
+    return el('div', { class: 'section-head' }, [
+      el('h2', { text: title }),
+      el('span', { text: en }),
     ]);
   }
 
-  function tag(text, mod) {
-    return el('span', { class: 'tag' + (mod ? ' ' + mod : ''), text: text });
-  }
-
-  function backLink(label, target) {
-    return el('a', {
-      class: 'back',
-      href: '#',
-      onclick: function (e) {
-        e.preventDefault();
-        go(target || 'home');
-      }
-    }, ['← ', el('span', { text: label || '返回首页' })]);
-  }
-
-  function notice(text, warn) {
-    return el('div', { class: 'notice' + (warn ? ' notice--warn' : '') }, [el('span', { text: text })]);
-  }
-
-  function emptyPanel(mark, title, text, buttonText, onClick) {
-    return el('section', { class: 'empty' }, [
-      el('div', { class: 'empty__mark', 'aria-hidden': 'true', text: mark || '空' }),
-      el('h2', { text: title || '这里还没有内容' }),
-      el('p', { text: text || '换一个入口看看，或稍后回来。' }),
-      buttonText ? el('button', {
-        class: 'btn btn--ghost',
-        type: 'button',
-        text: buttonText,
-        onclick: onClick || function () { go('home'); }
-      }) : null
+  function metric(value, label) {
+    return el('div', { class: 'metric' }, [
+      el('b', { text: value }),
+      el('span', { text: label }),
     ]);
   }
 
-  function accuracyText() {
-    let right = 0;
-    let wrong = 0;
-    Object.keys(progress.seen).forEach(function (k) {
-      right += progress.seen[k].r;
-      wrong += progress.seen[k].w;
-    });
-    const total = right + wrong;
-    if (!total) return { text: '—', sub: '还没有作答记录', total: 0, right: right };
-    return {
-      text: String(Math.round(right / total * 100)),
-      sub: '共答 ' + total + ' 次',
-      total: total,
-      right: right
-    };
+  function kbd(text) {
+    return el('span', { class: 'kbd num', text: text });
   }
 
-  /* ============================================================
-     三、首页
-     ============================================================ */
-
-  function viewHome() {
-    const seenCount = Object.keys(progress.seen).length;
-    const acc = accuracyText();
-    const wrongCount = progress.wrong.length;
-    const coverage = DATA.length ? Math.min(100, Math.round(seenCount / DATA.length * 100)) : 0;
-
-    const stats = el('section', { class: 'stats', 'aria-label': '学习统计' }, [
-      statCard('已答', String(seenCount), '题', DATA.length ? '题库覆盖 ' + coverage + '%' : '题库为空'),
-      statCard('正确率', acc.text, acc.text === '—' ? '' : '%', acc.sub),
-      statCard('最长连对', String(progress.best.streak), '题', '历史最佳连对'),
-      statCard('错题数', String(wrongCount), '题', wrongCount ? '待重做，连续答对 2 次移出' : '错题本是空的', wrongCount ? 'stat--warn' : '')
-    ]);
-
-    const entries = el('section', { class: 'entries', 'aria-label': '训练入口' }, [
-      entryCard('壹', '知识闯关', '按分类与难度抽题，四选一；每题作答后立即给出解析、分类与难度，答错自动记入错题本。', DATA.length + ' 题可抽 · 每轮 12 题', '开始闯关', function () {
-        if (!DATA.length) { toast('题库为空，暂时无法闯关'); return; }
-        go('quizsetup');
-      }),
-      entryCard('贰', '适当性实战', '从「适当性 / 合规」题中抽取客户情景。系统把题干里的年龄、风险等级提取成客户档案，四个选项变成产品方案卡。', '客户画像 · 匹配判定 · 合规提示', '开始实战', function () {
-        if (!filterSuitability(DATA).length) { toast('适当性 / 合规题暂不可用'); return; }
-        go('suitsetup');
-      }),
-      entryCard('叁', '资产配置', '拖动四类资产比例，实时看组合风险分、示意波动区间与权益占比；按客户画像提交方案，获得 0–100 评分与点评。', '保守 / 稳健 / 平衡 / 进取 / 激进', '打开模拟器', function () {
-        go('alloc');
-      })
-    ]);
-
-    const wrongbar = el('section', { class: 'wrongbar', 'aria-label': '错题本入口' }, [
-      el('div', {}, [
-        el('div', { class: 'wrongbar__title' }, [
-          el('span', { text: '错题本' }),
-          el('b', { class: 'num', text: String(wrongCount) })
-        ]),
-        el('div', { class: 'wrongbar__sub', text: wrongCount ? '按错误次数排序，重做时连续答对 2 次移出。' : '答错的知识闯关题会自动收进这里。' })
-      ]),
-      el('button', {
-        class: 'btn btn--ghost btn--small',
-        type: 'button',
-        text: wrongCount ? '打开错题本' : '查看错题本',
-        onclick: function () { go('wrong'); }
-      })
-    ]);
-
-    return el('div', { class: 'stack' }, [
-      el('section', { class: 'hero' }, [
-        el('div', { class: 'eyebrow', text: '理财诊室 / FINANCE PRACTICE' }),
-        el('h1', { class: 'title-xl' }, ['把合适的产品，', el('span', { class: 'accent', text: '卖给合适的人。' })]),
-        el('p', { class: 'lede' }, [
-          '你是网点的理财经理。十二题一轮的',
-          el('strong', { text: '知识闯关' }),
-          '、客户画像与产品匹配的',
-          el('strong', { text: '适当性实战' }),
-          '，再加一台',
-          el('strong', { text: '资产配置模拟器' }),
-          '——把「适当性」从口号练成手感。'
-        ]),
-        el('div', { class: 'hero__tags' }, [
-          tag(DATA.length + ' 道题'),
-          tag('四选一 · 逐题解析'),
-          tag('离线存档'),
-          tag('示意模型，不构成投资建议', 'tag--cinnabar')
-        ])
-      ]),
-      DATA.length ? null : notice('题库尚未载入或为空：页面仍可浏览，资产配置模拟器不受影响；知识闯关与适当性实战会在题库恢复后可用。', true),
-      stats,
-      entries,
-      wrongbar,
-      el('div', { class: 'home__tools' }, [
-        el('span', { class: 'tiny faint', text: '进度只保存在本机浏览器 · 已完成 ' + progress.rounds + ' 轮训练' }),
-        el('button', {
-          class: 'btn btn--ghost btn--small',
-          type: 'button',
-          text: '清空学习进度',
-          onclick: function () { state.clearArmed = true; render(); }
-        })
-      ]),
-      state.clearArmed ? clearConfirmBlock() : null
+  function statCard(label, value, note, cls) {
+    return el('div', { class: 'stat' + (cls ? ' ' + cls : '') }, [
+      el('span', { class: 'stat__k', text: label }),
+      el('span', { class: 'stat__v', text: value }),
+      el('span', { class: 'stat__n', text: note }),
     ]);
   }
 
-  function entryCard(no, title, body, meta, action, onClick) {
-    return el('article', { class: 'entry' }, [
-      el('div', { class: 'entry__no', text: no }),
+  function emptyPanel(mark, title, text, actions) {
+    return el('div', { class: 'empty' }, [
+      el('div', { class: 'empty__mark', text: mark }),
       el('h3', { text: title }),
-      el('p', { text: body }),
-      el('div', { class: 'entry__meta', text: meta }),
-      el('button', { class: 'btn btn--ghost', type: 'button', text: action, onclick: onClick })
+      el('p', { text: text }),
+      actions || null,
     ]);
   }
 
-  function clearConfirmBlock() {
-    return el('div', { class: 'clearbox', role: 'group', 'aria-label': '确认清空学习进度' }, [
-      el('div', { class: 'clearbox__txt' }, [
-        el('b', { text: '再次确认：' }),
-        el('span', { text: '将清空已答、正确率、最长连对、错题本与轮次，操作不可撤销。' })
+  function dataBar() {
+    if (!state.health.issues.length) return null;
+    const n = state.health.issues.length;
+    const skipped = state.health.skipped;
+    const msg = skipped
+      ? '发现 ' + n + ' 处数据问题，已跳过 ' + skipped + ' 条不可用数据，其余照常加载。'
+      : '发现 ' + n + ' 处数据问题，已自动兼容，页面照常可用。';
+    return el('div', { class: 'databar', role: 'status' }, [
+      el('b', { text: '数据自检' }),
+      el('span', { text: msg }),
+      el('span', { class: 'databar__hint', text: '详情见控制台 console.warn' }),
+    ]);
+  }
+
+  function persist() {
+    state.progress.done = Object.keys(state.progress.cases).length;
+    store.set('finance.progress', {
+      cases: state.progress.cases,
+      done: state.progress.done,
+    });
+  }
+
+  function homeStats() {
+    const ids = Object.keys(state.progress.cases).filter(function (id) { return state.byId.has(id); });
+    let sum = 0;
+    let bestPct = -1;
+    ids.forEach(function (id) {
+      const rec = state.progress.cases[id];
+      sum += rec.score;
+      if (rec.best > bestPct) bestPct = rec.best;
+    });
+    const kb = knowledgeStats(state.knowledge, ids);
+    return {
+      completed: ids.length,
+      avg: ids.length ? Math.round(sum / ids.length) : 0,
+      bestPct: bestPct,
+      bestRating: bestPct >= 0 ? ratingOf(bestPct) : null,
+      kbGot: kb.got,
+      kbAll: kb.all,
+    };
+  }
+
+  /* ---------- 首页 ---------- */
+  function paintHome() {
+    state.view = 'home';
+    state.run = null;
+    const stats = homeStats();
+    const root = el('div', { class: 'home' });
+    const bar = dataBar();
+    if (bar) root.appendChild(bar);
+
+    root.appendChild(el('section', { class: 'hero' }, [
+      el('div', { class: 'eyebrow', text: '理财诊室 · 银行从业 / 案例式决策' }),
+      el('h1', {}, [
+        '一位客户进门，', el('em', { text: '四步' }), '处理完。',
       ]),
-      el('div', { class: 'clearbox__btns' }, [
+      el('p', {
+        class: 'lede',
+        text: '不是四选一答题：先了解客户，再定级与事实判断，然后配方案和产品，最后做销售动作与后续。每选一步立刻给反馈，走完给总分、评级与逐步复盘。',
+      }),
+      el('p', {
+        class: 'lede',
+        text: '案例库、产品目录、知识要点都从 data 目录读取；进度只存在本机浏览器里。',
+      }),
+      el('div', { class: 'hero__acts' }, [
         el('button', {
-          class: 'btn btn--cinnabar btn--small',
-          type: 'button',
-          text: '确认清空',
+          class: 'btn btn--ghost', type: 'button', onclick: paintKnowledge,
+        }, '知识库 · ' + state.knowledge.length + ' 条'),
+      ]),
+    ]));
+
+    root.appendChild(el('section', { class: 'stats', 'aria-label': '学习统计' }, [
+      statCard('已完成案例', String(stats.completed), '共 ' + state.cases.length + ' 个案例', ''),
+      statCard('平均分', stats.completed ? String(stats.avg) : '—', stats.completed ? '按最近一次成绩计算' : '完成一个案例后生成', 'stat--jade'),
+      statCard('最佳评级', stats.bestRating ? stats.bestRating.label : '—', stats.bestRating ? '最佳成绩 ' + stats.bestPct + ' 分' : '完成一个案例后生成', 'stat--azure'),
+      statCard('累计知识要点', String(stats.kbGot), '全库 ' + stats.kbAll + ' 条 · 去重后', 'stat--cin'),
+    ]));
+
+    if (!state.cases.length) {
+      root.appendChild(el('section', { class: 'panel', style: { marginTop: '18px' } }, [
+        emptyPanel('空', '案例库还是空的', '请确认 data/finance-cases.js 已正确定义 window.FINANCE_CASES，然后刷新页面。产品目录与知识库入口仍然可用。', el('button', {
+          class: 'btn btn--ghost', type: 'button', onclick: paintKnowledge,
+        }, '先看看知识库')),
+      ]));
+    } else {
+      root.appendChild(sectionHead('候诊名单', 'CASES · ' + state.cases.length));
+      root.appendChild(buildCaseBrowser());
+    }
+
+    root.appendChild(el('div', { class: 'home__foot' }, [
+      el('button', { class: 'linkish', type: 'button', onclick: openClearProgress }, '清空进度'),
+      el('span', { text: '进度只保存在本机浏览器；换设备不会同步' }),
+    ]));
+
+    mount(root);
+    announce('理财诊室首页。已完成 ' + stats.completed + ' 个案例。');
+  }
+
+  function buildCaseBrowser() {
+    const panel = el('section', { class: 'panel filters-panel' });
+    const gridHost = el('div', { class: 'case-grid' });
+    const countHost = el('div', { class: 'count-line' });
+    const pagerHost = el('div', { class: 'pager' });
+
+    const allTags = [];
+    state.cases.forEach(function (c) {
+      c.tags.forEach(function (t) {
+        if (allTags.indexOf(t) === -1) allTags.push(t);
+      });
+    });
+    allTags.sort(function (a, b) { return a.localeCompare(b, 'zh-Hans-CN'); });
+
+    const levelSel = el('select', {
+      'aria-label': '按难度筛选',
+      onchange: function () {
+        state.filters.level = levelSel.value;
+        state.filters.page = 1;
+        renderList();
+      },
+    }, [
+      el('option', { value: '' }, '全部难度'),
+      el('option', { value: '1' }, '基础'),
+      el('option', { value: '2' }, '进阶'),
+      el('option', { value: '3' }, '高阶'),
+    ]);
+    levelSel.value = state.filters.level;
+
+    const tagSel = el('select', {
+      'aria-label': '按标签筛选',
+      onchange: function () {
+        state.filters.tag = tagSel.value;
+        state.filters.page = 1;
+        renderList();
+      },
+    }, [el('option', { value: '' }, '全部标签')].concat(allTags.map(function (t) {
+      return el('option', { value: t }, t);
+    })));
+    tagSel.value = state.filters.tag;
+
+    const search = el('input', {
+      type: 'search',
+      placeholder: '搜案例标题、客户名、标签…',
+      'aria-label': '搜索案例',
+      oninput: function () {
+        state.filters.q = search.value;
+        state.filters.page = 1;
+        renderList();
+      },
+    });
+    search.value = state.filters.q;
+
+    panel.appendChild(el('div', { class: 'filters' }, [
+      levelSel,
+      tagSel,
+      el('div', { class: 'search' }, search),
+    ]));
+    panel.appendChild(countHost);
+    panel.appendChild(gridHost);
+    panel.appendChild(pagerHost);
+
+    function renderList(jump) {
+      const list = filterCases(state.cases, state.filters);
+      const pageSize = 12;
+      const pages = Math.max(1, Math.ceil(list.length / pageSize));
+      if (state.filters.page > pages) state.filters.page = pages;
+      if (state.filters.page < 1) state.filters.page = 1;
+      const page = state.filters.page;
+      const start = (page - 1) * pageSize;
+      const slice = list.slice(start, start + pageSize);
+      const filteredOn = !!(state.filters.level || state.filters.tag || state.filters.q);
+      const from = list.length ? start + 1 : 0;
+      const to = Math.min(list.length, start + pageSize);
+
+      const countKids = [
+        el('span', { text: '共 ' + list.length + ' 个案例' + (filteredOn ? ' · 已筛选' : '') + ' · 显示 ' + from + '–' + to }),
+      ];
+      if (filteredOn) {
+        countKids.push(el('button', {
+          class: 'linkish', type: 'button',
           onclick: function () {
-            store.del('finance.progress');
-            progress = normalizeProgress(null);
-            state.clearArmed = false;
-            toast('学习进度已清空');
-            render();
-          }
-        }),
-        el('button', {
-          class: 'btn btn--ghost btn--small',
-          type: 'button',
-          text: '取消',
-          onclick: function () { state.clearArmed = false; render(); }
-        })
-      ])
-    ]);
-  }
-
-  /* ============================================================
-     四、知识闯关
-     ============================================================ */
-
-  function viewQuizSetup() {
-    const opts = state.quizOpts;
-    const pool = filterQuiz(DATA, opts.category, opts.difficulty);
-
-    const catChips = el('div', { class: 'chips', role: 'group', 'aria-label': '选择题库分类' });
-    ['全部'].concat(CATEGORIES).forEach(function (cat) {
-      catChips.appendChild(el('button', {
-        type: 'button',
-        class: 'chip',
-        'data-cat': cat,
-        'aria-pressed': opts.category === cat ? 'true' : 'false',
-        text: cat,
-        onclick: function () {
-          state.quizOpts.category = cat;
-          refreshQuizSetup();
-        }
-      }));
-    });
-
-    const diffChips = el('div', { class: 'chips', role: 'group', 'aria-label': '选择难度' });
-    [{ v: 0, label: '全部' }, { v: 1, label: '基础' }, { v: 2, label: '进阶' }, { v: 3, label: '高阶' }].forEach(function (d) {
-      diffChips.appendChild(el('button', {
-        type: 'button',
-        class: 'chip',
-        'data-diff': String(d.v),
-        'aria-pressed': opts.difficulty === d.v ? 'true' : 'false',
-        text: d.label,
-        onclick: function () {
-          state.quizOpts.difficulty = d.v;
-          refreshQuizSetup();
-        }
-      }));
-    });
-
-    const start = el('button', {
-      class: 'btn',
-      type: 'button',
-      id: 'quiz-start',
-      disabled: pool.length === 0,
-      text: '开始本轮（12 题）',
-      onclick: startQuiz
-    });
-
-    return el('div', { class: 'stack' }, [
-      backLink('返回首页'),
-      el('section', { class: 'panel' }, [
-        el('div', { class: 'headblock' }, [
-          el('div', { class: 'eyebrow', text: '知识闯关 / QUIZ' }),
-          el('h2', { text: '十二题，一次判断' }),
-          el('p', { text: '选择题库分类与难度后开始。每题四选一，作答后立即展示解析，并标注分类与难度；答错自动进入错题本。' })
-        ]),
-        el('div', { class: 'field' }, [
-          el('div', { class: 'field__lab' }, [el('span', { text: '分类' }), el('span', { text: '全部 / 基金 / 股票 / 债券 / 银行 / 合规 / 适当性' })]),
-          catChips
-        ]),
-        el('div', { class: 'field' }, [
-          el('div', { class: 'field__lab' }, [el('span', { text: '难度' }), el('span', { text: '基础 1 · 进阶 2 · 高阶 3' })]),
-          diffChips
-        ]),
-        el('div', { class: 'setup__foot' }, [
-          el('div', { class: 'setup__count', id: 'quiz-pool' }, [
-            el('span', { text: '该筛选下可用 ' }),
-            el('b', { class: 'num', text: String(pool.length) }),
-            el('span', { text: ' 题' + (pool.length && pool.length < QUIZ_SIZE ? '；不足 12 题，本轮按实际题量进行。' : '') })
-          ]),
-          el('div', { class: 'setup__actions' }, [start])
-        ])
-      ]),
-      notice('计分：每答对一题 +10 分；连续答对计入「最长连对」。错题本中的题，连续答对 2 次才会移出。')
-    ]);
-  }
-
-  function refreshQuizSetup() {
-    const opts = state.quizOpts;
-    const pool = filterQuiz(DATA, opts.category, opts.difficulty);
-    qsa('[data-cat]', app).forEach(function (b) {
-      b.setAttribute('aria-pressed', b.getAttribute('data-cat') === opts.category ? 'true' : 'false');
-    });
-    qsa('[data-diff]', app).forEach(function (b) {
-      b.setAttribute('aria-pressed', Number(b.getAttribute('data-diff')) === opts.difficulty ? 'true' : 'false');
-    });
-    const info = qs('#quiz-pool', app);
-    if (info) {
-      info.replaceChildren.apply(info, [
-        el('span', { text: '该筛选下可用 ' }),
-        el('b', { class: 'num', text: String(pool.length) }),
-        el('span', { text: ' 题' + (pool.length && pool.length < QUIZ_SIZE ? '；不足 12 题，本轮按实际题量进行。' : '') })
-      ]);
-    }
-    const start = qs('#quiz-start', app);
-    if (start) {
-      start.disabled = pool.length === 0;
-      start.textContent = pool.length && pool.length < QUIZ_SIZE
-        ? '开始本轮（' + pool.length + ' 题）'
-        : '开始本轮（12 题）';
-    }
-  }
-
-  function startQuiz() {
-    const opts = state.quizOpts;
-    const pool = filterQuiz(DATA, opts.category, opts.difficulty);
-    if (!pool.length) { toast('该筛选下暂无题目'); return; }
-    const picked = rand.shuffle(pool).slice(0, Math.min(QUIZ_SIZE, pool.length));
-    state.quiz = {
-      items: picked,
-      idx: 0,
-      answered: null,
-      correct: 0,
-      streak: 0,
-      best: 0,
-      missed: [],
-      total: picked.length,
-      done: false,
-      short: picked.length < QUIZ_SIZE
-    };
-    progress.rounds += 1;
-    save();
-    go('quiz');
-  }
-
-  function viewQuiz() {
-    const quiz = state.quiz;
-    if (!quiz || !quiz.items.length) {
-      return emptyPanel('题', '本轮题目不可用', '题库可能已更新，请回到筛选页重新开始。', '重新选题', function () { go('quizsetup'); });
-    }
-    if (quiz.done) return viewQuizResult();
-
-    const item = quiz.items[quiz.idx];
-    if (!item) {
-      quiz.done = true;
-      return viewQuizResult();
-    }
-
-    const pct = Math.round(quiz.idx / quiz.total * 100);
-    return el('div', { class: 'stack' }, [
-      backLink('退出本轮', 'home'),
-      el('div', { class: 'quiz-top' }, [
-        el('div', { class: 'quiz-top__count' }, [
-          el('b', { class: 'num', text: String(quiz.idx + 1) }),
-          el('span', { text: '/ ' + quiz.total + ' 题' })
-        ]),
-        el('div', { class: 'quiz-top__right' }, [
-          tag('得分 ' + quiz.correct * 10, 'tag--jade'),
-          tag('连对 ' + quiz.streak)
-        ])
-      ]),
-      el('div', { class: 'meter', role: 'progressbar', 'aria-label': '本轮进度', 'aria-valuemin': '0', 'aria-valuemax': String(quiz.total), 'aria-valuenow': String(quiz.idx) }, [
-        el('i', { style: { width: pct + '%' } })
-      ]),
-      quiz.short ? notice('可用题目不足 12 题，本轮按 ' + quiz.total + ' 题进行。') : null,
-      el('section', { class: 'panel qpanel' }, [
-        el('div', { class: 'qmeta' }, [
-          tag(item.t, 'tag--muted'),
-          tag('难度 · ' + DIFFICULTY_NAMES[item.d])
-        ]),
-        el('h2', { class: 'qtext', text: item.q }),
-        el('div', { class: 'qsub', text: quiz.answered ? '本题已作答，解析见下方。' : '选择一个答案，作答后立即显示解析。' }),
-        choiceList(item, quiz.answered, answerQuiz, 'quiz'),
-        quiz.answered ? feedbackBox(item, quiz.answered, 'quiz') : null,
-        quiz.answered ? quizActions(quiz) : null
-      ])
-    ]);
-  }
-
-  function choiceList(item, answered, onPick, mode) {
-    const wrap = el('div', { class: 'choices' + (mode === 'product' ? ' choices--product' : '') });
-    item.o.forEach(function (text, i) {
-      const isCorrect = i === item.a;
-      const picked = !!answered && answered.pick === i;
-      let cls = 'choice';
-      let mark = LETTERS[i];
-      let flag = '';
-      if (answered) {
-        if (isCorrect) {
-          cls += ' is-correct';
-          mark = '✓';
-          flag = '正确答案';
-        } else if (picked) {
-          cls += ' is-wrong';
-          mark = '✕';
-          flag = '你的选择';
-        } else {
-          cls += ' is-dim';
-        }
+            state.filters.level = '';
+            state.filters.tag = '';
+            state.filters.q = '';
+            state.filters.page = 1;
+            paintHome();
+          },
+        }, '清除筛选'));
       }
-      const label = LETTERS[i] + '. ' + text +
-        (answered ? (isCorrect ? '（正确答案）' : picked ? '（你的选择，错误）' : '') : '');
-      const button = el('button', {
-        type: 'button',
-        class: cls,
-        disabled: !!answered,
-        'aria-label': label,
-        onclick: function () { onPick(i); }
-      }, [
-        el('span', { class: 'choice__mark', 'aria-hidden': 'true', text: mark }),
-        el('span', { class: 'choice__body' }, [
-          mode === 'product' ? el('span', { class: 'choice__kicker', text: '方案 ' + LETTERS[i] }) : null,
-          el('span', { class: 'choice__txt', text: text })
-        ]),
-        flag ? el('span', { class: 'choice__flag', text: flag }) : null
-      ]);
-      wrap.appendChild(button);
-    });
-    return wrap;
-  }
+      countHost.replaceChildren.apply(countHost, countKids);
 
-  function answerQuiz(pick) {
-    const quiz = state.quiz;
-    if (!quiz || quiz.done || quiz.answered || state.busy) return;
-    const item = quiz.items[quiz.idx];
-    if (!item || typeof pick !== 'number') return;
-    state.busy = true;
-
-    const ok = pick === item.a;
-    quiz.answered = { pick: pick, ok: ok };
-    if (ok) {
-      quiz.correct += 1;
-      quiz.streak += 1;
-      quiz.best = Math.max(quiz.best || 0, quiz.streak);
-      progress.best.streak = Math.max(progress.best.streak, quiz.streak);
-    } else {
-      quiz.streak = 0;
-      quiz.missed = quiz.missed || [];
-      quiz.missed.push({ q: item.q, t: item.t, d: item.d, a: item.a, x: item.x });
-    }
-    persistProgress(recordResult(progress, item, ok));
-    render();
-    state.busy = false;
-    revealFeedback();
-  }
-
-  function quizActions(quiz) {
-    const last = quiz.idx + 1 >= quiz.total;
-    return el('div', { class: 'actions' }, [
-      el('span', { class: 'actions__hint', text: '解析已记录，' + (last ? '本轮即将结束。' : '继续下一题。') }),
-      el('div', { class: 'actions__right' }, [
-        last
-          ? el('button', { class: 'btn', type: 'button', text: '查看本轮成绩', onclick: finishQuiz })
-          : el('button', { class: 'btn', type: 'button', text: '下一题 →', onclick: nextQuiz })
-      ])
-    ]);
-  }
-
-  function nextQuiz() {
-    const quiz = state.quiz;
-    if (!quiz) return;
-    if (quiz.idx + 1 >= quiz.total) { finishQuiz(); return; }
-    quiz.idx += 1;
-    quiz.answered = null;
-    render();
-    scrollTop();
-  }
-
-  function finishQuiz() {
-    const quiz = state.quiz;
-    if (!quiz) { go('home'); return; }
-    quiz.done = true;
-    render();
-    scrollTop();
-  }
-
-  function viewQuizResult() {
-    const quiz = state.quiz;
-    if (!quiz) return emptyPanel('题', '没有可显示的成绩', '请重新开始一轮知识闯关。', '重新开始', function () { go('quizsetup'); });
-    const acc = quiz.total ? Math.round(quiz.correct / quiz.total * 100) : 0;
-    const missed = quiz.missed || [];
-
-    return el('div', { class: 'stack' }, [
-      backLink('返回首页'),
-      el('section', { class: 'panel' }, [
-        el('div', { class: 'eyebrow', text: '本轮成绩 / RESULT' }),
-        el('h2', { text: acc >= 80 ? '判断稳健，继续保持' : acc >= 60 ? '基础可用，仍有盲区' : '先把错题吃透' }),
-        el('div', { class: 'scoreboard' }, [
-          el('div', { class: 'scoreboard__main' }, [
-            el('b', { class: 'num', text: String(quiz.correct * 10) }),
-            el('span', { text: ' / ' + (quiz.total * 10) + ' 分' })
-          ]),
-          el('div', { class: 'scoreboard__sub' }, [
-            el('span', {}, [el('b', { class: 'num', text: quiz.correct + ' / ' + quiz.total }), ' 答对']),
-            el('span', { text: '正确率 ' + acc + '% · 本轮最长连对 ' + (quiz.best || 0) + ' 题' })
-          ])
-        ]),
-        el('div', { class: 'metaline' }, [
-          tag('分类 · ' + state.quizOpts.category, 'tag--muted'),
-          tag('难度 · ' + (state.quizOpts.difficulty ? DIFFICULTY_NAMES[state.quizOpts.difficulty] : '全部'), 'tag--muted'),
-          tag(quiz.correct === quiz.total ? '全对' : '错题已入本', quiz.correct === quiz.total ? 'tag--jade' : 'tag--cinnabar')
-        ]),
-        quiz.correct === quiz.total
-          ? notice('本轮全对，没有新增错题。可以换一个分类或提高难度继续。')
-          : notice('本轮答错的题已进入错题本。到错题本重做，连续答对 2 次才会移出。', true),
-        missed.length ? el('div', { class: 'reviewlist' }, missed.map(function (m) {
-          return el('div', { class: 'reviewitem' }, [
-            el('p', { class: 'reviewitem__q', text: m.q }),
-            el('div', { class: 'reviewitem__a', text: '正确答案 ' + LETTERS[m.a] + ' · ' + m.t + ' · 难度 ' + DIFFICULTY_NAMES[m.d] })
-          ]);
-        })) : null,
-        el('hr', { class: 'rule' }),
-        el('div', { class: 'actions' }, [
-          el('span', { class: 'actions__hint', text: '同一筛选下重新抽题；题目顺序会重新打乱。' }),
-          el('div', { class: 'actions__right' }, [
-            el('button', { class: 'btn', type: 'button', text: '再来一轮', onclick: startQuiz }),
-            el('button', { class: 'btn btn--ghost', type: 'button', text: '调整筛选', onclick: function () { go('quizsetup'); } }),
-            el('button', { class: 'btn btn--ghost', type: 'button', text: '返回首页', onclick: function () { go('home'); } })
-          ])
-        ])
-      ])
-    ]);
-  }
-
-  /* ============================================================
-     五、适当性实战
-     ============================================================ */
-
-  function viewSuitSetup() {
-    const pool = filterSuitability(DATA);
-    return el('div', { class: 'stack' }, [
-      backLink('返回首页'),
-      el('section', { class: 'panel' }, [
-        el('div', { class: 'headblock' }, [
-          el('div', { class: 'eyebrow', text: '适当性实战 / SUITABILITY' }),
-          el('h2', { text: '先看客户，再看产品' }),
-          el('p', { text: '从「适当性 / 合规」题中抽取客户情景。年龄、风险等级与资金诉求会自动提取为客户档案，四个选项渲染为产品 / 方案卡；选择后给出「匹配 / 不匹配」判定、解析与一行合规提示。' })
-        ]),
-        el('div', { class: 'notice', text: '每轮最多 6 个案例。适当性判断没有「差不多」：风险等级、流动性、投资期限，任何一项不匹配都可能构成销售瑕疵。' }),
-        el('div', { class: 'setup__foot' }, [
-          el('div', { class: 'setup__count' }, [
-            el('span', { text: '可用案例 ' }),
-            el('b', { class: 'num', text: String(pool.length) }),
-            el('span', { text: ' 个' + (pool.length ? '；本轮 ' + Math.min(SUIT_SIZE, pool.length) + ' 个' : '；暂时没有适当性或合规题') })
-          ]),
-          el('div', { class: 'setup__actions' }, [
-            el('button', {
-              class: 'btn',
-              type: 'button',
-              disabled: pool.length === 0,
-              text: '开始实战',
-              onclick: startSuit
-            })
-          ])
-        ])
-      ])
-    ]);
-  }
-
-  function startSuit() {
-    const pool = filterSuitability(DATA);
-    if (!pool.length) { toast('适当性 / 合规题暂不可用'); return; }
-    const picked = rand.shuffle(pool).slice(0, Math.min(SUIT_SIZE, pool.length));
-    state.suit = {
-      items: picked,
-      idx: 0,
-      answered: null,
-      correct: 0,
-      total: picked.length,
-      done: false
-    };
-    progress.rounds += 1;
-    save();
-    go('suit');
-  }
-
-  function viewSuit() {
-    const suit = state.suit;
-    if (!suit || !suit.items.length) {
-      return emptyPanel('案', '本轮案例不可用', '题库可能已更新，请重新进入适当性实战。', '重新开始', function () { go('suitsetup'); });
-    }
-    if (suit.done) return viewSuitResult();
-    const item = suit.items[suit.idx];
-    if (!item) { suit.done = true; return viewSuitResult(); }
-
-    const client = parseClient(item.q);
-    const pct = Math.round(suit.idx / suit.total * 100);
-
-    return el('div', { class: 'stack' }, [
-      backLink('退出实战', 'home'),
-      el('div', { class: 'quiz-top' }, [
-        el('div', { class: 'quiz-top__count' }, [
-          el('b', { class: 'num', text: String(suit.idx + 1) }),
-          el('span', { text: '/ ' + suit.total + ' 个案例' })
-        ]),
-        el('div', { class: 'quiz-top__right' }, [
-          tag('判断正确 ' + suit.correct, 'tag--jade')
-        ])
-      ]),
-      el('div', { class: 'meter', role: 'progressbar', 'aria-label': '实战进度', 'aria-valuemin': '0', 'aria-valuemax': String(suit.total), 'aria-valuenow': String(suit.idx) }, [
-        el('i', { style: { width: pct + '%' } })
-      ]),
-      clientCard(item, client),
-      el('section', { class: 'panel qpanel' }, [
-        el('div', { class: 'qmeta' }, [
-          tag(item.t === '合规' ? '合规判断' : '产品 / 方案选择', 'tag--muted'),
-          tag(item.t, 'tag--cinnabar')
-        ]),
-        el('h2', { class: 'qtext', text: item.t === '合规' ? '下列哪一项做法是正确的？' : '针对这位客户，下列哪项最合适？' }),
-        el('div', { class: 'qsub', text: suit.answered ? '选择已提交，判定见下方。' : '请选择一项方案；选择后会给出匹配判定与合规提示。' }),
-        choiceList(item, suit.answered, answerSuit, 'product'),
-        suit.answered ? suitFeedback(item, suit.answered) : null,
-        suit.answered ? el('div', { class: 'actions' }, [
-          el('span', { class: 'actions__hint', text: suit.idx + 1 >= suit.total ? '本轮案例已完成。' : '继续下一个客户案例。' }),
-          el('div', { class: 'actions__right' }, [
-            suit.idx + 1 >= suit.total
-              ? el('button', { class: 'btn', type: 'button', text: '查看实战结果', onclick: finishSuit })
-              : el('button', { class: 'btn', type: 'button', text: '下一个案例 →', onclick: nextSuit })
-          ])
-        ]) : null
-      ])
-    ]);
-  }
-
-  function clientCard(item, client) {
-    const cells = [];
-    const isCompliance = item.t === '合规';
-    const subtitle = client.found
-      ? '客户档案 · 自动提取'
-      : (isCompliance ? '合规案情 · 无客户画像' : '客户档案 · 未识别');
-    cells.push(el('div', { class: 'client__cell' }, [
-      el('div', { class: 'client__k', text: '年龄' }),
-      el('div', { class: 'client__v', text: client.age ? client.age + ' 岁' : '题干未标注' })
-    ]));
-    cells.push(el('div', { class: 'client__cell' }, [
-      el('div', { class: 'client__k', text: '风险等级' }),
-      el('div', { class: 'client__v' + (client.risk ? ' client__v--risk' : ''), text: client.risk || '题干未标注' })
-    ]));
-    cells.push(el('div', { class: 'client__cell' }, [
-      el('div', { class: 'client__k', text: '关键诉求' }),
-      el('div', { class: 'client__v', text: client.traits.length ? client.traits.join(' · ') : '题干未标注' })
-    ]));
-
-    return el('section', { class: 'client', 'aria-label': '客户档案卡' }, [
-      el('div', { class: 'client__head' }, [
-        el('div', { class: 'client__seal', 'aria-hidden': 'true', text: '客' }),
-        el('div', {}, [
-          el('div', { class: 'client__name', text: client.name }),
-          el('div', { class: 'client__sub', text: subtitle })
-        ])
-      ]),
-      !client.found ? el('div', { class: 'notice', style: { marginTop: '12px' }, text: isCompliance
-        ? '本题是合规判断题，题干里没有客户画像；请直接按合规规则判断「这件事能不能做」。'
-        : '题干未标注年龄或风险等级，请按原文判断。' }) : null,
-      el('div', { class: 'client__grid' }, cells),
-      el('div', { class: 'client__raw' }, [
-        el('b', { text: '题干原文' }),
-        el('span', { text: item.q })
-      ])
-    ]);
-  }
-
-  function answerSuit(pick) {
-    const suit = state.suit;
-    if (!suit || suit.done || suit.answered || state.busy) return;
-    const item = suit.items[suit.idx];
-    if (!item || typeof pick !== 'number') return;
-    state.busy = true;
-
-    const ok = pick === item.a;
-    suit.answered = { pick: pick, ok: ok };
-    if (ok) suit.correct += 1;
-    persistProgress(recordResult(progress, item, ok));
-    render();
-    state.busy = false;
-    revealFeedback();
-  }
-
-  function nextSuit() {
-    const suit = state.suit;
-    if (!suit) return;
-    if (suit.idx + 1 >= suit.total) { finishSuit(); return; }
-    suit.idx += 1;
-    suit.answered = null;
-    render();
-    scrollTop();
-  }
-
-  function finishSuit() {
-    const suit = state.suit;
-    if (!suit) { go('home'); return; }
-    suit.done = true;
-    render();
-    scrollTop();
-  }
-
-  function viewSuitResult() {
-    const suit = state.suit;
-    if (!suit) return emptyPanel('案', '没有可显示的实战结果', '请重新进入适当性实战。', '重新开始', function () { go('suitsetup'); });
-    const acc = suit.total ? Math.round(suit.correct / suit.total * 100) : 0;
-    return el('div', { class: 'stack' }, [
-      backLink('返回首页'),
-      el('section', { class: 'panel' }, [
-        el('div', { class: 'eyebrow', text: '实战结果 / REVIEW' }),
-        el('h2', { text: acc >= 83 ? '匹配判断过关' : acc >= 50 ? '还需要更谨慎' : '适当性红线要记牢' }),
-        el('div', { class: 'scoreboard' }, [
-          el('div', { class: 'scoreboard__main' }, [
-            el('b', { class: 'num', text: String(suit.correct) }),
-            el('span', { text: '/ ' + suit.total + ' 判断正确' })
-          ]),
-          el('div', { class: 'scoreboard__sub' }, [
-            el('span', { text: '正确率 ' + acc + '%' }),
-            el('span', { text: '每轮重新抽取案例，可反复练习。' })
-          ])
-        ]),
-        el('div', { class: 'compliance', style: { marginTop: '16px' } }, [
-          el('span', { class: 'compliance__icon', 'aria-hidden': 'true', text: '！' }),
-          el('span', { text: '合规提示：了解客户、了解产品、把合适的产品卖给合适的投资者；风险测评、匹配、揭示与双录留痕缺一不可。' })
-        ]),
-        el('div', { class: 'actions' }, [
-          el('span', { class: 'actions__hint', text: '换一批案例，继续练客户画像与产品匹配。' }),
-          el('div', { class: 'actions__right' }, [
-            el('button', { class: 'btn', type: 'button', text: '再来一轮', onclick: startSuit }),
-            el('button', { class: 'btn btn--ghost', type: 'button', text: '返回首页', onclick: function () { go('home'); } })
-          ])
-        ])
-      ])
-    ]);
-  }
-
-  function suitFeedback(item, answered) {
-    const ok = answered.ok;
-    const isSuit = item.t === '适当性';
-    return el('div', {}, [
-      el('div', { class: 'verdict ' + (ok ? 'verdict--ok' : 'verdict--bad'), 'aria-live': 'polite' }, [
-        el('span', { class: 'verdict__icon', 'aria-hidden': 'true', text: ok ? '✓' : '✕' }),
-        el('div', {}, [
-          el('b', { class: 'verdict__title', text: ok ? (isSuit ? '匹配' : '做法正确') : (isSuit ? '不匹配' : '做法有误') }),
-          el('p', {
-            class: 'verdict__text',
-            text: ok
-              ? (isSuit ? '所选方案与客户的风险承受能力、资金用途基本匹配。' : '这一处理符合合规要求，可以照此办理。')
-              : (isSuit ? '所选方案超出了客户的风险承受能力或流动性安排，属于适当性不匹配。' : '这一处理不符合合规要求，属于典型的违规误区。')
-          })
-        ])
-      ]),
-      el('div', { class: 'explainbox' }, [
-        el('div', { class: 'explainbox__head', text: '解析' }),
-        el('p', { text: item.x }),
-        el('div', { class: 'metaline' }, [
-          tag('分类 · ' + item.t, 'tag--muted'),
-          tag('难度 · ' + DIFFICULTY_NAMES[item.d], 'tag--muted'),
-          tag('正确答案 · ' + LETTERS[item.a], ok ? 'tag--jade' : 'tag--cinnabar')
-        ])
-      ]),
-      el('div', { class: 'compliance' }, [
-        el('span', { class: 'compliance__icon', 'aria-hidden': 'true', text: '！' }),
-        el('span', { text: complianceTip(item, ok) })
-      ])
-    ]);
-  }
-
-  function complianceTip(item, ok) {
-    if (item.t === '合规') {
-      return ok
-        ? '合规提示：合规判断与客户风险等级无关，考的是「这件事能不能做」；拿不准时按最严的内控与监管要求处理。'
-        : '合规提示：这类做法即使客户同意也不成立；客户信息与交易信息受保密义务约束，不得用于为自己或他人谋利。';
-    }
-    if (!ok) {
-      return '合规提示：不得向风险承受能力低于产品风险等级的客户主动推荐；客户坚持购买须特别警示、确认并留痕，仍不匹配的应拒绝销售。';
-    }
-    return '合规提示：匹配只是底线，仍须说明产品风险、费用与流动性安排，并把揭示与确认过程留痕。';
-  }
-
-  /* ============================================================
-     六、错题本
-     ============================================================ */
-
-  function viewWrong() {
-    const list = progress.wrong.slice().sort(function (a, b) {
-      return (b.n || 0) - (a.n || 0) || (b.ts || 0) - (a.ts || 0);
-    });
-
-    const back = backLink('返回首页');
-    if (!list.length) {
-      return el('div', { class: 'stack' }, [
-        back,
-        emptyPanel('净', '错题本是空的', '去知识闯关做一轮题；答错的题会自动收进这里，连续答对 2 次后移出。', '去知识闯关', function () { go('quizsetup'); })
-      ]);
-    }
-
-    const cards = el('div', { class: 'wronglist' });
-    list.forEach(function (w) {
-      const summary = w.q.length > 56 ? w.q.slice(0, 56) + '…' : w.q;
-      const c = w.c || 0;
-      cards.appendChild(el('article', { class: 'wrongcard' }, [
-        el('div', { class: 'wrongcard__top' }, [
-          tag(w.t, 'tag--muted'),
-          tag('难度 · ' + DIFFICULTY_NAMES[w.d], 'tag--muted'),
-          tag('错误 ' + w.n + ' 次', 'tag--cinnabar')
-        ]),
-        el('p', { class: 'wrongcard__q', text: summary }),
-        el('div', { class: 'wrongcard__foot' }, [
-          el('div', { class: 'wrongcard__stat' }, [
-            el('span', { text: '连续答对 ' + c + ' / 2 · 再答对 ' + (2 - c) + ' 次移出' })
-          ]),
-          el('button', {
-            class: 'btn btn--ghost btn--small',
-            type: 'button',
-            text: '重做此题',
-            onclick: function () { startRedo(w.h); }
-          })
-        ]),
-        el('div', { class: 'wrongcard__meter' }, [
-          el('div', { class: 'bar', 'aria-hidden': 'true' }, [
-            el('i', { style: { width: (c / 2 * 100) + '%' } })
-          ])
-        ])
-      ]));
-    });
-
-    return el('div', { class: 'stack' }, [
-      back,
-      el('section', { class: 'panel' }, [
-        el('div', { class: 'headblock' }, [
-          el('div', { class: 'eyebrow', text: '错题本 / REVIEW' }),
-          el('h2', { text: '错题不是收藏，是待办' }),
-          el('p', { text: '按错误次数排序。点「重做此题」重答，连续答对 2 次后自动移出；中途答错会把连续计数清零，但错误次数继续累加。' })
-        ]),
-        cards
-      ]),
-      el('div', { class: 'actions' }, [
-        el('span', { class: 'actions__hint', text: '错题本共 ' + list.length + ' 题' }),
-        el('div', { class: 'actions__right' }, [
-          el('button', { class: 'btn btn--ghost', type: 'button', text: '去知识闯关', onclick: function () { go('quizsetup'); } })
-        ])
-      ])
-    ]);
-  }
-
-  function startRedo(hash) {
-    const existing = progress.wrong.filter(function (w) { return w.h === hash; })[0];
-    if (!existing) { toast('这道题已不在错题本'); render(); return; }
-    const current = DATA_BY_HASH[hash];
-    const item = current || normalizeItem(existing);
-    if (!item) { toast('该题数据已不可用'); return; }
-    state.redo = { item: item, answered: null };
-    go('redo');
-  }
-
-  function viewRedo() {
-    const redo = state.redo;
-    if (!redo || !redo.item) {
-      return emptyPanel('题', '重做题目不可用', '请回到错题本重新选择。', '返回错题本', function () { go('wrong'); });
-    }
-    const item = redo.item;
-    const inBook = progress.wrong.filter(function (w) { return w.h === item.h; })[0];
-    return el('div', { class: 'stack' }, [
-      backLink('返回错题本', 'wrong'),
-      el('div', { class: 'quiz-top' }, [
-        el('div', { class: 'quiz-top__count' }, [
-          el('b', { class: 'num', text: '重做' }),
-          el('span', { text: inBook ? '连续答对 ' + (inBook.c || 0) + ' / 2' : '已移出错题本' })
-        ]),
-        el('div', { class: 'quiz-top__right' }, [
-          tag(item.t, 'tag--muted'),
-          tag('难度 · ' + DIFFICULTY_NAMES[item.d])
-        ])
-      ]),
-      el('section', { class: 'panel qpanel' }, [
-        el('div', { class: 'qmeta' }, [
-          tag('错题重做', 'tag--cinnabar'),
-          tag('连续答对 2 次移出', 'tag--muted')
-        ]),
-        el('h2', { class: 'qtext', text: item.q }),
-        el('div', { class: 'qsub', text: redo.answered ? '本次重做已判定，解析见下方。' : '重新判断，不要凭印象选。' }),
-        choiceList(item, redo.answered, answerRedo, 'quiz'),
-        redo.answered ? feedbackBox(item, redo.answered, 'redo') : null,
-        redo.answered ? el('div', { class: 'actions' }, [
-          el('span', { class: 'actions__hint', text: (progress.wrong.length ? '错题本还剩 ' + progress.wrong.length + ' 题。' : '错题本已经清空。') }),
-          el('div', { class: 'actions__right' }, [
-            progress.wrong.length
-              ? el('button', { class: 'btn', type: 'button', text: '下一道错题 →', onclick: startNextRedo })
-              : null,
-            el('button', { class: 'btn btn--ghost', type: 'button', text: '返回错题本', onclick: function () { go('wrong'); } })
-          ])
-        ]) : null
-      ])
-    ]);
-  }
-
-  function answerRedo(pick) {
-    const redo = state.redo;
-    if (!redo || !redo.item || redo.answered || state.busy) return;
-    const item = redo.item;
-    if (typeof pick !== 'number') return;
-    state.busy = true;
-
-    const ok = pick === item.a;
-    const entry = progress.wrong.filter(function (w) { return w.h === item.h; })[0];
-    persistProgress(recordResult(progress, item, ok));
-    const after = progress.wrong.filter(function (w) { return w.h === item.h; })[0];
-    const removed = !!entry && !after;
-    if (removed) toast('连续答对 2 次，已移出错题本');
-
-    redo.answered = {
-      pick: pick,
-      ok: ok,
-      removed: removed,
-      count: after ? (after.c || 0) : 0
-    };
-    render();
-    state.busy = false;
-    revealFeedback();
-  }
-
-  function startNextRedo() {
-    if (!progress.wrong.length) { go('wrong'); return; }
-    const next = progress.wrong.slice().sort(function (a, b) {
-      return (b.n || 0) - (a.n || 0) || (b.ts || 0) - (a.ts || 0);
-    })[0];
-    startRedo(next.h);
-  }
-
-  function feedbackBox(item, answered, mode) {
-    const ok = answered.ok;
-    let title = ok ? '回答正确，+10 分' : '回答错误，已记入错题本';
-    let sub = '';
-    if (mode === 'redo') {
-      if (ok) {
-        title = answered.removed ? '连续答对 2 次，已移出错题本' : '答对了，连续答对 ' + answered.count + ' / 2';
-        sub = answered.removed ? '这道题已完成纠错。' : '保持正确，再答对 ' + (2 - answered.count) + ' 次即可移出。';
+      if (!slice.length) {
+        gridHost.replaceChildren(emptyPanel(
+          '空',
+          filteredOn ? '没有匹配的案例' : '案例库还是空的',
+          filteredOn ? '换个关键词，或把难度、标签调回“全部”再试。' : '等 data/finance-cases.js 写入数据后刷新页面即可。',
+          filteredOn ? el('button', {
+            class: 'btn btn--ghost', type: 'button',
+            onclick: function () {
+              state.filters.level = '';
+              state.filters.tag = '';
+              state.filters.q = '';
+              state.filters.page = 1;
+              paintHome();
+            },
+          }, '清除筛选') : null
+        ));
+        gridHost.firstChild.style.gridColumn = '1 / -1';
       } else {
-        title = '又答错了，连续计数清零';
-        sub = '错误次数已累加，建议读完解析再重做。';
+        gridHost.replaceChildren.apply(gridHost, slice.map(caseCard));
       }
-    } else if (ok) {
-      sub = '得分 +10，连对继续。';
-    } else {
-      sub = '本题已进入错题本，连续答对 2 次可移出。';
-    }
 
-    return el('div', { class: 'feedback ' + (ok ? 'feedback--ok' : 'feedback--bad'), 'aria-live': 'polite' }, [
-      el('div', { class: 'feedback__head' }, [
-        el('span', { class: 'feedback__icon', 'aria-hidden': 'true', text: ok ? '✓' : '✕' }),
-        el('b', { text: title }),
-        el('span', { class: 'feedback__sub', text: sub })
-      ]),
-      el('div', { class: 'feedback__body' }, [
-        el('span', { class: 'feedback__label', text: '解析' }),
-        el('p', { class: 'feedback__text', text: item.x })
-      ]),
-      el('div', { class: 'metaline' }, [
-        tag('分类 · ' + item.t),
-        tag('难度 · ' + DIFFICULTY_NAMES[item.d]),
-        tag('正确答案 · ' + LETTERS[item.a], ok ? 'tag--jade' : 'tag--cinnabar')
-      ])
-    ]);
-  }
-
-  function revealFeedback() {
-    window.setTimeout(function () {
-      const node = qs('.feedback, .verdict', app);
-      if (!node || !node.scrollIntoView) return;
-      try { node.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-      catch (err) { try { node.scrollIntoView(false); } catch (err2) {} }
-    }, 60);
-  }
-
-  /* ============================================================
-     七、资产配置模拟器
-     ============================================================ */
-
-  function viewAlloc() {
-    const a = state.alloc;
-    const prof = PROFILES[a.profile] || PROFILES[2];
-    const m = portfolioMetrics(a.weights);
-
-    const profileButtons = el('div', { class: 'profiles', role: 'group', 'aria-label': '客户风险画像' });
-    PROFILES.forEach(function (p, i) {
-      profileButtons.appendChild(el('button', {
-        type: 'button',
-        class: 'profile',
-        'aria-pressed': i === a.profile ? 'true' : 'false',
-        onclick: function () {
-          if (state.alloc.profile === i) return;
-          state.alloc.profile = i;
-          state.alloc.submitted = null;
-          render();
+      const kids = [];
+      kids.push(el('button', {
+        class: 'pager__btn', type: 'button', disabled: page <= 1,
+        'aria-label': '上一页',
+        onclick: function () { state.filters.page = page - 1; renderList(true); },
+      }, '‹'));
+      pageWindow(page, pages).forEach(function (p) {
+        if (p === '…') {
+          kids.push(el('span', { class: 'pager__dots', text: '…' }));
+          return;
         }
-      }, [
-        el('b', { text: p.name }),
-        el('span', { text: '目标 ' + p.target.toFixed(1) + ' · 权益≤' + p.cap + '%' }),
-        el('span', { text: p.desc })
-      ]));
-    });
+        kids.push(el('button', {
+          class: 'pager__btn' + (p === page ? ' is-on' : ''),
+          type: 'button', text: String(p),
+          'aria-label': '第 ' + p + ' 页',
+          'aria-current': p === page ? 'page' : null,
+          onclick: function () { state.filters.page = p; renderList(true); },
+        }));
+      });
+      kids.push(el('button', {
+        class: 'pager__btn', type: 'button', disabled: page >= pages,
+        'aria-label': '下一页',
+        onclick: function () { state.filters.page = page + 1; renderList(true); },
+      }, '›'));
+      kids.push(el('span', { class: 'pager__info', text: page + ' / ' + pages + ' 页' }));
+      pagerHost.replaceChildren.apply(pagerHost, kids);
 
-    const sliderRows = el('div', {});
-    ASSETS.forEach(function (asset, i) {
-      const val = a.weights[i];
-      sliderRows.appendChild(el('div', { class: 'alloc-row' }, [
-        el('div', { class: 'alloc-row__top' }, [
-          el('label', { class: 'alloc-row__name', for: 'alloc-w-' + i }, [
-            el('span', { class: 'alloc-row__dot', 'aria-hidden': 'true', style: { background: asset.color } }),
-            el('span', { text: asset.name }),
-            el('span', { class: 'alloc-row__risk', text: '风险系数 ' + asset.risk.toFixed(1) })
-          ]),
-          el('output', { class: 'alloc-row__val', for: 'alloc-w-' + i, 'data-out': String(i), text: val + '%' })
-        ]),
-        el('input', {
-          type: 'range',
-          class: 'alloc-range',
-          id: 'alloc-w-' + i,
-          min: '0',
-          max: '100',
-          step: '1',
-          value: String(val),
-          'data-weight': String(i),
-          'aria-label': asset.name + '配置比例',
-          'aria-valuemin': '0',
-          'aria-valuemax': '100',
-          'aria-valuenow': String(val),
-          'aria-valuetext': val + '%',
-          style: { background: sliderBg(asset.color, val) },
-          oninput: function (e) { onAllocInput(i, e.target.value); }
-        })
-      ]));
-    });
-
-    const mixSegs = [];
-    const mixLegend = el('div', { class: 'mixlegend' });
-    ASSETS.forEach(function (asset, i) {
-      mixSegs.push(el('i', { 'data-seg': String(i), style: { width: m.weights[i] + '%', background: asset.color } }));
-      mixLegend.appendChild(el('span', {}, [
-        el('i', { style: { background: asset.color } }),
-        el('span', { text: asset.short + ' ' + m.weights[i] + '%' })
-      ]));
-    });
-
-    const resultBox = el('div', { class: 'result', id: 'alloc-result', 'aria-live': 'polite' });
-    if (a.submitted) {
-      resultBox.appendChild(allocResultContent(a.submitted));
-    } else {
-      resultBox.appendChild(el('p', { class: 'result__empty', text: '调整配置后点击「提交方案」获取评分。评分只针对当前画像与比例，不构成投资建议。' }));
+      if (jump) {
+        try { panel.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
+        catch (err) { try { panel.scrollIntoView(); } catch (err2) { /* 忽略 */ } }
+      }
     }
 
-    return el('div', { class: 'stack' }, [
-      backLink('返回首页'),
-      el('section', { class: 'panel' }, [
-        el('div', { class: 'headblock' }, [
-          el('div', { class: 'eyebrow', text: '资产配置 / ALLOCATION' }),
-          el('h2', { text: '四类资产，一位客户' }),
-          el('p', { text: '先选客户画像，再拖动四类资产比例。合计恒为 100%：调整一类时，其余三类按原比例自动让位。权重用键盘方向键也能微调。' })
-        ]),
-        el('div', { class: 'field', style: { marginTop: '2px' } }, [
-          el('div', { class: 'field__lab' }, [el('span', { text: '客户画像' }), el('span', { text: '目标风险分与权益上限' })]),
-          profileButtons
-        ]),
-        el('div', { class: 'disclaimer', text: '示意模型，不构成投资建议。风险分与波动区间为教学用简化计算，不代表真实产品业绩。' })
+    const result = el('div', {});
+    result.appendChild(panel);
+    renderList();
+    return result;
+  }
+
+  function caseCard(c) {
+    const rec = state.progress.cases[c.id];
+    const rating = rec ? ratingOf(rec.score) : null;
+    let foot;
+    if (rec) {
+      foot = el('span', { class: 'case-card__done' }, [
+        el('b', { text: String(rec.score) }),
+        ' 分 · ' + rating.label,
+        rec.best > rec.score ? el('span', { class: 'case-card__best', text: ' · 最佳 ' + rec.best }) : null,
+      ]);
+    } else {
+      foot = el('span', { text: '未完成 · ' + c.steps.length + ' 步' });
+    }
+    const tags = el('div', { class: 'case-card__tags' }, c.tags.slice(0, 4).map(function (t) {
+      return tagNode(t, 'tag--dim');
+    }));
+    return el('button', {
+      class: 'case-card', type: 'button',
+      'aria-label': '进入案例：' + c.title,
+      onclick: function () { startCase(c.id); },
+    }, [
+      el('div', { class: 'case-card__top' }, [
+        el('h3', { class: 'case-card__title', text: c.title }),
+        levelBadge(c.level),
       ]),
-      el('div', { class: 'alloc-grid' }, [
-        el('section', { class: 'panel alloc-panel alloc-summary' }, [
-          el('div', { class: 'alloc-summary__head' }, [
-            el('div', { class: 'eyebrow', text: '配置比例' }),
-            el('span', { class: 'tiny faint', id: 'alloc-total', text: '合计 100%' })
-          ]),
-          sliderRows,
-          el('div', { class: 'alloc-actions' }, [
-            el('button', { class: 'btn', type: 'button', id: 'alloc-submit', text: '提交方案', onclick: submitAlloc }),
-            el('button', {
-              class: 'btn btn--ghost',
-              type: 'button',
-              text: '归零重来',
-              onclick: function () {
-                state.alloc.weights = [25, 25, 25, 25];
-                state.alloc.submitted = null;
-                render();
-                toast('已归零重来，恢复 25 / 25 / 25 / 25');
-              }
-            })
-          ])
-        ]),
-        el('aside', { class: 'alloc-summary', 'aria-label': '实时组合指标' }, [
-          el('div', { class: 'alloc-summary__head' }, [
-            el('div', { class: 'eyebrow', text: '实时指标' }),
-            tag(prof.name, 'tag--cinnabar')
-          ]),
-          el('div', { class: 'riskbig' }, [
-            el('b', { class: 'num', id: 'alloc-risk', text: m.risk.toFixed(1) }),
-            el('span', { text: '/ 5.0 风险分' })
-          ]),
-          el('div', { class: 'riskline', id: 'alloc-target', text: targetLine(m.risk, prof) }),
-          el('div', { class: 'kvgrid' }, [
-            el('div', { class: 'kv' }, [
-              el('div', { class: 'kv__k', text: '权益占比' }),
-              el('div', { class: 'kv__v ' + (m.equity > prof.cap ? 'cinnabar' : 'jade'), id: 'alloc-equity', text: m.equity.toFixed(1) + '%' }),
-              el('div', { class: 'kv__s', id: 'alloc-cap', text: '上限 ' + prof.cap + '%' }),
-              el('div', { class: 'capmeter' + (m.equity > prof.cap ? ' is-over' : ''), id: 'alloc-capmeter' }, [
-                el('div', { class: 'meter' }, [el('i', { style: { width: Math.min(100, prof.cap ? m.equity / prof.cap * 100 : 100) + '%' } })])
-              ])
-            ]),
-            el('div', { class: 'kv' }, [
-              el('div', { class: 'kv__k', text: '示意波动区间' }),
-              el('div', { class: 'kv__v', id: 'alloc-vol', text: '−' + m.vol.toFixed(1) + '% ~ +' + m.vol.toFixed(1) + '%' }),
-              el('div', { class: 'kv__s', text: '示意年化，仅作教学' })
-            ])
-          ]),
-          el('div', { class: 'mixbar', 'aria-hidden': 'true' }, mixSegs),
-          mixLegend
-        ])
+      el('p', { class: 'case-card__client', text: clientBrief(c.client, true) || '客户画像待补充' }),
+      c.client.goal ? el('p', { class: 'case-card__goal', text: c.client.goal }) : null,
+      tags,
+      el('div', { class: 'case-card__foot' }, [
+        foot,
+        el('span', { class: 'case-card__go', text: '进入 →' }),
       ]),
-      resultBox
     ]);
   }
 
-  function sliderBg(color, pct) {
-    return 'linear-gradient(90deg, ' + color + ' 0%, ' + color + ' ' + pct + '%, rgba(255,255,255,0.09) ' + pct + '%, rgba(255,255,255,0.09) 100%) center / 100% 8px no-repeat';
+  function pageWindow(current, pages) {
+    if (pages <= 7) {
+      const arr = [];
+      for (let i = 1; i <= pages; i += 1) arr.push(i);
+      return arr;
+    }
+    const set = new Set([1, pages, current - 1, current, current + 1]);
+    const arr = Array.from(set).filter(function (p) { return p >= 1 && p <= pages; })
+      .sort(function (a, b) { return a - b; });
+    const out = [];
+    for (let i = 0; i < arr.length; i += 1) {
+      if (i > 0 && arr[i] - arr[i - 1] > 1) out.push('…');
+      out.push(arr[i]);
+    }
+    return out;
   }
 
-  function targetLine(risk, prof) {
-    const diff = Math.abs(risk - prof.target);
-    let word = '接近目标';
-    if (diff > 1.2) word = '偏离较大';
-    else if (diff > 0.5) word = '略有偏离';
-    return '目标 ' + prof.target.toFixed(1) + ' · ' + word + '（差 ' + diff.toFixed(1) + '）';
+  /* ---------- 案例页 ---------- */
+  function startCase(id) {
+    const c = state.byId.get(id);
+    if (!c) {
+      toast('这个案例的数据不可用。');
+      return;
+    }
+    state.run = {
+      caseId: id,
+      step: 0,
+      picks: [],
+      answered: false,
+      chosen: -1,
+      finished: false,
+    };
+    state.summary = null;
+    paintCase();
   }
 
-  function onAllocInput(index, value) {
-    const v = Math.round(clamp(Number(value) || 0, 0, 100));
-    state.alloc.weights = rebalanceWeights(state.alloc.weights, index, v);
-    state.alloc.submitted = null;
-    refreshAlloc();
+  function paintCase() {
+    state.view = 'case';
+    const run = state.run;
+    if (!run) { paintHome(); return; }
+    const c = state.byId.get(run.caseId);
+    if (!c) { state.run = null; paintHome(); return; }
+    const step = c.steps[run.step];
+    if (!step) { state.run = null; paintHome(); return; }
+    const total = c.steps.length;
+
+    const root = el('div', { class: 'case-page' });
+    const bar = dataBar();
+    if (bar) root.appendChild(bar);
+    root.appendChild(caseHead(c, run, total));
+    root.appendChild(clientCard(c.client));
+    root.appendChild(questionCard(c, run, step, total));
+    mount(root);
+
+    if (run.answered) {
+      requestAnimationFrame(function () {
+        try {
+          const fb = stage.querySelector('.fb');
+          if (fb) fb.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' });
+        } catch (err) { /* 忽略 */ }
+      });
+    }
   }
 
-  function refreshAlloc() {
-    const a = state.alloc;
-    const prof = PROFILES[a.profile] || PROFILES[2];
-    const m = portfolioMetrics(a.weights);
+  function caseHead(c, run, total) {
+    const pct = ((run.step + (run.answered ? 1 : 0)) / total) * 100;
+    return el('header', { class: 'case-head' }, [
+      el('button', { class: 'back', type: 'button', onclick: leaveCase }, '← 返回案例列表'),
+      el('div', { class: 'case-head__row' }, [
+        levelBadge(c.level),
+        el('h1', { class: 'case-head__title', text: c.title }),
+      ]),
+      el('div', { class: 'step-hud' }, [
+        el('div', { class: 'step-hud__row' }, [
+          el('span', {
+            class: 'step-hud__label',
+            text: '第 ' + (run.step + 1) + ' / ' + total + ' 步 · ' + stepName(run.step, total),
+          }),
+          el('span', { class: 'step-hud__count num', text: Math.round(pct) + '%' }),
+        ]),
+        el('div', {
+          class: 'meter', role: 'progressbar',
+          'aria-valuemin': '0',
+          'aria-valuemax': String(total),
+          'aria-valuenow': String(run.step + (run.answered ? 1 : 0)),
+          'aria-label': '案例步骤进度',
+        }, el('i', { style: { width: pct.toFixed(1) + '%' } })),
+      ]),
+    ]);
+  }
 
-    ASSETS.forEach(function (asset, i) {
-      const w = a.weights[i];
-      const input = qs('[data-weight="' + i + '"]', app);
-      const out = qs('[data-out="' + i + '"]', app);
-      if (input) {
-        input.value = String(w);
-        input.setAttribute('aria-valuenow', String(w));
-        input.setAttribute('aria-valuetext', w + '%');
-        input.style.background = sliderBg(asset.color, w);
+  function clientCard(cl) {
+    function field(label, value, wide) {
+      return el('div', { class: 'client-field' + (wide ? ' client-field--wide' : '') }, [
+        el('dt', { text: label }),
+        el('dd', { text: value || '—' }),
+      ]);
+    }
+    return el('section', { class: 'client-card', 'aria-label': '客户档案' }, [
+      el('div', { class: 'client-card__head' }, [
+        el('span', { class: 'client-card__kicker', text: '客户档案' }),
+        el('span', { class: 'client-card__name', text: cl.name }),
+        el('span', { class: 'client-card__meta', text: clientBrief(cl, false) }),
+      ]),
+      el('dl', { class: 'client-grid' }, [
+        field('年龄', cl.age ? ageText(cl.age) : '—', false),
+        field('职业', cl.job, false),
+        field('收入', cl.income, false),
+        field('资产', cl.assets, false),
+        field('家庭', cl.family, true),
+        field('目标', cl.goal, true),
+      ]),
+      cl.stated ? el('blockquote', { class: 'client-quote' }, [
+        el('span', { text: '“' + cl.stated + '”' }),
+        el('cite', { text: '客户原话' }),
+      ]) : null,
+    ]);
+  }
+
+  function questionCard(c, run, step, total) {
+    const panel = el('section', { class: 'panel case-q' });
+    panel.appendChild(el('div', { class: 'q-label', text: '第 ' + (run.step + 1) + ' 步 · ' + stepName(run.step, total) }));
+    panel.appendChild(el('h2', { class: 'q-text', text: step.q }));
+
+    const opts = el('div', { class: 'opts', role: 'group', 'aria-label': '本步选项' });
+    step.options.forEach(function (opt, i) {
+      opts.appendChild(optionNode(opt, i, run));
+    });
+    panel.appendChild(opts);
+
+    if (run.answered) {
+      panel.appendChild(feedbackNode(c, run, step));
+    } else {
+      const n = step.options.length;
+      panel.appendChild(el('div', { class: 'qfoot' }, [
+        el('span', { class: 'hint' }, [
+          '按 ', kbd('1'), ' – ', kbd(String(n)), ' 选择；选完立刻给反馈',
+        ]),
+      ]));
+    }
+    return panel;
+  }
+
+  function optionNode(opt, i, run) {
+    const answered = run.answered;
+    const picked = answered && i === run.chosen;
+    const v = VERDICT[opt.kind];
+    let cls = 'opt';
+    if (answered) cls += ' is-' + opt.kind;
+    if (picked) cls += ' is-picked';
+    else if (answered) cls += ' is-muted';
+
+    const rowKids = [el('span', { class: 'opt__t', text: opt.t })];
+    if (answered) {
+      rowKids.push(el('span', { class: 'opt__badge opt__badge--' + opt.kind }, [
+        el('span', { 'aria-hidden': 'true', text: v.icon }),
+        el('span', { text: v.label }),
+      ]));
+    }
+    const body = el('div', { class: 'opt__body' }, [
+      el('div', { class: 'opt__row' }, rowKids),
+    ]);
+    if (opt.product) body.appendChild(productBlock(opt.product));
+    if (picked) body.appendChild(el('span', { class: 'opt__picked', text: '你的选择' }));
+
+    const btn = el('button', {
+      class: cls, type: 'button',
+      'aria-pressed': picked ? 'true' : 'false',
+      onclick: function () { chooseOption(i); },
+    }, [
+      el('span', { class: 'opt__no num', text: String(i + 1) }),
+      body,
+    ]);
+    if (answered) btn.disabled = true;
+    return btn;
+  }
+
+  function productBlock(p) {
+    return el('div', { class: 'prod' }, [
+      el('div', { class: 'prod__head' }, [
+        el('span', { class: 'prod__name', text: '产品 · ' + p.name }),
+        p.type ? el('span', { class: 'prod__type', text: p.type }) : null,
+      ]),
+      el('div', { class: 'prod__grid' }, [
+        el('span', {}, [el('b', { text: '风险' }), el('em', { class: 'prod__risk', text: p.risk || '—' })]),
+        el('span', {}, [el('b', { text: '期限' }), p.term || '—']),
+        el('span', {}, [el('b', { text: '起投' }), p.min || '—']),
+        el('span', {}, [el('b', { text: '流动性' }), p.liq || '—']),
+      ]),
+      p.note ? el('p', { class: 'prod__note', text: '提示：' + p.note }) : null,
+    ]);
+  }
+
+  function chooseOption(index) {
+    const run = state.run;
+    if (!run || run.finished || run.answered) return;
+    const c = state.byId.get(run.caseId);
+    if (!c) return;
+    const step = c.steps[run.step];
+    if (!step) return;
+    if (!Number.isInteger(index) || index < 0 || index >= step.options.length) return;
+
+    run.answered = true;
+    run.chosen = index;
+    run.picks[run.step] = index;
+    const v = VERDICT[step.options[index].kind];
+    announce('第 ' + (run.step + 1) + ' 步已选：' + v.label + '。' +
+      (step.options[index].kind === 'best' ? '这是最佳做法。' : '已展开反馈与知识点。'));
+    paintCase();
+  }
+
+  function feedbackNode(c, run, step) {
+    const opt = step.options[run.chosen];
+    const v = VERDICT[opt.kind];
+    const titles = {
+      best: '这是最佳做法',
+      ok: '可以接受，但不够好',
+      bad: '这一步选错了',
+    };
+    const fb = el('div', { class: 'fb fb--' + opt.kind });
+    fb.appendChild(el('div', { class: 'fb__verdict' }, [
+      el('span', { class: 'fb__icon', 'aria-hidden': 'true', text: v.icon }),
+      el('span', { text: titles[opt.kind] }),
+      el('span', { class: 'fb__earn', text: '+' + KIND_SCORE[opt.kind] + ' 分' }),
+    ]));
+    fb.appendChild(el('p', { class: 'fb__chosen', text: '你选了：' + opt.t }));
+    fb.appendChild(el('p', { class: 'fb__text', text: opt.fb }));
+    if (step.teach) {
+      fb.appendChild(el('div', { class: 'teach' }, [
+        el('span', { class: 'teach__k', text: '这一步要记住' }),
+        el('p', { text: step.teach }),
+      ]));
+    }
+    const last = run.step >= c.steps.length - 1;
+    fb.appendChild(el('div', { class: 'fb__acts' }, [
+      el('button', {
+        class: 'btn', type: 'button', onclick: nextStep,
+      }, last ? '查看结算' : '下一步'),
+      el('span', { class: 'hint' }, [kbd('Enter'), ' 继续']),
+    ]));
+    return fb;
+  }
+
+  function nextStep() {
+    const run = state.run;
+    if (!run || run.finished || !run.answered) return;
+    const c = state.byId.get(run.caseId);
+    if (!c) return;
+    if (run.step >= c.steps.length - 1) {
+      finishCase();
+      return;
+    }
+    run.step += 1;
+    run.answered = false;
+    run.chosen = -1;
+    paintCase();
+  }
+
+  function finishCase() {
+    const run = state.run;
+    if (!run || run.finished) return;
+    const c = state.byId.get(run.caseId);
+    if (!c) return;
+    if (run.picks.length < c.steps.length) {
+      toast('还有步骤没有完成。');
+      return;
+    }
+    for (let i = 0; i < c.steps.length; i += 1) {
+      if (!Number.isInteger(run.picks[i]) || run.picks[i] < 0 || run.picks[i] >= c.steps[i].options.length) {
+        toast('这一步的选择数据不完整，请重做本案例。');
+        return;
       }
-      if (out) out.textContent = w + '%';
-      const seg = qs('[data-seg="' + i + '"]', app);
-      if (seg) seg.style.width = w + '%';
+    }
+
+    run.finished = true;
+    const result = scoreRun(c, run.picks);
+    const reviews = c.steps.map(function (step, i) {
+      const chosen = step.options[run.picks[i]];
+      let best = chosen;
+      for (let k = 0; k < step.options.length; k += 1) {
+        if (step.options[k].kind === 'best') { best = step.options[k]; break; }
+      }
+      return {
+        index: i,
+        label: stepName(i, c.steps.length),
+        q: step.q,
+        chosen: chosen,
+        best: best,
+        verdict: chosen.kind,
+      };
     });
 
-    const legend = qs('.mixlegend', app);
-    if (legend) {
-      legend.replaceChildren.apply(legend, ASSETS.map(function (asset, i) {
-        return el('span', {}, [
-          el('i', { style: { background: asset.color } }),
-          el('span', { text: asset.short + ' ' + a.weights[i] + '%' })
+    const prev = state.progress.cases[c.id];
+    const bestScore = Math.max(prev && Number.isFinite(prev.best) ? prev.best : 0, result.pct);
+    state.progress.cases[c.id] = {
+      score: result.pct,
+      best: bestScore,
+      ts: Date.now(),
+    };
+    persist();
+
+    const summary = {
+      caseId: c.id,
+      title: c.title,
+      raw: result.raw,
+      max: result.max,
+      pct: result.pct,
+      rating: result.rating,
+      reviews: reviews,
+      lessons: c.lessons,
+      reg: c.reg,
+      best: bestScore,
+    };
+    state.summary = summary;
+    state.run = null;
+    paintResult();
+    announce('案例结算：' + result.pct + ' 分，' + result.rating.label + '。');
+  }
+
+  /* ---------- 结算 ---------- */
+  function paintResult() {
+    state.view = 'result';
+    const s = state.summary;
+    if (!s) { paintHome(); return; }
+    const c = state.byId.get(s.caseId);
+    const rating = s.rating || ratingOf(s.pct);
+
+    const root = el('div', { class: 'result-page' });
+    const bar = dataBar();
+    if (bar) root.appendChild(bar);
+
+    const panel = el('section', { class: 'panel result-panel' });
+    panel.appendChild(el('div', { class: 'result-head' }, [
+      el('div', { class: 'eyebrow', text: '案例结算 · ' + (c ? c.title : s.title) }),
+      el('div', { class: 'result-big num' }, [
+        String(s.pct),
+        el('small', { text: '/ 100' }),
+      ]),
+      el('span', { class: 'rating rating--' + rating.cls, text: rating.label }),
+      el('p', { class: 'result-note', text: rating.note }),
+      el('div', { class: 'metrics' }, [
+        metric(s.raw + ' / ' + s.max, '原始得分'),
+        metric(String(s.reviews.length), '完成步骤'),
+        metric(s.best + ' 分', s.best > s.pct ? '历史最佳' : '本次即最佳'),
+      ]),
+    ]));
+
+    panel.appendChild(el('hr', { class: 'rule' }));
+
+    const reviewSection = el('div', { class: 'result-section' }, [
+      sectionHead('逐步复盘', 'STEP BY STEP'),
+    ]);
+    s.reviews.forEach(function (r) {
+      reviewSection.appendChild(reviewNode(r));
+    });
+    panel.appendChild(reviewSection);
+
+    panel.appendChild(el('hr', { class: 'rule' }));
+    panel.appendChild(lessonsSection(s));
+
+    panel.appendChild(el('div', { class: 'result-acts' }, [
+      el('button', {
+        class: 'btn', type: 'button',
+        onclick: function () { startCase(s.caseId); },
+      }, '重做本案例'),
+      el('button', {
+        class: 'btn btn--ghost', type: 'button', onclick: gotoNextCase,
+      }, '下一个案例'),
+      el('button', {
+        class: 'btn btn--ghost', type: 'button', onclick: paintHome,
+      }, '返回列表'),
+      el('button', {
+        class: 'btn btn--ghost', type: 'button', onclick: paintKnowledge,
+      }, '知识库'),
+    ]));
+    panel.appendChild(el('p', { class: 'result-fine', text: '成绩已写入本机存档；重做会更新最近成绩，历史最佳单独保留。' }));
+
+    root.appendChild(panel);
+    mount(root);
+  }
+
+  function reviewNode(r) {
+    function row(term, value, mod) {
+      return el('div', { class: 'review__row' + (mod ? ' review__row--' + mod : '') }, [
+        el('dt', { text: term }),
+        el('dd', { text: value }),
+      ]);
+    }
+    const v = VERDICT[r.verdict];
+    const rows = [
+      row('你的选择', r.chosen.t),
+      row('更优做法', r.chosen === r.best ? '你的选择就是这一步的最佳做法。' : r.best.t, 'better'),
+      row('为什么', r.chosen.fb, 'why'),
+    ];
+    if (r.chosen !== r.best) rows.push(row('更优的理由', r.best.fb, 'why'));
+
+    return el('article', { class: 'review' }, [
+      el('div', { class: 'review__head' }, [
+        el('span', { class: 'review__step', text: '第 ' + (r.index + 1) + ' 步 · ' + r.label }),
+        el('span', { class: 'vdict vdict--' + r.verdict }, [
+          el('span', { 'aria-hidden': 'true', text: v.icon }),
+          el('span', { text: v.label }),
+        ]),
+      ]),
+      el('p', { class: 'review__q', text: r.q }),
+      el('dl', { class: 'review__rows' }, rows),
+    ]);
+  }
+
+  function lessonsSection(s) {
+    const list = el('ul', { class: 'lessons' });
+    (s.lessons || []).forEach(function (lesson, i) {
+      list.appendChild(el('li', {}, [
+        el('span', { class: 'lesson__no num', text: String(i + 1).padStart(2, '0') }),
+        el('span', { text: lesson }),
+      ]));
+    });
+    return el('div', { class: 'result-section' }, [
+      sectionHead('这个案例的知识要点', 'LESSONS'),
+      s.lessons && s.lessons.length
+        ? list
+        : el('p', { class: 'dim', text: '这个案例还没有录入知识要点。' }),
+      s.reg ? el('div', { class: 'reg' }, [
+        el('b', { text: '相关原则' }),
+        el('span', { text: s.reg }),
+      ]) : null,
+    ]);
+  }
+
+  function gotoNextCase() {
+    if (!state.summary) { paintHome(); return; }
+    if (!state.cases.length) { paintHome(); return; }
+    const idx = state.cases.findIndex(function (c) { return c.id === state.summary.caseId; });
+    if (idx === -1) { startCase(state.cases[0].id); return; }
+    startCase(state.cases[(idx + 1) % state.cases.length].id);
+  }
+
+  function leaveCase() {
+    state.run = null;
+    paintHome();
+    toast('已退出本案例，未完成的步骤不计分。');
+  }
+
+  /* ---------- 知识库 ---------- */
+  function paintKnowledge() {
+    state.view = 'kb';
+    const root = el('div', { class: 'kb-page' });
+    const bar = dataBar();
+    if (bar) root.appendChild(bar);
+
+    const sources = new Set();
+    state.knowledge.forEach(function (e) {
+      e.sources.forEach(function (s) { sources.add(s.id); });
+    });
+
+    root.appendChild(el('div', { class: 'kb-head' }, [
+      el('div', {}, [
+        el('div', { class: 'eyebrow', text: '知识库 · 规则与要点' }),
+        el('h1', { text: '把规则，按标签收好。' }),
+        el('p', { text: '共 ' + state.knowledge.length + ' 条去重后的知识要点，来自 ' + sources.size + ' 个案例 · 点开案例可以回到实战' }),
+      ]),
+      el('div', { class: 'cards-head__act' }, [
+        el('button', { class: 'back', type: 'button', onclick: paintHome }, '← 回首页'),
+      ]),
+    ]));
+
+    const panel = el('section', { class: 'panel kb-panel' });
+    const search = el('input', {
+      type: 'search',
+      placeholder: '搜知识要点、标签、案例标题…',
+      'aria-label': '搜索知识库',
+      oninput: function () {
+        state.kb.q = search.value;
+        renderKb();
+      },
+    });
+    search.value = state.kb.q;
+
+    const countHost = el('p', { class: 'kb-count' });
+    const groupsHost = el('div', { class: 'kb-groups' });
+
+    panel.appendChild(el('div', { class: 'search' }, search));
+    panel.appendChild(countHost);
+    panel.appendChild(groupsHost);
+    root.appendChild(panel);
+
+    function renderKb() {
+      const q = asText(state.kb.q).toLowerCase();
+      const terms = q ? q.split(/\s+/).filter(Boolean) : [];
+      const entries = terms.length
+        ? state.knowledge.filter(function (e) {
+          const hay = (e.text + ' ' + e.tags.join(' ') + ' ' + e.sources.map(function (s) { return s.title; }).join(' ')).toLowerCase();
+          return terms.every(function (t) { return hay.indexOf(t) !== -1; });
+        })
+        : state.knowledge;
+      const groups = groupKnowledge(entries);
+
+      countHost.textContent = terms.length
+        ? '匹配 ' + entries.length + ' 条 · 分布在 ' + groups.length + ' 个标签'
+        : '全部 ' + entries.length + ' 条 · 按标签分组（同一要点可出现在多个标签下）';
+
+      if (!entries.length) {
+        groupsHost.replaceChildren(emptyPanel(
+          '空',
+          terms.length ? '没有匹配的知识要点' : '知识库还是空的',
+          terms.length ? '换个关键词，或直接清空搜索框。' : '等案例数据里的 lessons 与 reg 写入后刷新页面即可。',
+          terms.length ? el('button', {
+            class: 'btn btn--ghost', type: 'button',
+            onclick: function () {
+              state.kb.q = '';
+              paintKnowledge();
+            },
+          }, '清空搜索') : null
+        ));
+        return;
+      }
+
+      groupsHost.replaceChildren.apply(groupsHost, groups.map(function (g) {
+        return el('section', { class: 'kb-group' }, [
+          el('div', { class: 'kb-group__head' }, [
+            el('h2', { text: g.tag }),
+            el('span', { class: 'kb-group__count', text: g.items.length + ' 条' }),
+          ]),
+          el('div', { class: 'kb-list' }, g.items.map(kbItem)),
         ]);
       }));
     }
 
-    const total = qs('#alloc-total', app);
-    if (total) total.textContent = '合计 ' + a.weights.reduce(function (x, y) { return x + y; }, 0) + '%';
-
-    const riskEl = qs('#alloc-risk', app);
-    if (riskEl) riskEl.textContent = m.risk.toFixed(1);
-    const targetEl = qs('#alloc-target', app);
-    if (targetEl) targetEl.textContent = targetLine(m.risk, prof);
-
-    const equityEl = qs('#alloc-equity', app);
-    if (equityEl) {
-      equityEl.textContent = m.equity.toFixed(1) + '%';
-      equityEl.classList.toggle('cinnabar', m.equity > prof.cap);
-      equityEl.classList.toggle('jade', m.equity <= prof.cap);
-    }
-    const capEl = qs('#alloc-cap', app);
-    if (capEl) capEl.textContent = m.equity > prof.cap ? '超出上限 ' + prof.cap + '%' : '上限 ' + prof.cap + '%';
-    const capMeter = qs('#alloc-capmeter', app);
-    if (capMeter) {
-      capMeter.classList.toggle('is-over', m.equity > prof.cap);
-      const fill = qs('i', capMeter);
-      if (fill) fill.style.width = Math.min(100, prof.cap ? m.equity / prof.cap * 100 : 100) + '%';
-    }
-    const volEl = qs('#alloc-vol', app);
-    if (volEl) volEl.textContent = '−' + m.vol.toFixed(1) + '% ~ +' + m.vol.toFixed(1) + '%';
-
-    const box = qs('#alloc-result', app);
-    if (box) {
-      if (a.submitted) {
-        box.replaceChildren(allocResultContent(a.submitted));
-      } else {
-        box.replaceChildren(el('p', { class: 'result__empty', text: '配置已调整，请重新提交评分。评分只针对当前画像与比例，不构成投资建议。' }));
-      }
-    }
-  }
-
-  function submitAlloc() {
-    const prof = PROFILES[state.alloc.profile] || PROFILES[2];
-    state.alloc.submitted = scorePortfolio(state.alloc.weights, prof);
-    render();
-    window.setTimeout(function () {
-      const box = qs('#alloc-result', app);
-      if (box && box.scrollIntoView) {
-        try { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-        catch (err) { try { box.scrollIntoView(false); } catch (err2) {} }
-      }
-    }, 60);
-  }
-
-  function allocResultContent(result) {
-    const grade = result.score >= 85 ? '配置稳健' : result.score >= 70 ? '基本合适' : result.score >= 50 ? '仍需调整' : '明显不匹配';
-    const gradeClass = result.score >= 85 ? '' : result.score >= 70 ? ' verdictlabel--mid' : ' verdictlabel--bad';
-    const nodes = [];
-
-    nodes.push(el('div', { class: 'result__top' }, [
-      el('div', { class: 'scorebig' }, [
-        el('b', { class: 'num', text: String(result.score) }),
-        el('span', { text: '/ 100' })
-      ]),
-      el('div', { class: 'verdictlabel' + gradeClass, text: grade })
+    root.appendChild(el('div', { class: 'home__foot' }, [
+      el('span', { text: '去重规则：同一句话只保留一条；来源案例会合并显示。' }),
+      el('button', { class: 'linkish', type: 'button', onclick: paintHome }, '返回案例列表'),
     ]));
 
-    const rows = [
-      { label: '风险匹配', pts: result.breakdown.risk, max: 60 },
-      { label: '权益上限', pts: result.breakdown.cap, max: 20 },
-      { label: '分散度', pts: result.breakdown.div, max: 20 }
-    ];
-    const bd = el('div', { class: 'breakdown' });
-    rows.forEach(function (row) {
-      bd.appendChild(el('div', { class: 'bd' }, [
-        el('span', { text: row.label }),
-        el('div', { class: 'bar' }, [el('i', { style: { width: (row.pts / row.max * 100) + '%' } })]),
-        el('span', { class: 'bd__v', text: row.pts + ' / ' + row.max })
-      ]));
-    });
-    nodes.push(bd);
-
-    const comments = el('ul', { class: 'comments' });
-    result.comments.forEach(function (text, i) {
-      const risk = /超出|低于|超过|偏离|无法/.test(text);
-      comments.appendChild(el('li', { class: risk ? 'is-risk' : '', text: text }));
-    });
-    nodes.push(comments);
-
-    if (result.normalized) {
-      nodes.push(el('p', { class: 'result__note', text: '输入合计为 ' + result.total + '%，已按比例归一化后评分。' }));
-    }
-
-    nodes.push(el('div', { class: 'compliance' }, [
-      el('span', { class: 'compliance__icon', 'aria-hidden': 'true', text: '！' }),
-      el('span', { text: '合规提示：方案须结合客户风险测评、投资期限与流动性需求，履行适当性匹配与风险揭示，不得承诺收益或保本。' })
-    ]));
-    nodes.push(el('p', { class: 'result__note', text: '示意模型，不构成投资建议。' }));
-    return el('div', {}, nodes);
+    mount(root);
+    renderKb();
+    announce('知识库，共 ' + state.knowledge.length + ' 条知识要点。');
   }
 
-  /* ============================================================
-     八、渲染入口
-     ============================================================ */
-
-  function viewError() {
-    return el('section', { class: 'panel empty' }, [
-      el('div', { class: 'empty__mark', 'aria-hidden': 'true', text: '诊' }),
-      el('h2', { text: '页面暂时无法渲染' }),
-      el('p', { text: '题库数据或浏览器状态异常。页面不会白屏：可以回到首页，或刷新后重试。' }),
-      el('button', {
-        class: 'btn',
-        type: 'button',
-        text: '回到首页',
-        onclick: function () { state.view = 'home'; render(); }
-      })
+  function kbItem(e) {
+    const isReg = e.kind === 'reg';
+    return el('article', { class: 'kb-item' + (isReg ? ' kb-item--reg' : '') }, [
+      el('p', { class: 'kb-item__text', text: e.text }),
+      el('div', { class: 'kb-item__meta' }, [
+        el('span', { class: 'kb-type' + (isReg ? ' kb-type--reg' : ''), text: isReg ? '原则' : '要点' }),
+      ].concat(e.tags.map(function (t) {
+        return tagNode(t, 'tag--dim');
+      })).concat([
+        el('span', { class: 'kb-src', text: '来自《' + e.sources.map(function (s) { return s.title; }).join('》《') + '》' }),
+      ])),
     ]);
   }
 
-  function render() {
-    let node = null;
-    try {
-      if (state.view === 'home') node = viewHome();
-      else if (state.view === 'quizsetup') node = viewQuizSetup();
-      else if (state.view === 'quiz') node = viewQuiz();
-      else if (state.view === 'suitsetup') node = viewSuitSetup();
-      else if (state.view === 'suit') node = viewSuit();
-      else if (state.view === 'alloc') node = viewAlloc();
-      else if (state.view === 'wrong') node = viewWrong();
-      else if (state.view === 'redo') node = viewRedo();
-      else node = viewHome();
-    } catch (err) {
-      node = viewError();
-    }
-    if (!node) node = viewError();
-    node.classList.add('screen');
-    app.replaceChildren(node);
-    if (state.view === 'alloc') refreshAlloc();
+  /* ---------- 清空进度 ---------- */
+  function closeOverlay(silent) {
+    if (!overlayEl) return;
+    const ret = overlayReturn;
+    overlayEl.remove();
+    overlayEl = null;
+    document.body.style.overflow = overlayPrevOverflow || '';
+    overlayPrevOverflow = '';
+    overlayReturn = null;
+    if (!silent && ret && ret.isConnected && typeof ret.focus === 'function') ret.focus();
   }
 
-  /* ============================================================
-     九、挂载
-     ============================================================ */
+  function openOverlay(opt) {
+    closeOverlay(true);
+    overlayReturn = document.activeElement;
+    overlayPrevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
 
-  DSHG.mountChrome({
-    title: '理财诊室 · 银行从业',
-    meta: 'FINANCE · PRACTICE',
-    footnote: '理财诊室 · 银行从业训练 · 纯前端离线可玩 · 示意模型不构成投资建议'
+    const closeBtn = el('button', {
+      class: 'overlay__close', type: 'button', 'aria-label': '关闭',
+      onclick: function () { closeOverlay(); },
+    }, '×');
+
+    const panel = el('div', {
+      class: 'panel overlay__panel', role: 'dialog', 'aria-modal': 'true',
+      'aria-labelledby': 'overlay-title',
+    }, [
+      closeBtn,
+      el('div', { class: 'overlay__head' }, [
+        opt.eyebrow ? el('div', { class: 'eyebrow', text: opt.eyebrow }) : null,
+        el('h2', { id: 'overlay-title', text: opt.title || '' }),
+      ]),
+      el('div', { class: 'overlay__body' }, opt.body || []),
+      opt.actions ? el('div', { class: 'overlay__acts' }, opt.actions) : null,
+    ]);
+
+    overlayEl = el('div', {
+      class: 'overlay',
+      onclick: function (e) { if (e.target === overlayEl) closeOverlay(); },
+    }, panel);
+    document.body.appendChild(overlayEl);
+    closeBtn.focus();
+  }
+
+  function openClearProgress() {
+    const stats = homeStats();
+    openOverlay({
+      eyebrow: '清空进度',
+      title: '真的清零？',
+      body: [
+        el('p', { text: '已完成 ' + stats.completed + ' 个案例，平均 ' + (stats.completed ? stats.avg + ' 分' : '—') + '，最佳评级 ' + (stats.bestRating ? stats.bestRating.label : '—') + '。' }),
+        el('p', { text: '所有案例成绩、历史最佳与统计都会被清掉；案例库和知识库本身不受影响。此操作不可撤销。' }),
+      ],
+      actions: [
+        el('button', { class: 'btn btn--ghost', type: 'button', onclick: function () { closeOverlay(); } }, '取消'),
+        el('button', {
+          class: 'btn btn--cinnabar', type: 'button',
+          onclick: function () {
+            store.del('finance.progress');
+            state.progress = { cases: {}, done: 0 };
+            closeOverlay();
+            toast('进度已清空。');
+            paintHome();
+          },
+        }, '确认清空'),
+      ],
+    });
+  }
+
+  /* ---------- 键盘 ---------- */
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (overlayEl) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeOverlay();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = Array.from(overlayEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+          .filter(function (n) { return !n.disabled; });
+        if (focusables.length) {
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+      return;
+    }
+    if (state.view !== 'case' || !state.run) return;
+    const run = state.run;
+    if (run.answered) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        nextStep();
+      }
+      return;
+    }
+    if (e.key.length === 1) {
+      const idx = Number(e.key) - 1;
+      const step = state.byId.get(run.caseId) ? state.byId.get(run.caseId).steps[run.step] : null;
+      if (Number.isInteger(idx) && idx >= 0 && idx < 4 && step && idx < step.options.length) {
+        e.preventDefault();
+        chooseOption(idx);
+      }
+    }
   });
 
-  render();
+  window.addEventListener('pagehide', function () {
+    if (state.progress && state.progress.done >= 0) {
+      // 结算时已经写入；这里只做一次兜底，避免存档字段缺 done。
+      persist();
+    }
+  });
+
+  /* ---------- 启动 ---------- */
+  G.mountChrome({ title: '理财诊室 · 银行从业', meta: 'FINANCE · CASE PRACTICE' });
+  paintHome();
 })();
 </script>
 </body>

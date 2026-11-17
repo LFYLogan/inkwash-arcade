@@ -538,7 +538,7 @@
 <footer class="foot" data-chrome="footer"></footer>
 
 <script src="./assets/common.js"></script>
-<script src="./assets/idioms-data.js"></script>
+<script src="./data/idioms.js"></script>
 <script>
 (function () {
   'use strict';
@@ -1163,7 +1163,7 @@
     if (total === 0) {
       root.appendChild(el('div', { class: 'notice' }, [
         el('b', { text: '题库没有加载出来。' }),
-        ' 请确认 assets/idioms-data.js 正常引用了 window.IDIOM_DATA，然后刷新页面。学习卡暂时为空，其余入口会在数据恢复后自动可用。',
+        ' 请确认 data/idioms.js 正常引用了 window.IDIOM_DATA，然后刷新页面。学习卡暂时为空，其余入口会在数据恢复后自动可用。',
       ]));
     } else if (total < 4) {
       root.appendChild(el('div', { class: 'notice' }, [
@@ -2053,7 +2053,7 @@
       if (!slice.length) {
         listHost.replaceChildren(filteredOn
           ? emptyPanel('空', '没有匹配的成语', '换个关键词，或把类别、感情色彩调回“全部”再试。', null, true)
-          : emptyPanel('空', '题库里还没有成语', '等 assets/idioms-data.js 写入数据后刷新页面即可。', null, true));
+          : emptyPanel('空', '题库里还没有成语', '等 data/idioms.js 写入数据后刷新页面即可。', null, true));
       } else {
         listHost.replaceChildren.apply(listHost, slice.map(cardRow));
       }

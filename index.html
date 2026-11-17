@@ -112,7 +112,7 @@
       <span class="tag">纯前端 · 离线可玩</span>
       <span class="tag">无账号 · 进度存本地</span>
       <span class="tag">手机可玩</span>
-      <span class="tag">题库共 950+ 条</span>
+      <span class="tag">题库共 870+ 条</span>
     </div>
   </section>
 
@@ -229,9 +229,9 @@
         </div>
         <h2 class="game__title">理财诊室</h2>
         <div class="game__sub">Finance · Practice</div>
-        <p class="game__desc">以理财经理的身份答题：基金、股票、债券、银行、合规与适当性。另有客户适当性实战和资产配置模拟器，答错会告诉你错在哪。</p>
+        <p class="game__desc">一位客户走进网点，你用四步把他处理完：了解客户、定风险等级、配产品、做揭示与留痕。每一步都有反馈，走完给评分与逐步复盘，等于把适当性练成手感。</p>
         <div class="game__foot">
-          <span class="game__time">160 题 + 模拟器</span>
+          <span class="game__time">40 个案例</span>
           <span class="game__go">坐诊</span>
         </div>
       </a>
@@ -273,7 +273,7 @@
       { href: './wuxing.html', key: 'wuxing.records', keys: ['rank'], prefix: '最佳 · ', list: true },
       { href: './xiuxian.html', key: 'xiuxian.records', keys: ['realm', 'bestRealm'], prefix: '最远 · ' },
       { href: './idiom.html', key: 'idiom.progress', keys: [], prefix: '已学 ', suffixFn: (v) => Object.keys(v.seen || {}).length + ' 条' },
-      { href: './finance.html', key: 'finance.progress', keys: [], prefix: '已答 ', suffixFn: (v) => Object.keys(v.seen || {}).length + ' 题' },
+      { href: './finance.html', key: 'finance.progress', keys: [], prefix: '已完成 ', suffixFn: (v) => Object.keys((v && v.cases) || {}).length + ' 个案例' },
     ];
 
     const deep = (obj, keys, depth) => {

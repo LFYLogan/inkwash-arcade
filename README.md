@@ -7,8 +7,8 @@
 | 卷一 | 问心局 | 故事式 MBTI 性格测试（24 次抉择 → 16 型人格） | ~8 分钟 |
 | 卷二 | 五行医馆 | 中医五行行医经营（相生相克配伍 → 体质判定） | ~10 分钟 |
 | 卷三 | 一念飞升 | 快节奏修仙 Roguelite（九境天劫 → 转世传承） | ~5 分钟 / 世 |
-| 卷四 | 成语闯关 | 考公向成语训练（释义猜词、语境填词、接龙、褒贬快判） | 随时 |
-| 卷五 | 理财诊室 | 银行/基金从业训练（题库闯关、适当性实战、资产配置模拟） | 随时 |
+| 卷四 | 成语闯关 | 考公向成语训练：释义猜词、语境填词、尾字接龙、褒贬快判 | 随时 |
+| 卷五 | 理财诊室 | 银行/基金从业的案例式决策训练：42 个客户案例，四步走完给评分与复盘 | 3–5 分钟 / 案例 |
 
 ## 本地运行
 
@@ -38,36 +38,30 @@ python -m http.server 8080
 ├─ finance.html          卷五 · 理财诊室
 ├─ assets/
 │  ├─ theme.css          共享设计令牌与组件
-│  ├─ common.js          共享工具（存储、随机、toast、顶栏）
-│  ├─ idioms-data.js     成语数据（window.IDIOM_DATA）
-│  └─ finance-data.js    金融题库（window.FINANCE_DATA）
+│  └─ common.js          共享工具（存储、随机、toast、顶栏）
+├─ data/
+│  ├─ idioms.js          成语库（831 条，window.IDIOM_DATA）
+│  ├─ finance-products.js 产品目录（14 个，window.FINANCE_PRODUCTS）
+│  ├─ finance-cases.js   案例库（42 个，由 data/cases/*.js 生成）
+│  └─ cases/             案例批次源文件（手工追加从这里改）
+├─ tools/
+│  ├─ validate-data.js   数据校验（成语 / 产品 / 案例）
+│  └─ build-cases.js     合并案例批次 → data/finance-cases.js
 └─ .github/workflows/pages.yml
 ```
 
-## 题库数据格式
+## 题库数据怎么加
 
-### 成语（`assets/idioms-data.js`）
+**自己加成语、加案例、加产品，都不需要改代码**：编辑 `data/` 下的 JS 数组，刷新页面即生效。
+详细字段说明、模板与校验命令见 **[DATA-FORMAT.md](./DATA-FORMAT.md)**。
 
-```js
-window.IDIOM_DATA = [
-  { w: '望洋兴叹', m: '释义，8-60 字', e: '例句，必须包含该成语', k: '中性', g: '人物情态', y: '洋' },
-];
+```powershell
+# 改完跑一次校验
+node tools\validate-data.js
+
+# 加完案例后重新生成案例库
+node tools\build-cases.js
 ```
-
-- `w` 四字成语 · `m` 释义 · `e` 例句（必含 `w`，用于挖空题） · `k` 褒义/贬义/中性 · `g` 类别 · `y` 易错字（可选）
-- 类别取值：人物情态、学习才识、处事方法、社会关系、自然景物、言谈表达、境遇遭际、品格德行
-
-### 金融（`assets/finance-data.js`）
-
-```js
-window.FINANCE_DATA = [
-  { q: '题干', o: ['A', 'B', 'C', 'D'], a: 1, x: '解析', t: '基金', d: 1 },
-];
-```
-
-- `q` 题干 · `o` 四个选项 · `a` 正确下标（0-3） · `x` 解析 · `t` 基金/股票/债券/银行/合规/适当性 · `d` 难度 1-3
-
-两个数据文件都是普通 JS，改完刷新即生效，不需要构建。
 
 ## 存档
 
@@ -77,7 +71,7 @@ window.FINANCE_DATA = [
 - `inkwash.wuxing.save` / `inkwash.wuxing.records`
 - `inkwash.xiuxian.save` / `inkwash.xiuxian.legacy` / `inkwash.xiuxian.records`
 - `inkwash.idiom.progress`（已学、掌握、错题本）
-- `inkwash.finance.progress`（已答、正确率、错题本）
+- `inkwash.finance.progress`（已完成案例、得分、评级）
 
 ## 授权
 
