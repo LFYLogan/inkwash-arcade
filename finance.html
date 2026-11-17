@@ -1,0 +1,2441 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>理财诊室 · 银行从业 | 墨戏五卷</title>
+<meta name="description" content="理财诊室：面向银行、基金、证券从业者的知识训练与实务判断。知识闯关、适当性实战、资产配置模拟器与错题本，纯前端离线可玩。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Cpath d='M14 48V22l10 8 8-14 8 14 10-8v26' fill='none' stroke='%23c9a86a' stroke-width='2'/%3E%3Ccircle cx='44' cy='17' r='4' fill='none' stroke='%23e0604f' stroke-width='1.6'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/theme.css">
+<style>
+  /* ============================================================
+     理财诊室 · 页面布局
+     仅复用 theme.css 的令牌与组件，版式与状态样式写在这里。
+     ============================================================ */
+
+  :root {
+    --ok: var(--jade-bright);
+    --risk: var(--cinnabar-bright);
+    --alloc-cash: #6fa89a;
+    --alloc-bond: #6c8fc4;
+    --alloc-mixed: #c9a86a;
+    --alloc-equity: #b8473c;
+  }
+
+  html, body { overflow-x: hidden; }
+  body { min-height: 100vh; }
+
+  .game { width: 100%; max-width: 900px; margin: 0 auto; padding: 26px 0 8px; }
+
+  .small { font-size: 12.5px; }
+  .tiny { font-size: 11.5px; letter-spacing: 0.04em; }
+  .nowrap { white-space: nowrap; }
+  .accent {
+    color: var(--gold-bright);
+    background: linear-gradient(120deg, var(--gold-bright), var(--gold) 58%, var(--gold-dim));
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+
+  h1, h2, h3 { word-break: break-word; }
+
+  .stack { display: grid; gap: 16px; }
+  .stack--tight { display: grid; gap: 10px; }
+
+  /* ---------- 首屏 ---------- */
+  .hero { padding: 8px 0 6px; }
+  .hero .eyebrow { margin-bottom: 10px; }
+  .title-xl {
+    margin: 0 0 14px;
+    font-size: clamp(32px, 5.8vw, 52px);
+    line-height: 1.24;
+    letter-spacing: 0.06em;
+  }
+  .lede {
+    max-width: 660px;
+    margin: 0 0 16px;
+    font-size: 15.5px;
+    line-height: 1.85;
+    color: var(--text-dim);
+  }
+  .lede strong { color: var(--gold-bright); font-weight: 500; }
+  .hero__tags { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0;
+    margin: 18px 0 0;
+  }
+  .stat {
+    min-width: 0;
+    padding: 13px 15px 12px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012));
+  }
+  .stat__k { font-size: 10.5px; letter-spacing: 0.18em; color: var(--text-faint); margin-bottom: 4px; }
+  .stat__v { font-family: var(--font-num); font-size: 26px; line-height: 1.25; color: var(--text); }
+  .stat__v small { font-family: var(--font-sans); font-size: 12px; color: var(--text-faint); margin-left: 3px; }
+  .stat__s { font-size: 11px; color: var(--text-faint); line-height: 1.5; margin-top: 2px; }
+  .stat--warn .stat__v { color: var(--cinnabar-bright); }
+
+  .entries {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    margin-top: 14px;
+  }
+  .entry {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 19px 18px 17px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(160deg, rgba(26, 34, 51, 0.82), rgba(11, 15, 22, 0.88));
+    box-shadow: var(--shadow-1);
+    transition: transform 0.18s ease, border-color 0.18s ease;
+  }
+  .entry:hover { transform: translateY(-2px); border-color: rgba(201, 168, 106, 0.5); }
+  .entry__no { font-family: var(--font-num); font-size: 11px; letter-spacing: 0.24em; color: var(--gold-dim); }
+  .entry h3 { margin: 8px 0 6px; font-size: 20px; color: var(--text); }
+  .entry p { margin: 0 0 12px; font-size: 13px; line-height: 1.75; color: var(--text-dim); }
+  .entry__meta { margin-top: auto; font-size: 11px; color: var(--text-faint); line-height: 1.6; }
+  .entry .btn { margin-top: 12px; align-self: flex-start; padding: 8px 15px; font-size: 12.5px; }
+
+  .wrongbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding: 15px 18px;
+    border: 1px dashed rgba(201, 168, 106, 0.4);
+    border-radius: var(--radius-sm);
+    background: rgba(201, 168, 106, 0.045);
+  }
+  .wrongbar__title { display: flex; align-items: baseline; gap: 9px; font-family: var(--font-serif); font-size: 17px; letter-spacing: 0.06em; }
+  .wrongbar__title b { font-family: var(--font-num); font-size: 22px; color: var(--gold-bright); }
+  .wrongbar__sub { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+
+  .home__tools {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    margin-top: 14px;
+  }
+  .clearbox {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    margin-top: 14px; padding: 13px 15px;
+    border: 1px solid rgba(224, 96, 79, 0.48);
+    border-radius: var(--radius-sm);
+    background: rgba(184, 71, 60, 0.1);
+  }
+  .clearbox__txt { font-size: 12.5px; color: var(--text); line-height: 1.6; }
+  .clearbox__btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ---------- 按钮尺寸 / 标签 ---------- */
+  .btn--small { padding: 7px 13px; font-size: 12px; letter-spacing: 0.05em; }
+  .tag--jade {
+    color: var(--jade-bright);
+    border-color: rgba(111, 168, 154, 0.45);
+    background: rgba(111, 168, 154, 0.09);
+  }
+  .tag--cinnabar {
+    color: var(--cinnabar-bright);
+    border-color: rgba(184, 71, 60, 0.5);
+    background: rgba(184, 71, 60, 0.1);
+  }
+  .tag--muted { color: var(--text-dim); border-color: var(--line-soft); background: transparent; }
+
+  /* ---------- 面板通用头部 ---------- */
+  .headblock { margin-bottom: 16px; }
+  .headblock h2 { margin: 0 0 7px; color: var(--text); }
+  .headblock p { margin: 0; font-size: 13px; line-height: 1.75; color: var(--text-dim); }
+  .headblock .eyebrow { margin-bottom: 8px; }
+
+  .field { margin-top: 20px; }
+  .field:first-of-type { margin-top: 4px; }
+  .field__lab {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+    font-size: 11.5px; letter-spacing: 0.2em; color: var(--gold-dim);
+    margin-bottom: 9px;
+  }
+  .field__lab span { letter-spacing: 0.04em; color: var(--text-faint); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    appearance: none;
+    min-height: 38px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-soft);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  }
+  .chip:hover { border-color: var(--line); color: var(--text); }
+  .chip[aria-pressed="true"] {
+    border-color: rgba(201, 168, 106, 0.75);
+    background: rgba(201, 168, 106, 0.14);
+    color: var(--gold-bright);
+  }
+  .chip:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+
+  .setup__foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    margin-top: 24px; padding-top: 18px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .setup__count { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; }
+  .setup__count b { color: var(--gold-bright); font-family: var(--font-num); font-size: 17px; }
+  .setup__actions { display: flex; gap: 9px; flex-wrap: wrap; }
+
+  .notice {
+    padding: 11px 14px;
+    border-left: 2px solid var(--gold-dim);
+    background: rgba(201, 168, 106, 0.055);
+    border-radius: 6px;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+  .notice--warn { border-left-color: var(--cinnabar); background: rgba(184, 71, 60, 0.08); color: var(--text); }
+  .notice b { color: var(--gold-bright); font-weight: 500; }
+
+  /* ---------- 答题 ---------- */
+  .quiz-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .quiz-top__count { display: flex; align-items: baseline; gap: 5px; color: var(--text-faint); font-size: 12px; letter-spacing: 0.12em; }
+  .quiz-top__count b { font-family: var(--font-num); font-size: 25px; color: var(--gold-bright); letter-spacing: 0.03em; }
+  .quiz-top__right { display: flex; gap: 6px; flex-wrap: wrap; }
+  .quiz-top__right .tag { font-size: 11px; padding: 2px 9px; }
+
+  .qpanel { padding: 22px 24px 20px; }
+  .qmeta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .qtext {
+    margin: 0 0 4px;
+    font-family: var(--font-serif);
+    font-size: clamp(18px, 2.5vw, 22px);
+    line-height: 1.72;
+    letter-spacing: 0.025em;
+    color: var(--text);
+  }
+  .qsub { font-size: 11.5px; color: var(--text-faint); margin-top: 5px; }
+
+  .choices { display: grid; gap: 10px; margin-top: 16px; }
+  .choice {
+    appearance: none;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 11px 14px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, opacity 0.16s ease;
+  }
+  .choice:hover:not([disabled]) { border-color: var(--line); background: rgba(201, 168, 106, 0.07); }
+  .choice:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 2px; }
+  .choice[disabled] { cursor: default; }
+  .choice__mark {
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    font-family: var(--font-num);
+    font-size: 13px;
+    color: var(--gold);
+    flex: none;
+  }
+  .choice__body { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .choice__kicker { font-size: 10px; letter-spacing: 0.18em; color: var(--text-faint); }
+  .choice__txt { color: var(--text); }
+  .choice__flag {
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .choice.is-correct {
+    border-color: rgba(111, 168, 154, 0.72);
+    background: rgba(111, 168, 154, 0.13);
+  }
+  .choice.is-correct .choice__mark { border-color: var(--jade); color: var(--jade-bright); }
+  .choice.is-correct .choice__flag { border-color: rgba(111, 168, 154, 0.6); color: var(--jade-bright); }
+  .choice.is-wrong {
+    border-color: rgba(224, 96, 79, 0.75);
+    background: rgba(184, 71, 60, 0.13);
+  }
+  .choice.is-wrong .choice__mark { border-color: var(--cinnabar); color: var(--cinnabar-bright); }
+  .choice.is-wrong .choice__flag { border-color: rgba(224, 96, 79, 0.6); color: var(--cinnabar-bright); }
+  .choice.is-dim { opacity: 0.56; }
+  .choices--product .choice { background: rgba(201, 168, 106, 0.035); }
+  .choices--product .choice.is-correct { background: rgba(111, 168, 154, 0.13); }
+  .choices--product .choice.is-wrong { background: rgba(184, 71, 60, 0.13); }
+
+  .actions {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    margin-top: 18px;
+  }
+  .actions__right { display: flex; gap: 9px; flex-wrap: wrap; }
+  .actions__hint { font-size: 11.5px; color: var(--text-faint); }
+
+  .feedback {
+    margin-top: 16px;
+    padding: 14px 16px 13px;
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--gold);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.026);
+  }
+  .feedback--ok { border-left-color: var(--jade); }
+  .feedback--bad { border-left-color: var(--cinnabar); }
+  .feedback__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 7px; }
+  .feedback__icon { font-family: var(--font-num); font-size: 17px; line-height: 1; color: var(--gold-bright); }
+  .feedback--ok .feedback__icon { color: var(--jade-bright); }
+  .feedback--bad .feedback__icon { color: var(--cinnabar-bright); }
+  .feedback__head b { font-family: var(--font-serif); font-size: 16px; font-weight: 600; letter-spacing: 0.04em; }
+  .feedback__sub { font-size: 11.5px; color: var(--text-faint); }
+  .feedback__body { display: flex; gap: 9px; align-items: flex-start; }
+  .feedback__label {
+    flex: none;
+    margin-top: 2px;
+    padding: 1px 7px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+  }
+  .feedback__text { margin: 0; font-size: 13.6px; line-height: 1.78; color: var(--text-dim); }
+  .metaline { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .metaline .tag { font-size: 10.5px; padding: 2px 8px; }
+
+  /* ---------- 结果页 ---------- */
+  .scoreboard {
+    display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap;
+    margin: 14px 0 4px;
+  }
+  .scoreboard__main { display: flex; align-items: baseline; gap: 8px; }
+  .scoreboard__main b { font-family: var(--font-num); font-size: 58px; line-height: 1; color: var(--gold-bright); letter-spacing: 0.02em; }
+  .scoreboard__main span { font-size: 12px; color: var(--text-faint); letter-spacing: 0.14em; }
+  .scoreboard__sub { display: grid; gap: 3px; font-size: 12.5px; color: var(--text-dim); }
+  .scoreboard__sub b { font-family: var(--font-num); color: var(--text); font-size: 17px; }
+
+  .reviewlist { display: grid; gap: 8px; margin-top: 12px; }
+  .reviewitem {
+    padding: 11px 13px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .reviewitem__q { font-size: 13px; line-height: 1.65; color: var(--text); margin: 0 0 5px; }
+  .reviewitem__a { font-size: 11.5px; color: var(--jade-bright); line-height: 1.6; }
+
+  /* ---------- 适当性 ---------- */
+  .client {
+    padding: 19px 20px 17px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background:
+      radial-gradient(420px 200px at 100% 0%, rgba(108, 143, 196, 0.13), transparent 70%),
+      linear-gradient(158deg, rgba(26, 34, 51, 0.9), rgba(11, 15, 22, 0.92));
+    box-shadow: var(--shadow-1);
+  }
+  .client__head { display: flex; align-items: center; gap: 12px; }
+  .client__seal {
+    width: 42px; height: 42px; flex: none;
+    display: grid; place-items: center;
+    border: 1px solid rgba(201, 168, 106, 0.62);
+    border-radius: 50%;
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--gold-bright);
+    box-shadow: inset 0 0 14px rgba(201, 168, 106, 0.2);
+  }
+  .client__name { font-family: var(--font-serif); font-size: 22px; letter-spacing: 0.08em; line-height: 1.3; }
+  .client__sub { font-size: 10.5px; letter-spacing: 0.2em; color: var(--text-faint); margin-top: 1px; }
+  .client__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 13px;
+  }
+  .client__cell {
+    padding: 8px 11px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+    min-width: 0;
+  }
+  .client__k { font-size: 10px; letter-spacing: 0.18em; color: var(--text-faint); margin-bottom: 1px; }
+  .client__v { font-size: 14.5px; color: var(--text); line-height: 1.5; word-break: break-word; }
+  .client__v--risk { color: var(--cinnabar-bright); }
+  .client__raw {
+    margin-top: 13px;
+    padding-top: 11px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text-dim);
+  }
+  .client__raw b { display: block; font-size: 10px; font-weight: 400; letter-spacing: 0.2em; color: var(--gold-dim); margin-bottom: 3px; }
+
+  .verdict {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 16px;
+    margin-top: 16px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.025);
+  }
+  .verdict--ok { border-color: rgba(111, 168, 154, 0.55); background: rgba(111, 168, 154, 0.1); }
+  .verdict--bad { border-color: rgba(224, 96, 79, 0.58); background: rgba(184, 71, 60, 0.11); }
+  .verdict__icon {
+    width: 34px; height: 34px; flex: none;
+    display: grid; place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-family: var(--font-num);
+    font-size: 17px;
+    color: var(--jade-bright);
+  }
+  .verdict--bad .verdict__icon { color: var(--cinnabar-bright); }
+  .verdict__title { display: block; font-family: var(--font-serif); font-size: 18px; letter-spacing: 0.08em; color: var(--jade-bright); margin-bottom: 2px; }
+  .verdict--bad .verdict__title { color: var(--cinnabar-bright); }
+  .verdict__text { margin: 0; font-size: 13px; line-height: 1.7; color: var(--text-dim); }
+
+  .explainbox {
+    margin-top: 12px;
+    padding: 13px 15px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.022);
+  }
+  .explainbox__head { font-size: 10.5px; letter-spacing: 0.22em; color: var(--gold-dim); margin-bottom: 5px; }
+  .explainbox p { margin: 0; font-size: 13.4px; line-height: 1.78; color: var(--text-dim); }
+  .compliance {
+    display: flex; align-items: flex-start; gap: 8px;
+    margin-top: 12px; padding: 10px 13px;
+    border-left: 2px solid var(--cinnabar);
+    background: rgba(184, 71, 60, 0.075);
+    border-radius: 5px;
+    font-size: 12.4px;
+    line-height: 1.68;
+    color: var(--text);
+  }
+  .compliance__icon {
+    flex: none;
+    width: 18px; height: 18px;
+    display: grid; place-items: center;
+    border: 1px solid var(--cinnabar);
+    border-radius: 50%;
+    font-family: var(--font-num);
+    font-size: 11px;
+    color: var(--cinnabar-bright);
+    margin-top: 1px;
+  }
+
+  /* ---------- 错题本 ---------- */
+  .wronglist { display: grid; gap: 10px; }
+  .wrongcard {
+    padding: 15px 17px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012));
+  }
+  .wrongcard__top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .wrongcard__q { margin: 8px 0 9px; font-size: 14.5px; line-height: 1.7; color: var(--text); }
+  .wrongcard__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .wrongcard__stat { font-size: 11.5px; color: var(--text-faint); line-height: 1.6; }
+  .wrongcard__stat b { color: var(--cinnabar-bright); font-family: var(--font-num); font-size: 14px; }
+  .wrongcard__meter { width: 100%; margin-top: 7px; }
+  .wrongcard__meter .bar { height: 4px; }
+  .wrongcard__meter .bar > i { background: linear-gradient(90deg, #4f7d71, var(--jade-bright)); }
+
+  /* ---------- 资产配置 ---------- */
+  .profiles {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .profile {
+    appearance: none;
+    min-width: 0;
+    padding: 10px 11px;
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease;
+  }
+  .profile:hover { border-color: var(--line); }
+  .profile[aria-pressed="true"] {
+    border-color: rgba(201, 168, 106, 0.78);
+    background: rgba(201, 168, 106, 0.12);
+  }
+  .profile b { display: block; font-family: var(--font-serif); font-size: 15px; letter-spacing: 0.06em; margin-bottom: 1px; }
+  .profile span { display: block; font-size: 10.5px; line-height: 1.45; color: var(--text-faint); }
+  .profile[aria-pressed="true"] span { color: var(--gold); }
+
+  .alloc-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    gap: 18px;
+    align-items: start;
+    margin-top: 17px;
+  }
+  .alloc-panel { padding: 18px 19px 14px; }
+  .alloc-row { padding: 11px 0 8px; border-top: 1px solid var(--line-soft); }
+  .alloc-row:first-child { border-top: 0; padding-top: 2px; }
+  .alloc-row__top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .alloc-row__name { display: flex; align-items: center; gap: 7px; font-size: 14px; color: var(--text); }
+  .alloc-row__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .alloc-row__risk { font-size: 10px; color: var(--text-faint); letter-spacing: 0.06em; }
+  .alloc-row__val { font-family: var(--font-num); font-size: 17px; color: var(--gold-bright); }
+  .alloc-range {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    height: 32px;
+    margin: 1px 0 0;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--gold) 25%, rgba(255, 255, 255, 0.09) 25%, rgba(255, 255, 255, 0.09) 100%) center / 100% 8px no-repeat;
+    cursor: pointer;
+  }
+  .alloc-range::-webkit-slider-runnable-track { height: 8px; background: transparent; border-radius: 999px; }
+  .alloc-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    margin-top: -6px;
+    border: 1px solid rgba(7, 10, 15, 0.7);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  }
+  .alloc-range::-moz-range-track { height: 8px; background: transparent; border-radius: 999px; }
+  .alloc-range::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border: 1px solid rgba(7, 10, 15, 0.7);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  }
+  .alloc-range:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 3px; }
+  .alloc-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+
+  .alloc-summary {
+    padding: 17px 18px 15px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background:
+      radial-gradient(360px 200px at 100% 0%, rgba(201, 168, 106, 0.1), transparent 70%),
+      linear-gradient(158deg, rgba(26, 34, 51, 0.86), rgba(11, 15, 22, 0.92));
+  }
+  .alloc-summary__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .alloc-summary__head .eyebrow { margin: 0; }
+  .riskbig { display: flex; align-items: baseline; gap: 7px; margin: 5px 0 2px; }
+  .riskbig b { font-family: var(--font-num); font-size: 44px; line-height: 1; color: var(--gold-bright); letter-spacing: 0.02em; }
+  .riskbig span { font-size: 11px; color: var(--text-faint); }
+  .riskline { font-size: 11.5px; color: var(--text-dim); line-height: 1.6; }
+  .riskline b { color: var(--text); font-weight: 500; }
+  .kvgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 12px; }
+  .kv { padding: 8px 10px; border: 1px solid var(--line-soft); border-radius: 8px; background: rgba(255, 255, 255, 0.02); min-width: 0; }
+  .kv__k { font-size: 10px; letter-spacing: 0.14em; color: var(--text-faint); }
+  .kv__v { font-family: var(--font-num); font-size: 18px; color: var(--text); line-height: 1.35; }
+  .kv__v.cinnabar { color: var(--cinnabar-bright); }
+  .kv__v.jade { color: var(--jade-bright); }
+  .kv__s { font-size: 10px; color: var(--text-faint); line-height: 1.45; }
+
+  .mixbar { display: flex; height: 12px; margin-top: 14px; border-radius: 999px; overflow: hidden; background: rgba(255, 255, 255, 0.07); }
+  .mixbar i { display: block; height: 100%; min-width: 0; transition: width 0.22s ease; }
+  .mixlegend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 7px; font-size: 10.5px; color: var(--text-faint); }
+  .mixlegend span { display: inline-flex; align-items: center; gap: 5px; }
+  .mixlegend i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .capmeter { margin-top: 5px; }
+  .capmeter .meter { height: 5px; }
+  .capmeter .meter > i { background: linear-gradient(90deg, #6c8fc4, var(--jade-bright)); }
+  .capmeter.is-over .meter > i { background: linear-gradient(90deg, var(--cinnabar), var(--cinnabar-bright)); }
+
+  .disclaimer {
+    margin-top: 10px;
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: var(--text-faint);
+    letter-spacing: 0.03em;
+  }
+  .disclaimer::before { content: "※ "; color: var(--cinnabar); }
+
+  .result {
+    margin-top: 17px;
+    padding: 18px 19px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: linear-gradient(158deg, rgba(26, 34, 51, 0.84), rgba(11, 15, 22, 0.9));
+  }
+  .result__empty { margin: 0; font-size: 12px; color: var(--text-faint); line-height: 1.6; }
+  .result__top { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .scorebig { display: flex; align-items: baseline; gap: 6px; }
+  .scorebig b { font-family: var(--font-num); font-size: 52px; line-height: 1; color: var(--gold-bright); }
+  .scorebig span { font-size: 11px; color: var(--text-faint); letter-spacing: 0.12em; }
+  .verdictlabel {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: var(--jade-bright);
+  }
+  .verdictlabel--mid { color: var(--gold-bright); }
+  .verdictlabel--bad { color: var(--cinnabar-bright); }
+  .breakdown { display: grid; gap: 8px; margin-top: 14px; }
+  .bd { display: grid; grid-template-columns: 78px minmax(0, 1fr) 54px; gap: 10px; align-items: center; font-size: 11.5px; color: var(--text-dim); }
+  .bd .bar { height: 6px; }
+  .bd .bar > i { background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright)); }
+  .bd__v { text-align: right; font-family: var(--font-num); color: var(--text); }
+  .comments { margin: 13px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  .comments li { position: relative; padding-left: 15px; font-size: 12.3px; line-height: 1.68; color: var(--text-dim); }
+  .comments li::before { content: "·"; position: absolute; left: 3px; top: 0; color: var(--gold); font-size: 16px; line-height: 1.35; }
+  .comments li.is-risk { color: var(--text); }
+  .comments li.is-risk::before { content: "!"; color: var(--cinnabar-bright); font-family: var(--font-num); font-size: 11px; top: 2px; }
+  .result .compliance { margin-top: 12px; }
+  .result__note { margin: 8px 0 0; font-size: 10.5px; color: var(--text-faint); }
+
+  /* ---------- 空态 / 错误 ---------- */
+  .empty {
+    padding: 34px 22px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    text-align: center;
+    background: rgba(255, 255, 255, 0.018);
+  }
+  .empty h2 { margin-bottom: 7px; }
+  .empty p { max-width: 480px; margin: 0 auto 14px; font-size: 13px; line-height: 1.75; }
+  .empty__mark { font-family: var(--font-serif); font-size: 30px; color: var(--gold-dim); margin-bottom: 4px; }
+
+  .foot a { color: var(--text-faint); }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 820px) {
+    .entries { grid-template-columns: 1fr; }
+    .entry { padding: 17px 17px 15px; }
+    .entry h3 { font-size: 19px; }
+    .alloc-grid { grid-template-columns: 1fr; }
+    .profiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 640px) {
+    .game { padding-top: 18px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stat__v { font-size: 23px; }
+    .qpanel { padding: 18px 15px 16px; }
+    .choice { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; padding: 11px 12px; font-size: 14.4px; }
+    .choice__flag { font-size: 10px; padding: 1px 6px; }
+    .profiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .client { padding: 16px 15px 14px; }
+    .client__name { font-size: 20px; }
+    .scoreboard__main b { font-size: 48px; }
+    .feedback__body { display: block; }
+    .feedback__label { display: inline-block; margin-bottom: 5px; }
+    .result { padding: 16px 14px 14px; }
+    .bd { grid-template-columns: 72px minmax(0, 1fr) 48px; }
+  }
+
+  @media (max-width: 380px) {
+    .choice { grid-template-columns: 26px minmax(0, 1fr) auto; }
+    .choice__flag { font-size: 9px; padding: 1px 4px; letter-spacing: 0; }
+    .alloc-range { height: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar" data-chrome="topbar"></header>
+
+<main class="wrap">
+  <div id="app" class="game">
+    <noscript>
+      <section class="panel">
+        <h2>需要启用 JavaScript</h2>
+        <p>理财诊室在浏览器本地运行，不会联网，也不会上传你的答题记录。</p>
+      </section>
+    </noscript>
+  </div>
+</main>
+
+<footer class="foot" data-chrome="footer"></footer>
+
+<script src="./assets/common.js"></script>
+<script src="./assets/finance-data.js"></script>
+<script id="finance-app">
+(function () {
+  'use strict';
+
+  /* ============================================================
+     一、纯函数（浏览器与 Node 自测共用）
+     ============================================================ */
+
+  const CATEGORIES = ['基金', '股票', '债券', '银行', '合规', '适当性'];
+  const DIFFICULTY_NAMES = { 1: '基础', 2: '进阶', 3: '高阶' };
+
+  const ASSETS = [
+    { key: 'cash', name: '货币类', short: '货币', risk: 1, color: '#6fa89a' },
+    { key: 'bond', name: '债券类', short: '债券', risk: 2, color: '#6c8fc4' },
+    { key: 'mixed', name: '混合类', short: '混合', risk: 3.5, color: '#c9a86a' },
+    { key: 'equity', name: '权益类', short: '权益', risk: 5, color: '#b8473c' }
+  ];
+
+  /* 目标风险分与权益上限按「可同时满足分散度（每类 5%–65%）」的组合校准：
+     保守 65/25/5/5 → 1.6；稳健 65/10/5/20 → 2.0；
+     平衡 50/5/5/40 → 2.8；进取 30/5/5/60 → 3.6；
+     激进 25/5/5/65 → 3.8（权益上限可更高，但分散度上限为 65%）。 */
+  const PROFILES = [
+    { key: 'conservative', name: '保守型', target: 1.6, cap: 10, desc: '本金优先，随时可用' },
+    { key: 'steady', name: '稳健型', target: 2.0, cap: 25, desc: '小幅波动，稳中求进' },
+    { key: 'balanced', name: '平衡型', target: 2.8, cap: 45, desc: '收益与波动兼顾' },
+    { key: 'growth', name: '进取型', target: 3.6, cap: 65, desc: '承受波动，追求增长' },
+    { key: 'aggressive', name: '激进型', target: 3.8, cap: 85, desc: '高风险高预期' }
+  ];
+
+  function clampNumber(value, min, max, fallback) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback === undefined ? min : fallback;
+    return Math.min(max, Math.max(min, n));
+  }
+
+  function round1(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 0;
+    return Math.round((n + Number.EPSILON) * 10) / 10;
+  }
+
+  function fmt1(value) {
+    const n = round1(value);
+    return Number.isInteger(n) ? n.toFixed(1) : String(n);
+  }
+
+  /** 题干前 40 个字符的稳定短键（FNV-1a），不用数组下标。 */
+  function hashKey(text) {
+    const s = String(text === null || text === undefined ? '' : text).trim().slice(0, 40);
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i += 1) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    h = (h ^ (h >>> 13)) >>> 0;
+    return h.toString(36);
+  }
+
+  function normalizeItem(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const q = typeof raw.q === 'string' ? raw.q.trim() : '';
+    if (!q) return null;
+    const o = Array.isArray(raw.o) ? raw.o.slice(0, 4).map(function (v) {
+      return v === null || v === undefined ? '' : String(v).trim();
+    }) : [];
+    if (o.length !== 4 || o.some(function (v) { return !v; })) return null;
+    const a = Number(raw.a);
+    if (!Number.isInteger(a) || a < 0 || a > 3) return null;
+    const t = CATEGORIES.indexOf(raw.t) >= 0 ? raw.t : '未分类';
+    const d = clampNumber(Math.round(Number(raw.d)), 1, 3, 1);
+    const x = typeof raw.x === 'string' && raw.x.trim() ? raw.x.trim() : '题库暂未提供解析，可结合题干与选项自行复盘。';
+    const h = typeof raw.h === 'string' && raw.h.trim() ? raw.h.trim() : hashKey(q);
+    return { q: q, o: o, a: a, x: x, t: t, d: d, h: h };
+  }
+
+  function normalizeData(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    raw.forEach(function (item) {
+      const n = normalizeItem(item);
+      if (n) out.push(n);
+    });
+    return out;
+  }
+
+  function filterQuiz(data, category, difficulty) {
+    const cat = category && category !== '全部' ? category : null;
+    const diff = Number(difficulty);
+    const useDiff = Number.isInteger(diff) && diff >= 1 && diff <= 3;
+    return normalizeData(data).filter(function (item) {
+      return (!cat || item.t === cat) && (!useDiff || item.d === diff);
+    });
+  }
+
+  function filterSuitability(data) {
+    return normalizeData(data).filter(function (item) {
+      return item.t === '适当性' || item.t === '合规';
+    });
+  }
+
+  function normalizeWrong(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const base = normalizeItem(raw);
+    if (!base) return null;
+    return {
+      h: base.h,
+      q: base.q,
+      o: base.o,
+      a: base.a,
+      x: base.x,
+      t: base.t,
+      d: base.d,
+      n: Math.round(clampNumber(raw.n, 1, 999, 1)),
+      c: Math.round(clampNumber(raw.c, 0, 2, 0)),
+      ts: Number.isFinite(Number(raw.ts)) ? Number(raw.ts) : 0
+    };
+  }
+
+  function normalizeProgress(raw) {
+    const p = { seen: {}, wrong: [], best: { streak: 0 }, rounds: 0 };
+    if (!raw || typeof raw !== 'object') return p;
+
+    if (raw.seen && typeof raw.seen === 'object' && !Array.isArray(raw.seen)) {
+      Object.keys(raw.seen).forEach(function (key) {
+        const s = raw.seen[key];
+        if (!s || typeof s !== 'object') return;
+        const r = Math.max(0, Math.round(clampNumber(s.r, 0, 9999, 0)));
+        const w = Math.max(0, Math.round(clampNumber(s.w, 0, 9999, 0)));
+        if (r + w <= 0) return;
+        p.seen[key] = {
+          r: r,
+          w: w,
+          t: Number.isFinite(Number(s.t)) ? Number(s.t) : 0
+        };
+      });
+    }
+
+    if (Array.isArray(raw.wrong)) {
+      const byHash = {};
+      raw.wrong.forEach(function (entry) {
+        const w = normalizeWrong(entry);
+        if (!w) return;
+        const prev = byHash[w.h];
+        if (!prev) { byHash[w.h] = w; return; }
+        if (w.ts >= prev.ts) {
+          w.n = Math.max(w.n, prev.n);
+          w.c = Math.max(w.c, prev.c);
+          byHash[w.h] = w;
+        } else {
+          prev.n = Math.max(prev.n, w.n);
+          prev.c = Math.max(prev.c, w.c);
+        }
+      });
+      p.wrong = Object.keys(byHash).map(function (k) { return byHash[k]; });
+    }
+
+    if (raw.best && typeof raw.best === 'object') {
+      p.best.streak = Math.max(0, Math.round(clampNumber(raw.best.streak, 0, 9999, 0)));
+    }
+    p.rounds = Math.max(0, Math.round(clampNumber(raw.rounds, 0, 99999, 0)));
+    return p;
+  }
+
+  /**
+   * 记录一次作答：正确累计 seen.r 并推进错题「连续答对」计数；
+   * 错误累计 seen.w 并把题目放进错题本 / 增加错误次数。
+   * 连续答对 2 次即从错题本移出。
+   */
+  function recordResult(progress, item, correct, time) {
+    const p = normalizeProgress(progress);
+    const it = normalizeItem(item);
+    if (!it) return p;
+    const ok = !!correct;
+    const stamp = Number.isFinite(Number(time)) ? Number(time) : Date.now();
+
+    const s = p.seen[it.h] || { r: 0, w: 0, t: 0 };
+    if (ok) s.r += 1;
+    else s.w += 1;
+    s.t = stamp;
+    p.seen[it.h] = s;
+
+    let idx = -1;
+    for (let i = 0; i < p.wrong.length; i += 1) {
+      if (p.wrong[i].h === it.h) { idx = i; break; }
+    }
+
+    if (ok) {
+      if (idx >= 0) {
+        const w = p.wrong[idx];
+        w.c = (w.c || 0) + 1;
+        w.ts = stamp;
+        if (w.c >= 2) p.wrong.splice(idx, 1);
+      }
+    } else if (idx >= 0) {
+      const w = p.wrong[idx];
+      w.n = Math.min(999, (w.n || 1) + 1);
+      w.c = 0;
+      w.ts = stamp;
+      w.q = it.q;
+      w.o = it.o;
+      w.a = it.a;
+      w.x = it.x;
+      w.t = it.t;
+      w.d = it.d;
+    } else {
+      p.wrong.push({
+        h: it.h, q: it.q, o: it.o, a: it.a, x: it.x, t: it.t, d: it.d,
+        n: 1, c: 0, ts: stamp
+      });
+    }
+    return p;
+  }
+
+  function normalizeAllocation(weights) {
+    const list = ASSETS.map(function (_, i) {
+      return clampNumber(weights && weights[i], 0, 100, 0);
+    });
+    const total = list.reduce(function (sum, v) { return sum + v; }, 0);
+    if (total <= 0) return { weights: [0, 0, 0, 0], total: 0, normalized: false };
+    if (Math.abs(total - 100) < 0.001) return { weights: list, total: total, normalized: false };
+    return {
+      weights: list.map(function (v) { return v / total * 100; }),
+      total: total,
+      normalized: true
+    };
+  }
+
+  /** 组合风险分 = 四类权重 × 风险系数(1/2/3.5/5) 的加权平均，保留 1 位小数。 */
+  function portfolioMetrics(weights) {
+    const n = normalizeAllocation(weights);
+    let risk = 0;
+    if (n.total > 0) {
+      for (let i = 0; i < ASSETS.length; i += 1) risk += n.weights[i] * ASSETS[i].risk;
+      risk = risk / 100;
+    }
+    risk = round1(risk);
+    const equity = n.total > 0 ? round1(n.weights[3]) : 0;
+    const vol = n.total > 0 ? round1(Math.max(0.6, risk * 4.2)) : 0;
+    return {
+      weights: n.weights.map(function (v) { return round1(v); }),
+      rawWeights: n.weights,
+      total: n.total,
+      normalized: n.normalized,
+      risk: risk,
+      equity: equity,
+      vol: vol,
+      range: [round1(-vol), vol]
+    };
+  }
+
+  /**
+   * 0–100 评分：
+   *   风险匹配 60：60 × (1 − |风险分 − 目标| / 2.5)，下限 0；
+   *   权益上限 20：权益占比 ≤ 画像上限得 20，否则 0；
+   *   分散度   20：四类中每类落在 5%–65% 得 5 分。
+   */
+  function scorePortfolio(weights, profile) {
+    let prof = profile;
+    if (typeof prof === 'string') {
+      prof = PROFILES.filter(function (x) { return x.key === prof || x.name === prof; })[0];
+    }
+    if (!prof || typeof prof !== 'object') prof = PROFILES[2];
+
+    const target = clampNumber(prof.target, 1, 5, 2.8);
+    const cap = clampNumber(prof.cap, 0, 100, 45);
+    const name = typeof prof.name === 'string' ? prof.name : '平衡型';
+    const m = portfolioMetrics(weights);
+
+    if (m.total <= 0) {
+      return {
+        score: 0, risk: 0, equity: 0, vol: 0, range: [0, 0],
+        target: target, cap: cap, profile: name, weights: [0, 0, 0, 0],
+        breakdown: { risk: 0, cap: 0, div: 0, divCount: 0 },
+        comments: ['四类配置合计为 0，无法评分。请先分配资产比例。'],
+        normalized: false, total: 0
+      };
+    }
+
+    const diff = Math.abs(m.risk - target);
+    const riskPts = Math.round(60 * clampNumber(1 - diff / 2.5, 0, 1, 0));
+    const capPts = m.equity <= cap + 0.05 ? 20 : 0;
+    let divCount = 0;
+    ASSETS.forEach(function (_, i) {
+      const w = m.weights[i];
+      if (w >= 5 - 0.05 && w <= 65 + 0.05) divCount += 1;
+    });
+    const divPts = divCount * 5;
+    const score = Math.max(0, Math.min(100, Math.round(riskPts + capPts + divPts)));
+
+    const notes = [];
+    if (m.equity > cap + 0.05) {
+      notes.push('权益占比 ' + fmt1(m.equity) + '%，超出' + name + ' ' + cap + '% 的权益上限，应先下调。');
+    } else if (diff > 0.6) {
+      notes.push('组合风险分 ' + fmt1(m.risk) + '，与' + name + '目标 ' + fmt1(target) + ' 偏离 ' + fmt1(diff) + '，可调整权益与货币类比例。');
+    }
+    ASSETS.forEach(function (asset, i) {
+      const w = m.weights[i];
+      if (w < 5 - 0.05) notes.push(asset.name + '仅 ' + fmt1(w) + '%，低于 5% 的分散下限。');
+      else if (w > 65 + 0.05) notes.push(asset.name + '达 ' + fmt1(w) + '%，超过 65% 的集中上限。');
+    });
+    if (!notes.length) {
+      notes.push('风险分贴近目标，权益在上限内，四类配置均在 5%–65% 区间，结构较均衡。');
+    }
+
+    return {
+      score: score,
+      risk: m.risk,
+      equity: m.equity,
+      vol: m.vol,
+      range: m.range,
+      target: target,
+      cap: cap,
+      profile: name,
+      weights: m.weights,
+      breakdown: { risk: riskPts, cap: capPts, div: divPts, divCount: divCount },
+      comments: notes.slice(0, 3),
+      normalized: m.normalized,
+      total: m.total
+    };
+  }
+
+  /** 调整某一类到新值，其余三类按原比例分配剩余份额，合计恒为 100。 */
+  function rebalanceWeights(weights, index, value) {
+    const idx = Math.round(clampNumber(index, 0, 3, 0));
+    const v = Math.round(clampNumber(value, 0, 100, 0));
+    const w = ASSETS.map(function (_, i) {
+      return Math.round(clampNumber(weights && weights[i], 0, 100, 0));
+    });
+    const others = [0, 1, 2, 3].filter(function (i) { return i !== idx; });
+    const rest = 100 - v;
+    const oldSum = others.reduce(function (sum, i) { return sum + w[i]; }, 0);
+    const targets = oldSum <= 0
+      ? others.map(function () { return rest / others.length; })
+      : others.map(function (i) { return w[i] / oldSum * rest; });
+    const base = targets.map(function (t) { return Math.floor(t); });
+    let remaining = rest - base.reduce(function (a, b) { return a + b; }, 0);
+    const order = targets.map(function (t, i) {
+      return { i: i, frac: t - Math.floor(t) };
+    }).sort(function (a, b) { return b.frac - a.frac || a.i - b.i; });
+    for (let k = 0; k < remaining; k += 1) {
+      base[order[k % order.length].i] += 1;
+    }
+    const out = [0, 0, 0, 0];
+    out[idx] = v;
+    others.forEach(function (oi, k) { out[oi] = base[k]; });
+    const total = out.reduce(function (a, b) { return a + b; }, 0);
+    if (total !== 100) out[others[0]] += 100 - total;
+    return out;
+  }
+
+  function parseClient(q) {
+    const text = String(q === null || q === undefined ? '' : q);
+    const nameMatch = text.match(/客户\s*([\u4e00-\u9fa5]{1,4}(?:先生|女士|经理|老师|阿姨|叔叔))/);
+    const ageMatch = text.match(/(\d{2,3})\s*岁/);
+    const riskMatch = text.match(/(保守|稳健|平衡|进取|激进|谨慎|积极)(?:型)?/);
+    const traits = [];
+    function add(re, label) {
+      if (re.test(text) && traits.indexOf(label) < 0) traits.push(label);
+    }
+    add(/退休/, '退休收入');
+    add(/医疗|看病|医药/, '医疗支出');
+    add(/随时|流动|应急/, '高流动性');
+    add(/养老|长期/, '长期目标');
+    add(/首付|购房|买房/, '购房目标');
+    add(/房贷|负债|贷款/, '负债压力');
+    add(/收入稳定|工资|固定收入/, '稳定收入');
+    add(/五年|三年|一年|短期/, '期限明确');
+    return {
+      name: nameMatch ? nameMatch[1] : '客户',
+      age: ageMatch ? Number(ageMatch[1]) : null,
+      risk: riskMatch ? riskMatch[1] + '型' : null,
+      traits: traits.slice(0, 3),
+      found: !!(ageMatch || riskMatch || traits.length)
+    };
+  }
+
+  /* Node 自测入口：仅在 CommonJS 且无 document 时导出纯函数。 */
+  if (typeof module !== 'undefined' && module.exports && typeof document === 'undefined') {
+    module.exports = {
+      CATEGORIES: CATEGORIES,
+      DIFFICULTY_NAMES: DIFFICULTY_NAMES,
+      ASSETS: ASSETS,
+      PROFILES: PROFILES,
+      hashKey: hashKey,
+      normalizeItem: normalizeItem,
+      normalizeData: normalizeData,
+      filterQuiz: filterQuiz,
+      filterSuitability: filterSuitability,
+      normalizeProgress: normalizeProgress,
+      recordResult: recordResult,
+      normalizeAllocation: normalizeAllocation,
+      portfolioMetrics: portfolioMetrics,
+      scorePortfolio: scorePortfolio,
+      rebalanceWeights: rebalanceWeights,
+      parseClient: parseClient,
+      round1: round1
+    };
+    return;
+  }
+
+  /* ============================================================
+     二、浏览器端 · 启动与状态
+     ============================================================ */
+
+  const DSHG = window.DSHG;
+  const app = document.getElementById('app');
+  if (!DSHG || !app) return;
+
+  const el = DSHG.el;
+  const qs = DSHG.qs;
+  const qsa = DSHG.qsa;
+  const store = DSHG.store;
+  const rand = DSHG.rand;
+  const clamp = DSHG.clamp;
+  const toast = DSHG.toast;
+
+  const DATA = normalizeData(window.FINANCE_DATA);
+  const DATA_BY_HASH = {};
+  DATA.forEach(function (item) { DATA_BY_HASH[item.h] = item; });
+
+  const QUIZ_SIZE = 12;
+  const SUIT_SIZE = 6;
+  const LETTERS = ['A', 'B', 'C', 'D'];
+
+  let progress = normalizeProgress(store.get('finance.progress', null));
+
+  const state = {
+    view: 'home',
+    busy: false,
+    clearArmed: false,
+    quizOpts: { category: '全部', difficulty: 0 },
+    quiz: null,
+    suit: null,
+    alloc: { profile: 2, weights: [25, 25, 25, 25], submitted: null },
+    redo: null
+  };
+
+  function save() {
+    store.set('finance.progress', progress);
+  }
+
+  function persistProgress(next) {
+    progress = next;
+    save();
+  }
+
+  function scrollTop() {
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    catch (err) { try { window.scrollTo(0, 0); } catch (err2) {} }
+  }
+
+  function go(view) {
+    state.view = view;
+    state.clearArmed = false;
+    render();
+    scrollTop();
+  }
+
+  function statCard(label, value, suffix, sub, mod) {
+    return el('div', { class: 'stat' + (mod ? ' ' + mod : '') }, [
+      el('div', { class: 'stat__k', text: label }),
+      el('div', { class: 'stat__v' }, [
+        el('span', { class: 'num', text: value }),
+        suffix ? el('small', { text: suffix }) : null
+      ]),
+      el('div', { class: 'stat__s', text: sub })
+    ]);
+  }
+
+  function tag(text, mod) {
+    return el('span', { class: 'tag' + (mod ? ' ' + mod : ''), text: text });
+  }
+
+  function backLink(label, target) {
+    return el('a', {
+      class: 'back',
+      href: '#',
+      onclick: function (e) {
+        e.preventDefault();
+        go(target || 'home');
+      }
+    }, ['← ', el('span', { text: label || '返回首页' })]);
+  }
+
+  function notice(text, warn) {
+    return el('div', { class: 'notice' + (warn ? ' notice--warn' : '') }, [el('span', { text: text })]);
+  }
+
+  function emptyPanel(mark, title, text, buttonText, onClick) {
+    return el('section', { class: 'empty' }, [
+      el('div', { class: 'empty__mark', 'aria-hidden': 'true', text: mark || '空' }),
+      el('h2', { text: title || '这里还没有内容' }),
+      el('p', { text: text || '换一个入口看看，或稍后回来。' }),
+      buttonText ? el('button', {
+        class: 'btn btn--ghost',
+        type: 'button',
+        text: buttonText,
+        onclick: onClick || function () { go('home'); }
+      }) : null
+    ]);
+  }
+
+  function accuracyText() {
+    let right = 0;
+    let wrong = 0;
+    Object.keys(progress.seen).forEach(function (k) {
+      right += progress.seen[k].r;
+      wrong += progress.seen[k].w;
+    });
+    const total = right + wrong;
+    if (!total) return { text: '—', sub: '还没有作答记录', total: 0, right: right };
+    return {
+      text: String(Math.round(right / total * 100)),
+      sub: '共答 ' + total + ' 次',
+      total: total,
+      right: right
+    };
+  }
+
+  /* ============================================================
+     三、首页
+     ============================================================ */
+
+  function viewHome() {
+    const seenCount = Object.keys(progress.seen).length;
+    const acc = accuracyText();
+    const wrongCount = progress.wrong.length;
+    const coverage = DATA.length ? Math.min(100, Math.round(seenCount / DATA.length * 100)) : 0;
+
+    const stats = el('section', { class: 'stats', 'aria-label': '学习统计' }, [
+      statCard('已答', String(seenCount), '题', DATA.length ? '题库覆盖 ' + coverage + '%' : '题库为空'),
+      statCard('正确率', acc.text, acc.text === '—' ? '' : '%', acc.sub),
+      statCard('最长连对', String(progress.best.streak), '题', '历史最佳连对'),
+      statCard('错题数', String(wrongCount), '题', wrongCount ? '待重做，连续答对 2 次移出' : '错题本是空的', wrongCount ? 'stat--warn' : '')
+    ]);
+
+    const entries = el('section', { class: 'entries', 'aria-label': '训练入口' }, [
+      entryCard('壹', '知识闯关', '按分类与难度抽题，四选一；每题作答后立即给出解析、分类与难度，答错自动记入错题本。', DATA.length + ' 题可抽 · 每轮 12 题', '开始闯关', function () {
+        if (!DATA.length) { toast('题库为空，暂时无法闯关'); return; }
+        go('quizsetup');
+      }),
+      entryCard('贰', '适当性实战', '从「适当性 / 合规」题中抽取客户情景。系统把题干里的年龄、风险等级提取成客户档案，四个选项变成产品方案卡。', '客户画像 · 匹配判定 · 合规提示', '开始实战', function () {
+        if (!filterSuitability(DATA).length) { toast('适当性 / 合规题暂不可用'); return; }
+        go('suitsetup');
+      }),
+      entryCard('叁', '资产配置', '拖动四类资产比例，实时看组合风险分、示意波动区间与权益占比；按客户画像提交方案，获得 0–100 评分与点评。', '保守 / 稳健 / 平衡 / 进取 / 激进', '打开模拟器', function () {
+        go('alloc');
+      })
+    ]);
+
+    const wrongbar = el('section', { class: 'wrongbar', 'aria-label': '错题本入口' }, [
+      el('div', {}, [
+        el('div', { class: 'wrongbar__title' }, [
+          el('span', { text: '错题本' }),
+          el('b', { class: 'num', text: String(wrongCount) })
+        ]),
+        el('div', { class: 'wrongbar__sub', text: wrongCount ? '按错误次数排序，重做时连续答对 2 次移出。' : '答错的知识闯关题会自动收进这里。' })
+      ]),
+      el('button', {
+        class: 'btn btn--ghost btn--small',
+        type: 'button',
+        text: wrongCount ? '打开错题本' : '查看错题本',
+        onclick: function () { go('wrong'); }
+      })
+    ]);
+
+    return el('div', { class: 'stack' }, [
+      el('section', { class: 'hero' }, [
+        el('div', { class: 'eyebrow', text: '理财诊室 / FINANCE PRACTICE' }),
+        el('h1', { class: 'title-xl' }, ['把合适的产品，', el('span', { class: 'accent', text: '卖给合适的人。' })]),
+        el('p', { class: 'lede' }, [
+          '你是网点的理财经理。十二题一轮的',
+          el('strong', { text: '知识闯关' }),
+          '、客户画像与产品匹配的',
+          el('strong', { text: '适当性实战' }),
+          '，再加一台',
+          el('strong', { text: '资产配置模拟器' }),
+          '——把「适当性」从口号练成手感。'
+        ]),
+        el('div', { class: 'hero__tags' }, [
+          tag(DATA.length + ' 道题'),
+          tag('四选一 · 逐题解析'),
+          tag('离线存档'),
+          tag('示意模型，不构成投资建议', 'tag--cinnabar')
+        ])
+      ]),
+      DATA.length ? null : notice('题库尚未载入或为空：页面仍可浏览，资产配置模拟器不受影响；知识闯关与适当性实战会在题库恢复后可用。', true),
+      stats,
+      entries,
+      wrongbar,
+      el('div', { class: 'home__tools' }, [
+        el('span', { class: 'tiny faint', text: '进度只保存在本机浏览器 · 已完成 ' + progress.rounds + ' 轮训练' }),
+        el('button', {
+          class: 'btn btn--ghost btn--small',
+          type: 'button',
+          text: '清空学习进度',
+          onclick: function () { state.clearArmed = true; render(); }
+        })
+      ]),
+      state.clearArmed ? clearConfirmBlock() : null
+    ]);
+  }
+
+  function entryCard(no, title, body, meta, action, onClick) {
+    return el('article', { class: 'entry' }, [
+      el('div', { class: 'entry__no', text: no }),
+      el('h3', { text: title }),
+      el('p', { text: body }),
+      el('div', { class: 'entry__meta', text: meta }),
+      el('button', { class: 'btn btn--ghost', type: 'button', text: action, onclick: onClick })
+    ]);
+  }
+
+  function clearConfirmBlock() {
+    return el('div', { class: 'clearbox', role: 'group', 'aria-label': '确认清空学习进度' }, [
+      el('div', { class: 'clearbox__txt' }, [
+        el('b', { text: '再次确认：' }),
+        el('span', { text: '将清空已答、正确率、最长连对、错题本与轮次，操作不可撤销。' })
+      ]),
+      el('div', { class: 'clearbox__btns' }, [
+        el('button', {
+          class: 'btn btn--cinnabar btn--small',
+          type: 'button',
+          text: '确认清空',
+          onclick: function () {
+            store.del('finance.progress');
+            progress = normalizeProgress(null);
+            state.clearArmed = false;
+            toast('学习进度已清空');
+            render();
+          }
+        }),
+        el('button', {
+          class: 'btn btn--ghost btn--small',
+          type: 'button',
+          text: '取消',
+          onclick: function () { state.clearArmed = false; render(); }
+        })
+      ])
+    ]);
+  }
+
+  /* ============================================================
+     四、知识闯关
+     ============================================================ */
+
+  function viewQuizSetup() {
+    const opts = state.quizOpts;
+    const pool = filterQuiz(DATA, opts.category, opts.difficulty);
+
+    const catChips = el('div', { class: 'chips', role: 'group', 'aria-label': '选择题库分类' });
+    ['全部'].concat(CATEGORIES).forEach(function (cat) {
+      catChips.appendChild(el('button', {
+        type: 'button',
+        class: 'chip',
+        'data-cat': cat,
+        'aria-pressed': opts.category === cat ? 'true' : 'false',
+        text: cat,
+        onclick: function () {
+          state.quizOpts.category = cat;
+          refreshQuizSetup();
+        }
+      }));
+    });
+
+    const diffChips = el('div', { class: 'chips', role: 'group', 'aria-label': '选择难度' });
+    [{ v: 0, label: '全部' }, { v: 1, label: '基础' }, { v: 2, label: '进阶' }, { v: 3, label: '高阶' }].forEach(function (d) {
+      diffChips.appendChild(el('button', {
+        type: 'button',
+        class: 'chip',
+        'data-diff': String(d.v),
+        'aria-pressed': opts.difficulty === d.v ? 'true' : 'false',
+        text: d.label,
+        onclick: function () {
+          state.quizOpts.difficulty = d.v;
+          refreshQuizSetup();
+        }
+      }));
+    });
+
+    const start = el('button', {
+      class: 'btn',
+      type: 'button',
+      id: 'quiz-start',
+      disabled: pool.length === 0,
+      text: '开始本轮（12 题）',
+      onclick: startQuiz
+    });
+
+    return el('div', { class: 'stack' }, [
+      backLink('返回首页'),
+      el('section', { class: 'panel' }, [
+        el('div', { class: 'headblock' }, [
+          el('div', { class: 'eyebrow', text: '知识闯关 / QUIZ' }),
+          el('h2', { text: '十二题，一次判断' }),
+          el('p', { text: '选择题库分类与难度后开始。每题四选一，作答后立即展示解析，并标注分类与难度；答错自动进入错题本。' })
+        ]),
+        el('div', { class: 'field' }, [
+          el('div', { class: 'field__lab' }, [el('span', { text: '分类' }), el('span', { text: '全部 / 基金 / 股票 / 债券 / 银行 / 合规 / 适当性' })]),
+          catChips
+        ]),
+        el('div', { class: 'field' }, [
+          el('div', { class: 'field__lab' }, [el('span', { text: '难度' }), el('span', { text: '基础 1 · 进阶 2 · 高阶 3' })]),
+          diffChips
+        ]),
+        el('div', { class: 'setup__foot' }, [
+          el('div', { class: 'setup__count', id: 'quiz-pool' }, [
+            el('span', { text: '该筛选下可用 ' }),
+            el('b', { class: 'num', text: String(pool.length) }),
+            el('span', { text: ' 题' + (pool.length && pool.length < QUIZ_SIZE ? '；不足 12 题，本轮按实际题量进行。' : '') })
+          ]),
+          el('div', { class: 'setup__actions' }, [start])
+        ])
+      ]),
+      notice('计分：每答对一题 +10 分；连续答对计入「最长连对」。错题本中的题，连续答对 2 次才会移出。')
+    ]);
+  }
+
+  function refreshQuizSetup() {
+    const opts = state.quizOpts;
+    const pool = filterQuiz(DATA, opts.category, opts.difficulty);
+    qsa('[data-cat]', app).forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-cat') === opts.category ? 'true' : 'false');
+    });
+    qsa('[data-diff]', app).forEach(function (b) {
+      b.setAttribute('aria-pressed', Number(b.getAttribute('data-diff')) === opts.difficulty ? 'true' : 'false');
+    });
+    const info = qs('#quiz-pool', app);
+    if (info) {
+      info.replaceChildren.apply(info, [
+        el('span', { text: '该筛选下可用 ' }),
+        el('b', { class: 'num', text: String(pool.length) }),
+        el('span', { text: ' 题' + (pool.length && pool.length < QUIZ_SIZE ? '；不足 12 题，本轮按实际题量进行。' : '') })
+      ]);
+    }
+    const start = qs('#quiz-start', app);
+    if (start) {
+      start.disabled = pool.length === 0;
+      start.textContent = pool.length && pool.length < QUIZ_SIZE
+        ? '开始本轮（' + pool.length + ' 题）'
+        : '开始本轮（12 题）';
+    }
+  }
+
+  function startQuiz() {
+    const opts = state.quizOpts;
+    const pool = filterQuiz(DATA, opts.category, opts.difficulty);
+    if (!pool.length) { toast('该筛选下暂无题目'); return; }
+    const picked = rand.shuffle(pool).slice(0, Math.min(QUIZ_SIZE, pool.length));
+    state.quiz = {
+      items: picked,
+      idx: 0,
+      answered: null,
+      correct: 0,
+      streak: 0,
+      best: 0,
+      missed: [],
+      total: picked.length,
+      done: false,
+      short: picked.length < QUIZ_SIZE
+    };
+    progress.rounds += 1;
+    save();
+    go('quiz');
+  }
+
+  function viewQuiz() {
+    const quiz = state.quiz;
+    if (!quiz || !quiz.items.length) {
+      return emptyPanel('题', '本轮题目不可用', '题库可能已更新，请回到筛选页重新开始。', '重新选题', function () { go('quizsetup'); });
+    }
+    if (quiz.done) return viewQuizResult();
+
+    const item = quiz.items[quiz.idx];
+    if (!item) {
+      quiz.done = true;
+      return viewQuizResult();
+    }
+
+    const pct = Math.round(quiz.idx / quiz.total * 100);
+    return el('div', { class: 'stack' }, [
+      backLink('退出本轮', 'home'),
+      el('div', { class: 'quiz-top' }, [
+        el('div', { class: 'quiz-top__count' }, [
+          el('b', { class: 'num', text: String(quiz.idx + 1) }),
+          el('span', { text: '/ ' + quiz.total + ' 题' })
+        ]),
+        el('div', { class: 'quiz-top__right' }, [
+          tag('得分 ' + quiz.correct * 10, 'tag--jade'),
+          tag('连对 ' + quiz.streak)
+        ])
+      ]),
+      el('div', { class: 'meter', role: 'progressbar', 'aria-label': '本轮进度', 'aria-valuemin': '0', 'aria-valuemax': String(quiz.total), 'aria-valuenow': String(quiz.idx) }, [
+        el('i', { style: { width: pct + '%' } })
+      ]),
+      quiz.short ? notice('可用题目不足 12 题，本轮按 ' + quiz.total + ' 题进行。') : null,
+      el('section', { class: 'panel qpanel' }, [
+        el('div', { class: 'qmeta' }, [
+          tag(item.t, 'tag--muted'),
+          tag('难度 · ' + DIFFICULTY_NAMES[item.d])
+        ]),
+        el('h2', { class: 'qtext', text: item.q }),
+        el('div', { class: 'qsub', text: quiz.answered ? '本题已作答，解析见下方。' : '选择一个答案，作答后立即显示解析。' }),
+        choiceList(item, quiz.answered, answerQuiz, 'quiz'),
+        quiz.answered ? feedbackBox(item, quiz.answered, 'quiz') : null,
+        quiz.answered ? quizActions(quiz) : null
+      ])
+    ]);
+  }
+
+  function choiceList(item, answered, onPick, mode) {
+    const wrap = el('div', { class: 'choices' + (mode === 'product' ? ' choices--product' : '') });
+    item.o.forEach(function (text, i) {
+      const isCorrect = i === item.a;
+      const picked = !!answered && answered.pick === i;
+      let cls = 'choice';
+      let mark = LETTERS[i];
+      let flag = '';
+      if (answered) {
+        if (isCorrect) {
+          cls += ' is-correct';
+          mark = '✓';
+          flag = '正确答案';
+        } else if (picked) {
+          cls += ' is-wrong';
+          mark = '✕';
+          flag = '你的选择';
+        } else {
+          cls += ' is-dim';
+        }
+      }
+      const label = LETTERS[i] + '. ' + text +
+        (answered ? (isCorrect ? '（正确答案）' : picked ? '（你的选择，错误）' : '') : '');
+      const button = el('button', {
+        type: 'button',
+        class: cls,
+        disabled: !!answered,
+        'aria-label': label,
+        onclick: function () { onPick(i); }
+      }, [
+        el('span', { class: 'choice__mark', 'aria-hidden': 'true', text: mark }),
+        el('span', { class: 'choice__body' }, [
+          mode === 'product' ? el('span', { class: 'choice__kicker', text: '方案 ' + LETTERS[i] }) : null,
+          el('span', { class: 'choice__txt', text: text })
+        ]),
+        flag ? el('span', { class: 'choice__flag', text: flag }) : null
+      ]);
+      wrap.appendChild(button);
+    });
+    return wrap;
+  }
+
+  function answerQuiz(pick) {
+    const quiz = state.quiz;
+    if (!quiz || quiz.done || quiz.answered || state.busy) return;
+    const item = quiz.items[quiz.idx];
+    if (!item || typeof pick !== 'number') return;
+    state.busy = true;
+
+    const ok = pick === item.a;
+    quiz.answered = { pick: pick, ok: ok };
+    if (ok) {
+      quiz.correct += 1;
+      quiz.streak += 1;
+      quiz.best = Math.max(quiz.best || 0, quiz.streak);
+      progress.best.streak = Math.max(progress.best.streak, quiz.streak);
+    } else {
+      quiz.streak = 0;
+      quiz.missed = quiz.missed || [];
+      quiz.missed.push({ q: item.q, t: item.t, d: item.d, a: item.a, x: item.x });
+    }
+    persistProgress(recordResult(progress, item, ok));
+    render();
+    state.busy = false;
+    revealFeedback();
+  }
+
+  function quizActions(quiz) {
+    const last = quiz.idx + 1 >= quiz.total;
+    return el('div', { class: 'actions' }, [
+      el('span', { class: 'actions__hint', text: '解析已记录，' + (last ? '本轮即将结束。' : '继续下一题。') }),
+      el('div', { class: 'actions__right' }, [
+        last
+          ? el('button', { class: 'btn', type: 'button', text: '查看本轮成绩', onclick: finishQuiz })
+          : el('button', { class: 'btn', type: 'button', text: '下一题 →', onclick: nextQuiz })
+      ])
+    ]);
+  }
+
+  function nextQuiz() {
+    const quiz = state.quiz;
+    if (!quiz) return;
+    if (quiz.idx + 1 >= quiz.total) { finishQuiz(); return; }
+    quiz.idx += 1;
+    quiz.answered = null;
+    render();
+    scrollTop();
+  }
+
+  function finishQuiz() {
+    const quiz = state.quiz;
+    if (!quiz) { go('home'); return; }
+    quiz.done = true;
+    render();
+    scrollTop();
+  }
+
+  function viewQuizResult() {
+    const quiz = state.quiz;
+    if (!quiz) return emptyPanel('题', '没有可显示的成绩', '请重新开始一轮知识闯关。', '重新开始', function () { go('quizsetup'); });
+    const acc = quiz.total ? Math.round(quiz.correct / quiz.total * 100) : 0;
+    const missed = quiz.missed || [];
+
+    return el('div', { class: 'stack' }, [
+      backLink('返回首页'),
+      el('section', { class: 'panel' }, [
+        el('div', { class: 'eyebrow', text: '本轮成绩 / RESULT' }),
+        el('h2', { text: acc >= 80 ? '判断稳健，继续保持' : acc >= 60 ? '基础可用，仍有盲区' : '先把错题吃透' }),
+        el('div', { class: 'scoreboard' }, [
+          el('div', { class: 'scoreboard__main' }, [
+            el('b', { class: 'num', text: String(quiz.correct * 10) }),
+            el('span', { text: ' / ' + (quiz.total * 10) + ' 分' })
+          ]),
+          el('div', { class: 'scoreboard__sub' }, [
+            el('span', {}, [el('b', { class: 'num', text: quiz.correct + ' / ' + quiz.total }), ' 答对']),
+            el('span', { text: '正确率 ' + acc + '% · 本轮最长连对 ' + (quiz.best || 0) + ' 题' })
+          ])
+        ]),
+        el('div', { class: 'metaline' }, [
+          tag('分类 · ' + state.quizOpts.category, 'tag--muted'),
+          tag('难度 · ' + (state.quizOpts.difficulty ? DIFFICULTY_NAMES[state.quizOpts.difficulty] : '全部'), 'tag--muted'),
+          tag(quiz.correct === quiz.total ? '全对' : '错题已入本', quiz.correct === quiz.total ? 'tag--jade' : 'tag--cinnabar')
+        ]),
+        quiz.correct === quiz.total
+          ? notice('本轮全对，没有新增错题。可以换一个分类或提高难度继续。')
+          : notice('本轮答错的题已进入错题本。到错题本重做，连续答对 2 次才会移出。', true),
+        missed.length ? el('div', { class: 'reviewlist' }, missed.map(function (m) {
+          return el('div', { class: 'reviewitem' }, [
+            el('p', { class: 'reviewitem__q', text: m.q }),
+            el('div', { class: 'reviewitem__a', text: '正确答案 ' + LETTERS[m.a] + ' · ' + m.t + ' · 难度 ' + DIFFICULTY_NAMES[m.d] })
+          ]);
+        })) : null,
+        el('hr', { class: 'rule' }),
+        el('div', { class: 'actions' }, [
+          el('span', { class: 'actions__hint', text: '同一筛选下重新抽题；题目顺序会重新打乱。' }),
+          el('div', { class: 'actions__right' }, [
+            el('button', { class: 'btn', type: 'button', text: '再来一轮', onclick: startQuiz }),
+            el('button', { class: 'btn btn--ghost', type: 'button', text: '调整筛选', onclick: function () { go('quizsetup'); } }),
+            el('button', { class: 'btn btn--ghost', type: 'button', text: '返回首页', onclick: function () { go('home'); } })
+          ])
+        ])
+      ])
+    ]);
+  }
+
+  /* ============================================================
+     五、适当性实战
+     ============================================================ */
+
+  function viewSuitSetup() {
+    const pool = filterSuitability(DATA);
+    return el('div', { class: 'stack' }, [
+      backLink('返回首页'),
+      el('section', { class: 'panel' }, [
+        el('div', { class: 'headblock' }, [
+          el('div', { class: 'eyebrow', text: '适当性实战 / SUITABILITY' }),
+          el('h2', { text: '先看客户，再看产品' }),
+          el('p', { text: '从「适当性 / 合规」题中抽取客户情景。年龄、风险等级与资金诉求会自动提取为客户档案，四个选项渲染为产品 / 方案卡；选择后给出「匹配 / 不匹配」判定、解析与一行合规提示。' })
+        ]),
+        el('div', { class: 'notice', text: '每轮最多 6 个案例。适当性判断没有「差不多」：风险等级、流动性、投资期限，任何一项不匹配都可能构成销售瑕疵。' }),
+        el('div', { class: 'setup__foot' }, [
+          el('div', { class: 'setup__count' }, [
+            el('span', { text: '可用案例 ' }),
+            el('b', { class: 'num', text: String(pool.length) }),
+            el('span', { text: ' 个' + (pool.length ? '；本轮 ' + Math.min(SUIT_SIZE, pool.length) + ' 个' : '；暂时没有适当性或合规题') })
+          ]),
+          el('div', { class: 'setup__actions' }, [
+            el('button', {
+              class: 'btn',
+              type: 'button',
+              disabled: pool.length === 0,
+              text: '开始实战',
+              onclick: startSuit
+            })
+          ])
+        ])
+      ])
+    ]);
+  }
+
+  function startSuit() {
+    const pool = filterSuitability(DATA);
+    if (!pool.length) { toast('适当性 / 合规题暂不可用'); return; }
+    const picked = rand.shuffle(pool).slice(0, Math.min(SUIT_SIZE, pool.length));
+    state.suit = {
+      items: picked,
+      idx: 0,
+      answered: null,
+      correct: 0,
+      total: picked.length,
+      done: false
+    };
+    progress.rounds += 1;
+    save();
+    go('suit');
+  }
+
+  function viewSuit() {
+    const suit = state.suit;
+    if (!suit || !suit.items.length) {
+      return emptyPanel('案', '本轮案例不可用', '题库可能已更新，请重新进入适当性实战。', '重新开始', function () { go('suitsetup'); });
+    }
+    if (suit.done) return viewSuitResult();
+    const item = suit.items[suit.idx];
+    if (!item) { suit.done = true; return viewSuitResult(); }
+
+    const client = parseClient(item.q);
+    const pct = Math.round(suit.idx / suit.total * 100);
+
+    return el('div', { class: 'stack' }, [
+      backLink('退出实战', 'home'),
+      el('div', { class: 'quiz-top' }, [
+        el('div', { class: 'quiz-top__count' }, [
+          el('b', { class: 'num', text: String(suit.idx + 1) }),
+          el('span', { text: '/ ' + suit.total + ' 个案例' })
+        ]),
+        el('div', { class: 'quiz-top__right' }, [
+          tag('判断正确 ' + suit.correct, 'tag--jade')
+        ])
+      ]),
+      el('div', { class: 'meter', role: 'progressbar', 'aria-label': '实战进度', 'aria-valuemin': '0', 'aria-valuemax': String(suit.total), 'aria-valuenow': String(suit.idx) }, [
+        el('i', { style: { width: pct + '%' } })
+      ]),
+      clientCard(item, client),
+      el('section', { class: 'panel qpanel' }, [
+        el('div', { class: 'qmeta' }, [
+          tag(item.t === '合规' ? '合规判断' : '产品 / 方案选择', 'tag--muted'),
+          tag(item.t, 'tag--cinnabar')
+        ]),
+        el('h2', { class: 'qtext', text: item.t === '合规' ? '下列哪一项做法是正确的？' : '针对这位客户，下列哪项最合适？' }),
+        el('div', { class: 'qsub', text: suit.answered ? '选择已提交，判定见下方。' : '请选择一项方案；选择后会给出匹配判定与合规提示。' }),
+        choiceList(item, suit.answered, answerSuit, 'product'),
+        suit.answered ? suitFeedback(item, suit.answered) : null,
+        suit.answered ? el('div', { class: 'actions' }, [
+          el('span', { class: 'actions__hint', text: suit.idx + 1 >= suit.total ? '本轮案例已完成。' : '继续下一个客户案例。' }),
+          el('div', { class: 'actions__right' }, [
+            suit.idx + 1 >= suit.total
+              ? el('button', { class: 'btn', type: 'button', text: '查看实战结果', onclick: finishSuit })
+              : el('button', { class: 'btn', type: 'button', text: '下一个案例 →', onclick: nextSuit })
+          ])
+        ]) : null
+      ])
+    ]);
+  }
+
+  function clientCard(item, client) {
+    const cells = [];
+    const isCompliance = item.t === '合规';
+    const subtitle = client.found
+      ? '客户档案 · 自动提取'
+      : (isCompliance ? '合规案情 · 无客户画像' : '客户档案 · 未识别');
+    cells.push(el('div', { class: 'client__cell' }, [
+      el('div', { class: 'client__k', text: '年龄' }),
+      el('div', { class: 'client__v', text: client.age ? client.age + ' 岁' : '题干未标注' })
+    ]));
+    cells.push(el('div', { class: 'client__cell' }, [
+      el('div', { class: 'client__k', text: '风险等级' }),
+      el('div', { class: 'client__v' + (client.risk ? ' client__v--risk' : ''), text: client.risk || '题干未标注' })
+    ]));
+    cells.push(el('div', { class: 'client__cell' }, [
+      el('div', { class: 'client__k', text: '关键诉求' }),
+      el('div', { class: 'client__v', text: client.traits.length ? client.traits.join(' · ') : '题干未标注' })
+    ]));
+
+    return el('section', { class: 'client', 'aria-label': '客户档案卡' }, [
+      el('div', { class: 'client__head' }, [
+        el('div', { class: 'client__seal', 'aria-hidden': 'true', text: '客' }),
+        el('div', {}, [
+          el('div', { class: 'client__name', text: client.name }),
+          el('div', { class: 'client__sub', text: subtitle })
+        ])
+      ]),
+      !client.found ? el('div', { class: 'notice', style: { marginTop: '12px' }, text: isCompliance
+        ? '本题是合规判断题，题干里没有客户画像；请直接按合规规则判断「这件事能不能做」。'
+        : '题干未标注年龄或风险等级，请按原文判断。' }) : null,
+      el('div', { class: 'client__grid' }, cells),
+      el('div', { class: 'client__raw' }, [
+        el('b', { text: '题干原文' }),
+        el('span', { text: item.q })
+      ])
+    ]);
+  }
+
+  function answerSuit(pick) {
+    const suit = state.suit;
+    if (!suit || suit.done || suit.answered || state.busy) return;
+    const item = suit.items[suit.idx];
+    if (!item || typeof pick !== 'number') return;
+    state.busy = true;
+
+    const ok = pick === item.a;
+    suit.answered = { pick: pick, ok: ok };
+    if (ok) suit.correct += 1;
+    persistProgress(recordResult(progress, item, ok));
+    render();
+    state.busy = false;
+    revealFeedback();
+  }
+
+  function nextSuit() {
+    const suit = state.suit;
+    if (!suit) return;
+    if (suit.idx + 1 >= suit.total) { finishSuit(); return; }
+    suit.idx += 1;
+    suit.answered = null;
+    render();
+    scrollTop();
+  }
+
+  function finishSuit() {
+    const suit = state.suit;
+    if (!suit) { go('home'); return; }
+    suit.done = true;
+    render();
+    scrollTop();
+  }
+
+  function viewSuitResult() {
+    const suit = state.suit;
+    if (!suit) return emptyPanel('案', '没有可显示的实战结果', '请重新进入适当性实战。', '重新开始', function () { go('suitsetup'); });
+    const acc = suit.total ? Math.round(suit.correct / suit.total * 100) : 0;
+    return el('div', { class: 'stack' }, [
+      backLink('返回首页'),
+      el('section', { class: 'panel' }, [
+        el('div', { class: 'eyebrow', text: '实战结果 / REVIEW' }),
+        el('h2', { text: acc >= 83 ? '匹配判断过关' : acc >= 50 ? '还需要更谨慎' : '适当性红线要记牢' }),
+        el('div', { class: 'scoreboard' }, [
+          el('div', { class: 'scoreboard__main' }, [
+            el('b', { class: 'num', text: String(suit.correct) }),
+            el('span', { text: '/ ' + suit.total + ' 判断正确' })
+          ]),
+          el('div', { class: 'scoreboard__sub' }, [
+            el('span', { text: '正确率 ' + acc + '%' }),
+            el('span', { text: '每轮重新抽取案例，可反复练习。' })
+          ])
+        ]),
+        el('div', { class: 'compliance', style: { marginTop: '16px' } }, [
+          el('span', { class: 'compliance__icon', 'aria-hidden': 'true', text: '！' }),
+          el('span', { text: '合规提示：了解客户、了解产品、把合适的产品卖给合适的投资者；风险测评、匹配、揭示与双录留痕缺一不可。' })
+        ]),
+        el('div', { class: 'actions' }, [
+          el('span', { class: 'actions__hint', text: '换一批案例，继续练客户画像与产品匹配。' }),
+          el('div', { class: 'actions__right' }, [
+            el('button', { class: 'btn', type: 'button', text: '再来一轮', onclick: startSuit }),
+            el('button', { class: 'btn btn--ghost', type: 'button', text: '返回首页', onclick: function () { go('home'); } })
+          ])
+        ])
+      ])
+    ]);
+  }
+
+  function suitFeedback(item, answered) {
+    const ok = answered.ok;
+    const isSuit = item.t === '适当性';
+    return el('div', {}, [
+      el('div', { class: 'verdict ' + (ok ? 'verdict--ok' : 'verdict--bad'), 'aria-live': 'polite' }, [
+        el('span', { class: 'verdict__icon', 'aria-hidden': 'true', text: ok ? '✓' : '✕' }),
+        el('div', {}, [
+          el('b', { class: 'verdict__title', text: ok ? (isSuit ? '匹配' : '做法正确') : (isSuit ? '不匹配' : '做法有误') }),
+          el('p', {
+            class: 'verdict__text',
+            text: ok
+              ? (isSuit ? '所选方案与客户的风险承受能力、资金用途基本匹配。' : '这一处理符合合规要求，可以照此办理。')
+              : (isSuit ? '所选方案超出了客户的风险承受能力或流动性安排，属于适当性不匹配。' : '这一处理不符合合规要求，属于典型的违规误区。')
+          })
+        ])
+      ]),
+      el('div', { class: 'explainbox' }, [
+        el('div', { class: 'explainbox__head', text: '解析' }),
+        el('p', { text: item.x }),
+        el('div', { class: 'metaline' }, [
+          tag('分类 · ' + item.t, 'tag--muted'),
+          tag('难度 · ' + DIFFICULTY_NAMES[item.d], 'tag--muted'),
+          tag('正确答案 · ' + LETTERS[item.a], ok ? 'tag--jade' : 'tag--cinnabar')
+        ])
+      ]),
+      el('div', { class: 'compliance' }, [
+        el('span', { class: 'compliance__icon', 'aria-hidden': 'true', text: '！' }),
+        el('span', { text: complianceTip(item, ok) })
+      ])
+    ]);
+  }
+
+  function complianceTip(item, ok) {
+    if (item.t === '合规') {
+      return ok
+        ? '合规提示：合规判断与客户风险等级无关，考的是「这件事能不能做」；拿不准时按最严的内控与监管要求处理。'
+        : '合规提示：这类做法即使客户同意也不成立；客户信息与交易信息受保密义务约束，不得用于为自己或他人谋利。';
+    }
+    if (!ok) {
+      return '合规提示：不得向风险承受能力低于产品风险等级的客户主动推荐；客户坚持购买须特别警示、确认并留痕，仍不匹配的应拒绝销售。';
+    }
+    return '合规提示：匹配只是底线，仍须说明产品风险、费用与流动性安排，并把揭示与确认过程留痕。';
+  }
+
+  /* ============================================================
+     六、错题本
+     ============================================================ */
+
+  function viewWrong() {
+    const list = progress.wrong.slice().sort(function (a, b) {
+      return (b.n || 0) - (a.n || 0) || (b.ts || 0) - (a.ts || 0);
+    });
+
+    const back = backLink('返回首页');
+    if (!list.length) {
+      return el('div', { class: 'stack' }, [
+        back,
+        emptyPanel('净', '错题本是空的', '去知识闯关做一轮题；答错的题会自动收进这里，连续答对 2 次后移出。', '去知识闯关', function () { go('quizsetup'); })
+      ]);
+    }
+
+    const cards = el('div', { class: 'wronglist' });
+    list.forEach(function (w) {
+      const summary = w.q.length > 56 ? w.q.slice(0, 56) + '…' : w.q;
+      const c = w.c || 0;
+      cards.appendChild(el('article', { class: 'wrongcard' }, [
+        el('div', { class: 'wrongcard__top' }, [
+          tag(w.t, 'tag--muted'),
+          tag('难度 · ' + DIFFICULTY_NAMES[w.d], 'tag--muted'),
+          tag('错误 ' + w.n + ' 次', 'tag--cinnabar')
+        ]),
+        el('p', { class: 'wrongcard__q', text: summary }),
+        el('div', { class: 'wrongcard__foot' }, [
+          el('div', { class: 'wrongcard__stat' }, [
+            el('span', { text: '连续答对 ' + c + ' / 2 · 再答对 ' + (2 - c) + ' 次移出' })
+          ]),
+          el('button', {
+            class: 'btn btn--ghost btn--small',
+            type: 'button',
+            text: '重做此题',
+            onclick: function () { startRedo(w.h); }
+          })
+        ]),
+        el('div', { class: 'wrongcard__meter' }, [
+          el('div', { class: 'bar', 'aria-hidden': 'true' }, [
+            el('i', { style: { width: (c / 2 * 100) + '%' } })
+          ])
+        ])
+      ]));
+    });
+
+    return el('div', { class: 'stack' }, [
+      back,
+      el('section', { class: 'panel' }, [
+        el('div', { class: 'headblock' }, [
+          el('div', { class: 'eyebrow', text: '错题本 / REVIEW' }),
+          el('h2', { text: '错题不是收藏，是待办' }),
+          el('p', { text: '按错误次数排序。点「重做此题」重答，连续答对 2 次后自动移出；中途答错会把连续计数清零，但错误次数继续累加。' })
+        ]),
+        cards
+      ]),
+      el('div', { class: 'actions' }, [
+        el('span', { class: 'actions__hint', text: '错题本共 ' + list.length + ' 题' }),
+        el('div', { class: 'actions__right' }, [
+          el('button', { class: 'btn btn--ghost', type: 'button', text: '去知识闯关', onclick: function () { go('quizsetup'); } })
+        ])
+      ])
+    ]);
+  }
+
+  function startRedo(hash) {
+    const existing = progress.wrong.filter(function (w) { return w.h === hash; })[0];
+    if (!existing) { toast('这道题已不在错题本'); render(); return; }
+    const current = DATA_BY_HASH[hash];
+    const item = current || normalizeItem(existing);
+    if (!item) { toast('该题数据已不可用'); return; }
+    state.redo = { item: item, answered: null };
+    go('redo');
+  }
+
+  function viewRedo() {
+    const redo = state.redo;
+    if (!redo || !redo.item) {
+      return emptyPanel('题', '重做题目不可用', '请回到错题本重新选择。', '返回错题本', function () { go('wrong'); });
+    }
+    const item = redo.item;
+    const inBook = progress.wrong.filter(function (w) { return w.h === item.h; })[0];
+    return el('div', { class: 'stack' }, [
+      backLink('返回错题本', 'wrong'),
+      el('div', { class: 'quiz-top' }, [
+        el('div', { class: 'quiz-top__count' }, [
+          el('b', { class: 'num', text: '重做' }),
+          el('span', { text: inBook ? '连续答对 ' + (inBook.c || 0) + ' / 2' : '已移出错题本' })
+        ]),
+        el('div', { class: 'quiz-top__right' }, [
+          tag(item.t, 'tag--muted'),
+          tag('难度 · ' + DIFFICULTY_NAMES[item.d])
+        ])
+      ]),
+      el('section', { class: 'panel qpanel' }, [
+        el('div', { class: 'qmeta' }, [
+          tag('错题重做', 'tag--cinnabar'),
+          tag('连续答对 2 次移出', 'tag--muted')
+        ]),
+        el('h2', { class: 'qtext', text: item.q }),
+        el('div', { class: 'qsub', text: redo.answered ? '本次重做已判定，解析见下方。' : '重新判断，不要凭印象选。' }),
+        choiceList(item, redo.answered, answerRedo, 'quiz'),
+        redo.answered ? feedbackBox(item, redo.answered, 'redo') : null,
+        redo.answered ? el('div', { class: 'actions' }, [
+          el('span', { class: 'actions__hint', text: (progress.wrong.length ? '错题本还剩 ' + progress.wrong.length + ' 题。' : '错题本已经清空。') }),
+          el('div', { class: 'actions__right' }, [
+            progress.wrong.length
+              ? el('button', { class: 'btn', type: 'button', text: '下一道错题 →', onclick: startNextRedo })
+              : null,
+            el('button', { class: 'btn btn--ghost', type: 'button', text: '返回错题本', onclick: function () { go('wrong'); } })
+          ])
+        ]) : null
+      ])
+    ]);
+  }
+
+  function answerRedo(pick) {
+    const redo = state.redo;
+    if (!redo || !redo.item || redo.answered || state.busy) return;
+    const item = redo.item;
+    if (typeof pick !== 'number') return;
+    state.busy = true;
+
+    const ok = pick === item.a;
+    const entry = progress.wrong.filter(function (w) { return w.h === item.h; })[0];
+    persistProgress(recordResult(progress, item, ok));
+    const after = progress.wrong.filter(function (w) { return w.h === item.h; })[0];
+    const removed = !!entry && !after;
+    if (removed) toast('连续答对 2 次，已移出错题本');
+
+    redo.answered = {
+      pick: pick,
+      ok: ok,
+      removed: removed,
+      count: after ? (after.c || 0) : 0
+    };
+    render();
+    state.busy = false;
+    revealFeedback();
+  }
+
+  function startNextRedo() {
+    if (!progress.wrong.length) { go('wrong'); return; }
+    const next = progress.wrong.slice().sort(function (a, b) {
+      return (b.n || 0) - (a.n || 0) || (b.ts || 0) - (a.ts || 0);
+    })[0];
+    startRedo(next.h);
+  }
+
+  function feedbackBox(item, answered, mode) {
+    const ok = answered.ok;
+    let title = ok ? '回答正确，+10 分' : '回答错误，已记入错题本';
+    let sub = '';
+    if (mode === 'redo') {
+      if (ok) {
+        title = answered.removed ? '连续答对 2 次，已移出错题本' : '答对了，连续答对 ' + answered.count + ' / 2';
+        sub = answered.removed ? '这道题已完成纠错。' : '保持正确，再答对 ' + (2 - answered.count) + ' 次即可移出。';
+      } else {
+        title = '又答错了，连续计数清零';
+        sub = '错误次数已累加，建议读完解析再重做。';
+      }
+    } else if (ok) {
+      sub = '得分 +10，连对继续。';
+    } else {
+      sub = '本题已进入错题本，连续答对 2 次可移出。';
+    }
+
+    return el('div', { class: 'feedback ' + (ok ? 'feedback--ok' : 'feedback--bad'), 'aria-live': 'polite' }, [
+      el('div', { class: 'feedback__head' }, [
+        el('span', { class: 'feedback__icon', 'aria-hidden': 'true', text: ok ? '✓' : '✕' }),
+        el('b', { text: title }),
+        el('span', { class: 'feedback__sub', text: sub })
+      ]),
+      el('div', { class: 'feedback__body' }, [
+        el('span', { class: 'feedback__label', text: '解析' }),
+        el('p', { class: 'feedback__text', text: item.x })
+      ]),
+      el('div', { class: 'metaline' }, [
+        tag('分类 · ' + item.t),
+        tag('难度 · ' + DIFFICULTY_NAMES[item.d]),
+        tag('正确答案 · ' + LETTERS[item.a], ok ? 'tag--jade' : 'tag--cinnabar')
+      ])
+    ]);
+  }
+
+  function revealFeedback() {
+    window.setTimeout(function () {
+      const node = qs('.feedback, .verdict', app);
+      if (!node || !node.scrollIntoView) return;
+      try { node.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      catch (err) { try { node.scrollIntoView(false); } catch (err2) {} }
+    }, 60);
+  }
+
+  /* ============================================================
+     七、资产配置模拟器
+     ============================================================ */
+
+  function viewAlloc() {
+    const a = state.alloc;
+    const prof = PROFILES[a.profile] || PROFILES[2];
+    const m = portfolioMetrics(a.weights);
+
+    const profileButtons = el('div', { class: 'profiles', role: 'group', 'aria-label': '客户风险画像' });
+    PROFILES.forEach(function (p, i) {
+      profileButtons.appendChild(el('button', {
+        type: 'button',
+        class: 'profile',
+        'aria-pressed': i === a.profile ? 'true' : 'false',
+        onclick: function () {
+          if (state.alloc.profile === i) return;
+          state.alloc.profile = i;
+          state.alloc.submitted = null;
+          render();
+        }
+      }, [
+        el('b', { text: p.name }),
+        el('span', { text: '目标 ' + p.target.toFixed(1) + ' · 权益≤' + p.cap + '%' }),
+        el('span', { text: p.desc })
+      ]));
+    });
+
+    const sliderRows = el('div', {});
+    ASSETS.forEach(function (asset, i) {
+      const val = a.weights[i];
+      sliderRows.appendChild(el('div', { class: 'alloc-row' }, [
+        el('div', { class: 'alloc-row__top' }, [
+          el('label', { class: 'alloc-row__name', for: 'alloc-w-' + i }, [
+            el('span', { class: 'alloc-row__dot', 'aria-hidden': 'true', style: { background: asset.color } }),
+            el('span', { text: asset.name }),
+            el('span', { class: 'alloc-row__risk', text: '风险系数 ' + asset.risk.toFixed(1) })
+          ]),
+          el('output', { class: 'alloc-row__val', for: 'alloc-w-' + i, 'data-out': String(i), text: val + '%' })
+        ]),
+        el('input', {
+          type: 'range',
+          class: 'alloc-range',
+          id: 'alloc-w-' + i,
+          min: '0',
+          max: '100',
+          step: '1',
+          value: String(val),
+          'data-weight': String(i),
+          'aria-label': asset.name + '配置比例',
+          'aria-valuemin': '0',
+          'aria-valuemax': '100',
+          'aria-valuenow': String(val),
+          'aria-valuetext': val + '%',
+          style: { background: sliderBg(asset.color, val) },
+          oninput: function (e) { onAllocInput(i, e.target.value); }
+        })
+      ]));
+    });
+
+    const mixSegs = [];
+    const mixLegend = el('div', { class: 'mixlegend' });
+    ASSETS.forEach(function (asset, i) {
+      mixSegs.push(el('i', { 'data-seg': String(i), style: { width: m.weights[i] + '%', background: asset.color } }));
+      mixLegend.appendChild(el('span', {}, [
+        el('i', { style: { background: asset.color } }),
+        el('span', { text: asset.short + ' ' + m.weights[i] + '%' })
+      ]));
+    });
+
+    const resultBox = el('div', { class: 'result', id: 'alloc-result', 'aria-live': 'polite' });
+    if (a.submitted) {
+      resultBox.appendChild(allocResultContent(a.submitted));
+    } else {
+      resultBox.appendChild(el('p', { class: 'result__empty', text: '调整配置后点击「提交方案」获取评分。评分只针对当前画像与比例，不构成投资建议。' }));
+    }
+
+    return el('div', { class: 'stack' }, [
+      backLink('返回首页'),
+      el('section', { class: 'panel' }, [
+        el('div', { class: 'headblock' }, [
+          el('div', { class: 'eyebrow', text: '资产配置 / ALLOCATION' }),
+          el('h2', { text: '四类资产，一位客户' }),
+          el('p', { text: '先选客户画像，再拖动四类资产比例。合计恒为 100%：调整一类时，其余三类按原比例自动让位。权重用键盘方向键也能微调。' })
+        ]),
+        el('div', { class: 'field', style: { marginTop: '2px' } }, [
+          el('div', { class: 'field__lab' }, [el('span', { text: '客户画像' }), el('span', { text: '目标风险分与权益上限' })]),
+          profileButtons
+        ]),
+        el('div', { class: 'disclaimer', text: '示意模型，不构成投资建议。风险分与波动区间为教学用简化计算，不代表真实产品业绩。' })
+      ]),
+      el('div', { class: 'alloc-grid' }, [
+        el('section', { class: 'panel alloc-panel alloc-summary' }, [
+          el('div', { class: 'alloc-summary__head' }, [
+            el('div', { class: 'eyebrow', text: '配置比例' }),
+            el('span', { class: 'tiny faint', id: 'alloc-total', text: '合计 100%' })
+          ]),
+          sliderRows,
+          el('div', { class: 'alloc-actions' }, [
+            el('button', { class: 'btn', type: 'button', id: 'alloc-submit', text: '提交方案', onclick: submitAlloc }),
+            el('button', {
+              class: 'btn btn--ghost',
+              type: 'button',
+              text: '归零重来',
+              onclick: function () {
+                state.alloc.weights = [25, 25, 25, 25];
+                state.alloc.submitted = null;
+                render();
+                toast('已归零重来，恢复 25 / 25 / 25 / 25');
+              }
+            })
+          ])
+        ]),
+        el('aside', { class: 'alloc-summary', 'aria-label': '实时组合指标' }, [
+          el('div', { class: 'alloc-summary__head' }, [
+            el('div', { class: 'eyebrow', text: '实时指标' }),
+            tag(prof.name, 'tag--cinnabar')
+          ]),
+          el('div', { class: 'riskbig' }, [
+            el('b', { class: 'num', id: 'alloc-risk', text: m.risk.toFixed(1) }),
+            el('span', { text: '/ 5.0 风险分' })
+          ]),
+          el('div', { class: 'riskline', id: 'alloc-target', text: targetLine(m.risk, prof) }),
+          el('div', { class: 'kvgrid' }, [
+            el('div', { class: 'kv' }, [
+              el('div', { class: 'kv__k', text: '权益占比' }),
+              el('div', { class: 'kv__v ' + (m.equity > prof.cap ? 'cinnabar' : 'jade'), id: 'alloc-equity', text: m.equity.toFixed(1) + '%' }),
+              el('div', { class: 'kv__s', id: 'alloc-cap', text: '上限 ' + prof.cap + '%' }),
+              el('div', { class: 'capmeter' + (m.equity > prof.cap ? ' is-over' : ''), id: 'alloc-capmeter' }, [
+                el('div', { class: 'meter' }, [el('i', { style: { width: Math.min(100, prof.cap ? m.equity / prof.cap * 100 : 100) + '%' } })])
+              ])
+            ]),
+            el('div', { class: 'kv' }, [
+              el('div', { class: 'kv__k', text: '示意波动区间' }),
+              el('div', { class: 'kv__v', id: 'alloc-vol', text: '−' + m.vol.toFixed(1) + '% ~ +' + m.vol.toFixed(1) + '%' }),
+              el('div', { class: 'kv__s', text: '示意年化，仅作教学' })
+            ])
+          ]),
+          el('div', { class: 'mixbar', 'aria-hidden': 'true' }, mixSegs),
+          mixLegend
+        ])
+      ]),
+      resultBox
+    ]);
+  }
+
+  function sliderBg(color, pct) {
+    return 'linear-gradient(90deg, ' + color + ' 0%, ' + color + ' ' + pct + '%, rgba(255,255,255,0.09) ' + pct + '%, rgba(255,255,255,0.09) 100%) center / 100% 8px no-repeat';
+  }
+
+  function targetLine(risk, prof) {
+    const diff = Math.abs(risk - prof.target);
+    let word = '接近目标';
+    if (diff > 1.2) word = '偏离较大';
+    else if (diff > 0.5) word = '略有偏离';
+    return '目标 ' + prof.target.toFixed(1) + ' · ' + word + '（差 ' + diff.toFixed(1) + '）';
+  }
+
+  function onAllocInput(index, value) {
+    const v = Math.round(clamp(Number(value) || 0, 0, 100));
+    state.alloc.weights = rebalanceWeights(state.alloc.weights, index, v);
+    state.alloc.submitted = null;
+    refreshAlloc();
+  }
+
+  function refreshAlloc() {
+    const a = state.alloc;
+    const prof = PROFILES[a.profile] || PROFILES[2];
+    const m = portfolioMetrics(a.weights);
+
+    ASSETS.forEach(function (asset, i) {
+      const w = a.weights[i];
+      const input = qs('[data-weight="' + i + '"]', app);
+      const out = qs('[data-out="' + i + '"]', app);
+      if (input) {
+        input.value = String(w);
+        input.setAttribute('aria-valuenow', String(w));
+        input.setAttribute('aria-valuetext', w + '%');
+        input.style.background = sliderBg(asset.color, w);
+      }
+      if (out) out.textContent = w + '%';
+      const seg = qs('[data-seg="' + i + '"]', app);
+      if (seg) seg.style.width = w + '%';
+    });
+
+    const legend = qs('.mixlegend', app);
+    if (legend) {
+      legend.replaceChildren.apply(legend, ASSETS.map(function (asset, i) {
+        return el('span', {}, [
+          el('i', { style: { background: asset.color } }),
+          el('span', { text: asset.short + ' ' + a.weights[i] + '%' })
+        ]);
+      }));
+    }
+
+    const total = qs('#alloc-total', app);
+    if (total) total.textContent = '合计 ' + a.weights.reduce(function (x, y) { return x + y; }, 0) + '%';
+
+    const riskEl = qs('#alloc-risk', app);
+    if (riskEl) riskEl.textContent = m.risk.toFixed(1);
+    const targetEl = qs('#alloc-target', app);
+    if (targetEl) targetEl.textContent = targetLine(m.risk, prof);
+
+    const equityEl = qs('#alloc-equity', app);
+    if (equityEl) {
+      equityEl.textContent = m.equity.toFixed(1) + '%';
+      equityEl.classList.toggle('cinnabar', m.equity > prof.cap);
+      equityEl.classList.toggle('jade', m.equity <= prof.cap);
+    }
+    const capEl = qs('#alloc-cap', app);
+    if (capEl) capEl.textContent = m.equity > prof.cap ? '超出上限 ' + prof.cap + '%' : '上限 ' + prof.cap + '%';
+    const capMeter = qs('#alloc-capmeter', app);
+    if (capMeter) {
+      capMeter.classList.toggle('is-over', m.equity > prof.cap);
+      const fill = qs('i', capMeter);
+      if (fill) fill.style.width = Math.min(100, prof.cap ? m.equity / prof.cap * 100 : 100) + '%';
+    }
+    const volEl = qs('#alloc-vol', app);
+    if (volEl) volEl.textContent = '−' + m.vol.toFixed(1) + '% ~ +' + m.vol.toFixed(1) + '%';
+
+    const box = qs('#alloc-result', app);
+    if (box) {
+      if (a.submitted) {
+        box.replaceChildren(allocResultContent(a.submitted));
+      } else {
+        box.replaceChildren(el('p', { class: 'result__empty', text: '配置已调整，请重新提交评分。评分只针对当前画像与比例，不构成投资建议。' }));
+      }
+    }
+  }
+
+  function submitAlloc() {
+    const prof = PROFILES[state.alloc.profile] || PROFILES[2];
+    state.alloc.submitted = scorePortfolio(state.alloc.weights, prof);
+    render();
+    window.setTimeout(function () {
+      const box = qs('#alloc-result', app);
+      if (box && box.scrollIntoView) {
+        try { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+        catch (err) { try { box.scrollIntoView(false); } catch (err2) {} }
+      }
+    }, 60);
+  }
+
+  function allocResultContent(result) {
+    const grade = result.score >= 85 ? '配置稳健' : result.score >= 70 ? '基本合适' : result.score >= 50 ? '仍需调整' : '明显不匹配';
+    const gradeClass = result.score >= 85 ? '' : result.score >= 70 ? ' verdictlabel--mid' : ' verdictlabel--bad';
+    const nodes = [];
+
+    nodes.push(el('div', { class: 'result__top' }, [
+      el('div', { class: 'scorebig' }, [
+        el('b', { class: 'num', text: String(result.score) }),
+        el('span', { text: '/ 100' })
+      ]),
+      el('div', { class: 'verdictlabel' + gradeClass, text: grade })
+    ]));
+
+    const rows = [
+      { label: '风险匹配', pts: result.breakdown.risk, max: 60 },
+      { label: '权益上限', pts: result.breakdown.cap, max: 20 },
+      { label: '分散度', pts: result.breakdown.div, max: 20 }
+    ];
+    const bd = el('div', { class: 'breakdown' });
+    rows.forEach(function (row) {
+      bd.appendChild(el('div', { class: 'bd' }, [
+        el('span', { text: row.label }),
+        el('div', { class: 'bar' }, [el('i', { style: { width: (row.pts / row.max * 100) + '%' } })]),
+        el('span', { class: 'bd__v', text: row.pts + ' / ' + row.max })
+      ]));
+    });
+    nodes.push(bd);
+
+    const comments = el('ul', { class: 'comments' });
+    result.comments.forEach(function (text, i) {
+      const risk = /超出|低于|超过|偏离|无法/.test(text);
+      comments.appendChild(el('li', { class: risk ? 'is-risk' : '', text: text }));
+    });
+    nodes.push(comments);
+
+    if (result.normalized) {
+      nodes.push(el('p', { class: 'result__note', text: '输入合计为 ' + result.total + '%，已按比例归一化后评分。' }));
+    }
+
+    nodes.push(el('div', { class: 'compliance' }, [
+      el('span', { class: 'compliance__icon', 'aria-hidden': 'true', text: '！' }),
+      el('span', { text: '合规提示：方案须结合客户风险测评、投资期限与流动性需求，履行适当性匹配与风险揭示，不得承诺收益或保本。' })
+    ]));
+    nodes.push(el('p', { class: 'result__note', text: '示意模型，不构成投资建议。' }));
+    return el('div', {}, nodes);
+  }
+
+  /* ============================================================
+     八、渲染入口
+     ============================================================ */
+
+  function viewError() {
+    return el('section', { class: 'panel empty' }, [
+      el('div', { class: 'empty__mark', 'aria-hidden': 'true', text: '诊' }),
+      el('h2', { text: '页面暂时无法渲染' }),
+      el('p', { text: '题库数据或浏览器状态异常。页面不会白屏：可以回到首页，或刷新后重试。' }),
+      el('button', {
+        class: 'btn',
+        type: 'button',
+        text: '回到首页',
+        onclick: function () { state.view = 'home'; render(); }
+      })
+    ]);
+  }
+
+  function render() {
+    let node = null;
+    try {
+      if (state.view === 'home') node = viewHome();
+      else if (state.view === 'quizsetup') node = viewQuizSetup();
+      else if (state.view === 'quiz') node = viewQuiz();
+      else if (state.view === 'suitsetup') node = viewSuitSetup();
+      else if (state.view === 'suit') node = viewSuit();
+      else if (state.view === 'alloc') node = viewAlloc();
+      else if (state.view === 'wrong') node = viewWrong();
+      else if (state.view === 'redo') node = viewRedo();
+      else node = viewHome();
+    } catch (err) {
+      node = viewError();
+    }
+    if (!node) node = viewError();
+    node.classList.add('screen');
+    app.replaceChildren(node);
+    if (state.view === 'alloc') refreshAlloc();
+  }
+
+  /* ============================================================
+     九、挂载
+     ============================================================ */
+
+  DSHG.mountChrome({
+    title: '理财诊室 · 银行从业',
+    meta: 'FINANCE · PRACTICE',
+    footnote: '理财诊室 · 银行从业训练 · 纯前端离线可玩 · 示意模型不构成投资建议'
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

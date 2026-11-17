@@ -1,0 +1,2373 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>成语闯关 · 考公 · 墨戏五卷</title>
+<meta name="description" content="四道关，一条一条记：释义猜成语、语境填词、末字接龙、褒贬快判，附学习卡与错题本。纯前端离线可玩。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0f16'/%3E%3Cpath d='M16 20h32M16 32h32M16 44h20' stroke='%23c9a86a' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='46' cy='44' r='5' fill='none' stroke='%23e8cd97' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="./assets/theme.css">
+<style>
+  /* ============ 成语闯关 · 本页样式 ============ */
+  #app { width: min(820px, calc(100% - 40px)); padding: 20px 0 0; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  .linkish {
+    border: 0; background: none; padding: 0;
+    font: inherit; color: var(--gold-bright);
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .linkish:hover { border-bottom-color: var(--gold); }
+  button.back { border: 0; background: none; padding: 6px 0; cursor: pointer; font-family: var(--font-sans); }
+  .mode:focus-visible, .shelf__btn:focus-visible, .crow:focus-visible,
+  .wrow:focus-visible, .lrow__btn:focus-visible, .pager__btn:focus-visible,
+  .overlay__close:focus-visible, .linkish:focus-visible, button.back:focus-visible {
+    outline: 2px solid var(--gold-bright); outline-offset: 2px;
+  }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--gold-bright); outline-offset: 2px;
+  }
+
+  /* ---- 首页 ---- */
+  .home__head { padding-top: 8px; }
+  .home__title { font-size: clamp(31px, 5.6vw, 46px); line-height: 1.3; margin-bottom: 14px; }
+  .home__title em { font-style: normal; color: var(--gold-bright); }
+  .lede {
+    font-family: var(--font-serif);
+    font-size: 16px; line-height: 1.98;
+    color: var(--text); max-width: 35em; margin-bottom: 0;
+    text-align: justify;
+  }
+  .lede--dim { font-size: 14px; color: var(--text-dim); margin-top: 10px; }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px; margin: 24px 0 0;
+  }
+  .stat {
+    padding: 15px 14px 13px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(160deg, rgba(31, 41, 61, 0.62), rgba(12, 16, 24, 0.5));
+    position: relative; overflow: hidden;
+  }
+  .stat::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg, var(--gold), transparent);
+    opacity: 0.65;
+  }
+  .stat__k { display: block; font-size: 11px; letter-spacing: 0.22em; color: var(--text-faint); }
+  .stat__v {
+    display: block; font-family: var(--font-num);
+    font-size: clamp(25px, 6vw, 33px); line-height: 1.25;
+    color: var(--gold-bright); margin: 3px 0 1px;
+  }
+  .stat__n { display: block; font-size: 10.5px; letter-spacing: 0.03em; color: var(--text-faint); }
+  .stat--jade::before { background: linear-gradient(180deg, var(--jade), transparent); }
+  .stat--jade .stat__v { color: var(--jade-bright); }
+  .stat--cin::before { background: linear-gradient(180deg, var(--cinnabar), transparent); }
+  .stat--cin .stat__v { color: var(--cinnabar-bright); }
+
+  .study { margin-top: 18px; }
+  .study__row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; margin-bottom: 7px;
+    font-size: 11.5px; letter-spacing: 0.08em; color: var(--text-faint);
+  }
+  .study .meter { height: 5px; }
+
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin: 30px 0 12px; }
+  .section-head h2 { margin: 0; font-size: 20px; }
+  .section-head span { font-size: 10.5px; letter-spacing: 0.24em; color: var(--text-faint); }
+
+  .modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .mode {
+    display: flex; flex-direction: column; gap: 4px;
+    width: 100%; padding: 18px 17px 16px;
+    text-align: left; font-family: var(--font-sans); color: inherit;
+    border: 1px solid var(--line-soft); border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.022);
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  }
+  .mode:hover { border-color: var(--line); background: rgba(201, 168, 106, 0.065); transform: translateY(-2px); }
+  .mode[aria-disabled="true"] { opacity: 0.46; cursor: not-allowed; transform: none; }
+  .mode[aria-disabled="true"]:hover { border-color: var(--line-soft); background: rgba(255, 255, 255, 0.022); }
+  .mode__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .mode__no { font-family: var(--font-serif); font-size: 13px; letter-spacing: 0.24em; color: var(--gold-dim); }
+  .mode__badge {
+    font-size: 10.5px; letter-spacing: 0.06em; color: var(--text-faint);
+    border: 1px solid var(--line-soft); border-radius: 999px; padding: 2px 9px; white-space: nowrap;
+  }
+  .mode__title { display: block; margin: 5px 0 1px; font-family: var(--font-serif); font-size: 21px; font-weight: 600; letter-spacing: 0.07em; color: var(--text); }
+  .mode__desc { display: block; margin: 0; font-size: 13px; line-height: 1.66; color: var(--text-dim); }
+  .mode__go {
+    margin-top: 9px; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; letter-spacing: 0.13em; color: var(--gold);
+  }
+  .mode__go::after { content: "→"; transition: transform 0.2s ease; }
+  .mode:hover .mode__go::after { transform: translateX(4px); }
+  .mode[aria-disabled="true"] .mode__go { color: var(--text-faint); }
+
+  .shelf { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .shelf__btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 14px 16px; text-align: left; font-family: var(--font-sans);
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: transparent; color: var(--text); cursor: pointer;
+    transition: background 0.18s ease, border-color 0.18s ease;
+  }
+  .shelf__btn:hover { background: rgba(201, 168, 106, 0.075); border-color: rgba(201, 168, 106, 0.45); }
+  .shelf__btn b { font-family: var(--font-serif); font-size: 17px; font-weight: 600; letter-spacing: 0.06em; }
+  .shelf__btn span { font-size: 11.5px; color: var(--text-faint); }
+
+  .resume {
+    margin-top: 14px; padding: 15px 17px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    border: 1px dashed var(--line); border-radius: var(--radius-sm);
+    background: rgba(201, 168, 106, 0.05);
+  }
+  .resume__txt { flex: 1; min-width: 190px; font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+  .resume__txt b { color: var(--gold-bright); font-weight: 600; font-family: var(--font-serif); font-size: 14.5px; }
+  .resume__acts { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .home__foot {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap; margin-top: 26px;
+    font-size: 11.5px; color: var(--text-faint);
+  }
+  .home__foot .linkish { font-size: 12px; color: var(--text-dim); }
+  .home__foot .linkish:hover { color: var(--gold-bright); }
+
+  .notice {
+    margin-top: 18px; padding: 12px 15px;
+    border: 1px solid rgba(224, 96, 79, 0.32);
+    background: rgba(184, 71, 60, 0.08);
+    border-radius: var(--radius-sm);
+    font-size: 13px; line-height: 1.75; color: var(--text-dim);
+  }
+  .notice b { color: var(--cinnabar-bright); }
+
+  /* ---- 答题 ---- */
+  .hud { padding: 2px 2px 0; margin-bottom: 16px; }
+  .hud__row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .hud__k { font-family: var(--font-serif); font-size: 13px; letter-spacing: 0.26em; color: var(--gold-dim); }
+  .hud__v { font-size: 12px; letter-spacing: 0.04em; color: var(--text-dim); }
+  .hud .meter { height: 5px; }
+  .hud__stats { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 11.5px; color: var(--text-faint); }
+  .hud__stats b { font-family: var(--font-num); font-weight: 400; color: var(--gold-bright); font-size: 13px; }
+
+  .panel.quiz { padding: 27px 28px 23px; }
+  .qhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .qhead__left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .qexit { font-size: 11.5px; color: var(--text-faint); border-bottom-color: transparent; letter-spacing: 0.08em; }
+  .qexit:hover { color: var(--gold-bright); }
+  .q-label {
+    font-size: 10.5px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold-dim); margin-bottom: 10px;
+  }
+  .q-m {
+    margin: 0; font-family: var(--font-serif);
+    font-size: clamp(17px, 2.4vw, 20px); line-height: 1.95;
+    color: var(--text); text-align: justify;
+  }
+  .q-e {
+    margin: 0; font-family: var(--font-serif);
+    font-size: clamp(17px, 2.4vw, 20px); line-height: 2.02;
+    color: var(--text); text-align: justify;
+  }
+  .blank {
+    display: inline-block; min-width: 3.6em; margin: 0 2px;
+    color: var(--gold-bright); letter-spacing: 0.02em;
+    border-bottom: 2px solid var(--gold); line-height: 1.5;
+  }
+  .chain { text-align: center; padding: 2px 0 4px; }
+  .chain__word {
+    font-family: var(--font-serif);
+    font-size: clamp(38px, 9.5vw, 54px); line-height: 1.24;
+    letter-spacing: 0.13em; text-indent: 0.13em; color: var(--text);
+  }
+  .chain__word i {
+    font-style: normal; color: var(--gold-bright);
+    border-bottom: 2px solid var(--gold);
+  }
+  .chain__arrow { font-family: var(--font-num); color: var(--gold-dim); font-size: 16px; letter-spacing: 0.24em; margin: 5px 0; }
+  .chain__hint { font-size: 12px; letter-spacing: 0.06em; color: var(--text-faint); }
+  .chain__note { margin-top: 7px; font-size: 11.5px; color: var(--jade-bright); }
+  .polar { text-align: center; padding: 10px 0 6px; }
+  .polar__word {
+    font-family: var(--font-serif);
+    font-size: clamp(45px, 12vw, 66px); line-height: 1.24;
+    letter-spacing: 0.14em; text-indent: 0.14em; color: var(--gold-bright);
+  }
+  .polar__ask { margin-top: 8px; font-size: 12px; letter-spacing: 0.16em; color: var(--text-faint); }
+
+  .opts { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+  .opt {
+    display: flex; align-items: center; gap: 13px;
+    width: 100%; min-height: 54px;
+    padding: 13px 16px;
+    text-align: left; font-family: var(--font-sans);
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  }
+  .opt:hover:not([disabled]) { border-color: var(--line); background: rgba(201, 168, 106, 0.075); transform: translateY(-1px); }
+  .opt[disabled] { cursor: default; }
+  .opt__no {
+    flex: 0 0 auto; width: 23px; height: 23px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 50%;
+    font-size: 11.5px; color: var(--gold);
+  }
+  .opt__t { flex: 1; font-family: var(--font-serif); font-size: 19px; letter-spacing: 0.09em; line-height: 1.45; }
+  .opt__t--plain { font-family: var(--font-sans); font-size: 16px; letter-spacing: 0.12em; }
+  .opt__mark { flex: 0 0 auto; width: 18px; font-size: 15px; opacity: 0; text-align: right; }
+  .opt.is-right {
+    border-color: rgba(148, 201, 186, 0.62);
+    background: rgba(111, 168, 154, 0.13);
+    animation: okPulse 0.44s ease;
+  }
+  .opt.is-right .opt__no { background: var(--jade); border-color: var(--jade); color: var(--ink-0); }
+  .opt.is-right .opt__mark { opacity: 1; color: var(--jade-bright); }
+  .opt.is-wrong {
+    border-color: rgba(224, 96, 79, 0.6);
+    background: rgba(184, 71, 60, 0.13);
+    animation: noShake 0.4s ease;
+  }
+  .opt.is-wrong .opt__no { background: var(--cinnabar); border-color: var(--cinnabar); color: #fff6f2; }
+  .opt.is-wrong .opt__mark { opacity: 1; color: var(--cinnabar-bright); }
+  .opt.is-muted { opacity: 0.5; }
+  @keyframes okPulse { 0% { transform: scale(0.995); } 55% { transform: scale(1.008); } 100% { transform: none; } }
+  @keyframes noShake {
+    0%, 100% { transform: translateX(0); }
+    22% { transform: translateX(-4px); }
+    46% { transform: translateX(4px); }
+    70% { transform: translateX(-2px); }
+  }
+
+  .qfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .hint { font-size: 11.5px; letter-spacing: 0.03em; color: var(--text-faint); }
+  .kbd {
+    display: inline-grid; place-items: center;
+    min-width: 18px; height: 18px; margin: 0 2px; padding: 0 4px;
+    font-family: var(--font-num); font-size: 10.5px; line-height: 1;
+    color: var(--text-dim);
+    border: 1px solid var(--line-soft); border-radius: 4px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .fb { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line-soft); animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; scroll-margin-top: 80px; }
+  .fb__verdict {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-serif); font-size: 17px; letter-spacing: 0.06em;
+    margin-bottom: 15px;
+  }
+  .fb__icon {
+    width: 27px; height: 27px; flex: 0 0 auto;
+    display: grid; place-items: center;
+    border-radius: 50%; border: 1px solid; font-size: 13px;
+  }
+  .fb--ok .fb__verdict { color: var(--jade-bright); }
+  .fb--ok .fb__icon { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.5); background: rgba(111, 168, 154, 0.13); }
+  .fb--no .fb__verdict { color: var(--cinnabar-bright); }
+  .fb--no .fb__icon { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.5); background: rgba(184, 71, 60, 0.13); }
+  .fb__combo { margin-left: auto; font-family: var(--font-num); font-size: 12px; letter-spacing: 0.04em; color: var(--text-faint); }
+  .word { display: flex; align-items: baseline; gap: 10px 14px; flex-wrap: wrap; margin-bottom: 10px; }
+  .word__w { font-family: var(--font-serif); font-size: clamp(27px, 5.6vw, 35px); letter-spacing: 0.16em; color: var(--text); }
+  .word__tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag--jade { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.4); background: rgba(111, 168, 154, 0.1); }
+  .tag--cin { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.4); background: rgba(184, 71, 60, 0.1); }
+  .tag--dim { color: var(--text-dim); border-color: var(--line-soft); background: rgba(255, 255, 255, 0.03); }
+  .fb__m { margin: 0 0 10px; font-size: 14.5px; line-height: 1.9; color: var(--text); }
+  .fb__e {
+    margin: 0 0 8px; padding-left: 12px;
+    border-left: 2px solid var(--line);
+    font-family: var(--font-serif); font-size: 14.5px; line-height: 1.9;
+    color: var(--text-dim); text-align: justify;
+  }
+  .fb__e .hit { color: var(--gold-bright); }
+  .fb__y { margin: 7px 0 0; font-size: 12.5px; letter-spacing: 0.03em; color: var(--cinnabar-bright); }
+  .fb__link { margin: 7px 0 0; font-size: 12.5px; color: var(--jade-bright); letter-spacing: 0.03em; }
+  .fb__cmp {
+    margin-top: 14px; padding: 12px 14px;
+    border: 1px solid rgba(184, 71, 60, 0.34);
+    border-radius: 9px; background: rgba(184, 71, 60, 0.075);
+    font-size: 13.3px; line-height: 1.8; color: var(--text-dim);
+  }
+  .fb__cmp b { color: var(--text); font-weight: 600; font-family: var(--font-serif); letter-spacing: 0.05em; }
+  .fb__cmp p { margin: 0; color: inherit; }
+  .fb__cmp p + p { margin-top: 6px; }
+  .fb__acts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 19px; }
+  .fb__acts .hint { margin-left: auto; }
+
+  /* ---- 结算 ---- */
+  .result__head { text-align: center; }
+  .result__head .eyebrow { margin-bottom: 8px; }
+  .result__big {
+    font-family: var(--font-num); line-height: 1.12;
+    font-size: clamp(44px, 11vw, 62px); color: var(--gold-bright);
+    letter-spacing: 0.03em;
+  }
+  .result__big small { font-family: var(--font-sans); font-size: 13px; letter-spacing: 0.1em; color: var(--text-faint); margin-left: 8px; }
+  .result__title { margin: 12px 0 0; font-size: clamp(20px, 3.4vw, 25px); color: var(--text); }
+  .metrics { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .metric {
+    min-width: 94px; padding: 10px 14px;
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(255, 255, 255, 0.022);
+  }
+  .metric b { display: block; font-family: var(--font-num); font-weight: 400; font-size: 19px; line-height: 1.3; color: var(--text); }
+  .metric span { display: block; font-size: 10.5px; letter-spacing: 0.16em; color: var(--text-faint); }
+  .cum { display: flex; align-items: center; justify-content: center; gap: 8px 12px; flex-wrap: wrap; margin-top: 16px; }
+  .chip { display: inline-flex; align-items: baseline; gap: 6px; font-size: 11.5px; color: var(--text-faint); }
+  .chip b { font-family: var(--font-num); font-weight: 400; font-size: 14px; color: var(--gold-bright); }
+  .learnlist { display: flex; flex-direction: column; gap: 8px; }
+  .lrow {
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(255, 255, 255, 0.022); overflow: hidden;
+  }
+  .lrow__btn {
+    display: flex; align-items: center; gap: 9px;
+    width: 100%; min-height: 50px; padding: 11px 14px;
+    background: none; border: 0; color: var(--text);
+    font-family: var(--font-sans); text-align: left; cursor: pointer;
+  }
+  .lrow__btn:hover { background: rgba(201, 168, 106, 0.06); }
+  .lrow__w { font-family: var(--font-serif); font-size: 18px; letter-spacing: 0.09em; flex: 0 0 auto; }
+  .lrow__m {
+    flex: 1; min-width: 0; font-size: 12.5px; color: var(--text-faint);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .lrow__chan { flex: 0 0 auto; font-size: 10.5px; color: var(--text-faint); transition: transform 0.2s ease; }
+  .lrow.is-open .lrow__chan { transform: rotate(180deg); }
+  .lrow__body { padding: 2px 14px 14px; font-size: 13.3px; line-height: 1.85; color: var(--text-dim); }
+  .lrow__body[hidden] { display: none; }
+  .lrow__body .fb__e { font-size: 13.3px; }
+  .result__acts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .result__fine { margin: 18px 0 0; font-size: 11.5px; color: var(--text-faint); text-align: center; }
+  .result__section { margin-top: 24px; }
+
+  /* ---- 学习卡 ---- */
+  .cards-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .cards-head h1 { margin: 2px 0 0; }
+  .cards-head__act { display: flex; gap: 10px; flex-wrap: wrap; }
+  .cards-panel { margin-top: 18px; padding: 22px 24px; scroll-margin-top: 80px; }
+  .toolbar { display: flex; flex-direction: column; gap: 10px; }
+  .search { position: relative; }
+  .search input {
+    width: 100%; min-height: 46px;
+    padding: 10px 14px 10px 42px;
+    font-family: inherit; font-size: 14.5px; color: var(--text);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line-soft); border-radius: 9px;
+  }
+  .search input::placeholder { color: var(--text-faint); }
+  .search input:focus { outline: none; border-color: rgba(201, 168, 106, 0.55); box-shadow: 0 0 0 3px rgba(201, 168, 106, 0.1); }
+  .search::before {
+    content: "搜"; position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-serif); font-size: 13px; color: var(--gold-dim);
+    pointer-events: none;
+  }
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; }
+  .filters select {
+    flex: 1; min-width: 132px; min-height: 42px;
+    padding: 8px 12px;
+    font-family: inherit; font-size: 13.5px; color: var(--text);
+    background: rgba(18, 24, 36, 0.92);
+    border: 1px solid var(--line-soft); border-radius: 8px;
+  }
+  .count-line {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+    margin: 16px 0 10px; font-size: 11.5px; color: var(--text-faint);
+    letter-spacing: 0.03em;
+  }
+  .count-line .linkish { font-size: 11.5px; color: var(--text-dim); }
+  .clist { display: flex; flex-direction: column; gap: 8px; }
+  .crow {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 4px 14px; width: 100%; min-height: 56px;
+    padding: 11px 14px; text-align: left;
+    font-family: var(--font-sans); color: inherit;
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(255, 255, 255, 0.02);
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease;
+  }
+  .crow:hover { border-color: var(--line); background: rgba(201, 168, 106, 0.06); }
+  .crow__w { flex: 0 0 auto; font-family: var(--font-serif); font-size: 20px; letter-spacing: 0.08em; }
+  .crow__mid { flex: 1 1 180px; min-width: 0; }
+  .crow__m { display: block; font-size: 12.6px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .crow__tags { display: flex; gap: 5px; margin-top: 3px; flex-wrap: wrap; }
+  .crow__tags .tag { font-size: 10.5px; padding: 1px 8px; }
+  .crow__stat { flex: 0 0 auto; margin-left: auto; font-size: 10.5px; color: var(--text-faint); text-align: right; white-space: nowrap; }
+  .crow__stat b { font-family: var(--font-num); font-weight: 400; color: var(--text-dim); font-size: 12px; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 7px; flex-wrap: wrap; margin-top: 18px; }
+  .pager__btn {
+    min-width: 36px; min-height: 36px; padding: 5px 10px;
+    border: 1px solid var(--line-soft); border-radius: 8px;
+    background: none; color: var(--text-dim);
+    font-family: var(--font-num); font-size: 12.5px; cursor: pointer;
+  }
+  .pager__btn:hover:not([disabled]) { border-color: var(--line); color: var(--gold-bright); background: rgba(201, 168, 106, 0.07); }
+  .pager__btn[disabled] { opacity: 0.32; cursor: not-allowed; }
+  .pager__btn.is-on { border-color: var(--gold); background: var(--gold); color: var(--ink-0); }
+  .pager__dots { color: var(--text-faint); font-size: 12px; padding: 0 2px; }
+  .pager__info { font-size: 11px; color: var(--text-faint); margin-left: 4px; }
+
+  /* ---- 错题本 ---- */
+  .wrong-panel { margin-top: 18px; padding: 22px 24px; }
+  .wrong-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .wrong-head__count { font-size: 12px; color: var(--text-faint); }
+  .wrong-list { display: flex; flex-direction: column; gap: 8px; }
+  .wrow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 5px 13px;
+    width: 100%; min-height: 56px; padding: 11px 14px;
+    text-align: left; font-family: var(--font-sans); color: inherit;
+    border: 1px solid var(--line-soft); border-radius: 9px;
+    background: rgba(255, 255, 255, 0.02); cursor: pointer;
+  }
+  .wrow:hover { border-color: var(--line); background: rgba(201, 168, 106, 0.06); }
+  .wrow__rank { flex: 0 0 auto; width: 22px; font-family: var(--font-num); font-size: 11px; color: var(--gold-dim); }
+  .wrow__w { flex: 0 0 auto; font-family: var(--font-serif); font-size: 20px; letter-spacing: 0.08em; }
+  .wrow__meta { flex: 1 1 160px; min-width: 0; font-size: 11.5px; color: var(--text-faint); }
+  .wrow__meta b { font-family: var(--font-num); font-weight: 400; color: var(--cinnabar-bright); }
+  .wrow__need { flex: 0 0 auto; margin-left: auto; font-size: 11.5px; color: var(--gold); white-space: nowrap; }
+
+  /* ---- 空状态 / 弹层 ---- */
+  .empty { text-align: center; padding: 42px 18px 34px; }
+  .empty__mark { font-family: var(--font-serif); font-size: 38px; line-height: 1; color: var(--gold-dim); opacity: 0.65; margin-bottom: 12px; }
+  .empty h3 { margin: 0 0 8px; font-size: 20px; color: var(--text); }
+  .empty p { max-width: 33em; margin: 0 auto 18px; font-size: 13.3px; line-height: 1.85; color: var(--text-dim); }
+  .empty--sm { padding: 28px 14px; }
+
+  .overlay {
+    position: fixed; inset: 0; z-index: 120;
+    display: grid; place-items: center; padding: 18px;
+    background: rgba(4, 6, 10, 0.76);
+    backdrop-filter: blur(5px);
+    animation: overlayIn 0.2s ease both;
+  }
+  @keyframes overlayIn { from { opacity: 0; } }
+  .overlay__panel {
+    position: relative;
+    width: min(560px, 100%);
+    max-height: min(82vh, 760px);
+    overflow: auto;
+    padding: 26px 26px 22px;
+    animation: panelIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes panelIn { from { opacity: 0; transform: translateY(14px) scale(0.98); } }
+  .overlay__close {
+    position: absolute; top: 10px; right: 12px;
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    border: 1px solid transparent; border-radius: 50%;
+    background: none; color: var(--text-dim);
+    font-size: 20px; line-height: 1; cursor: pointer;
+  }
+  .overlay__close:hover { color: var(--gold-bright); border-color: var(--line-soft); background: rgba(255, 255, 255, 0.04); }
+  .overlay__head { padding-right: 34px; margin-bottom: 14px; }
+  .overlay__head h2 {
+    margin: 2px 0 0; font-family: var(--font-serif);
+    font-size: clamp(25px, 5.6vw, 32px); letter-spacing: 0.12em; color: var(--text);
+  }
+  .overlay__body p { font-size: 13.5px; line-height: 1.85; color: var(--text-dim); }
+  .overlay__acts { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+  .detail__m { margin: 0 0 12px; font-size: 14.5px; line-height: 1.9; color: var(--text); }
+  .detail__stats { display: flex; gap: 8px 14px; flex-wrap: wrap; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+  .detail__hint { margin: 12px 0 0; font-size: 11.5px; color: var(--text-faint); }
+
+  @media (max-width: 640px) {
+    #app { width: calc(100% - 28px); }
+    .panel.quiz { padding: 21px 17px 18px; }
+    .cards-panel, .wrong-panel { padding: 18px 16px; }
+    .result__acts .btn { flex: 1 1 auto; }
+  }
+  @media (max-width: 560px) {
+    .modes { grid-template-columns: 1fr; }
+    .stats { gap: 8px; }
+    .stat { padding: 12px 11px 11px; }
+    .mode { padding: 16px 15px 14px; }
+    .mode__title { font-size: 19.5px; }
+    .fb__acts .hint { display: none; }
+    .overlay__panel { padding: 22px 18px 18px; }
+    .search input, .filters select { font-size: 16px; }
+    .qhead { margin-bottom: 12px; }
+  }
+  @media (max-width: 400px) {
+    .home__title { font-size: 29px; }
+    .stat__v { font-size: 23px; }
+    .stat__n { font-size: 9.5px; }
+    .shelf { grid-template-columns: 1fr; }
+    .opt { padding: 12px 13px; gap: 10px; }
+    .opt__t { font-size: 17px; }
+    .word__w { font-size: 27px; }
+    .crow { padding: 10px 12px; }
+    .crow__w { font-size: 18px; }
+    .crow__stat { display: none; }
+    .chain__word { font-size: 36px; }
+    .polar__word { font-size: 43px; }
+  }
+</style>
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0f16">
+<meta property="og:type" content="website">
+<meta property="og:title" content="成语闯关 · 考公 · 墨戏五卷">
+<meta property="og:description" content="四道关，一条一条记。释义、语境、接龙、褒贬，附学习卡与错题本。">
+<meta name="twitter:card" content="summary">
+</head>
+<body>
+
+<header class="topbar" data-chrome="topbar"></header>
+
+<main class="wrap" id="app">
+  <p class="sr-only" id="live" aria-live="polite"></p>
+  <div id="stage"></div>
+</main>
+
+<footer class="foot" data-chrome="footer"></footer>
+
+<script src="./assets/common.js"></script>
+<script src="./assets/idioms-data.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ===== CORE:BEGIN 纯逻辑（无 DOM，可被 Node 自测） ===== */
+  const KIND = { MEANING: 'meaning', CLOZE: 'cloze', CHAIN: 'chain', POLAR: 'polar' };
+  const POLARITIES = ['褒义', '贬义', '中性'];
+
+  function isHanzi(ch) {
+    const c = ch.codePointAt(0);
+    return (c >= 0x3400 && c <= 0x4dbf) || (c >= 0x4e00 && c <= 0x9fff) ||
+      (c >= 0xf900 && c <= 0xfaff) || (c >= 0x20000 && c <= 0x2ebef);
+  }
+
+  function firstChar(word) { return Array.from(word)[0]; }
+  function lastChar(word) {
+    const chars = Array.from(word);
+    return chars[chars.length - 1];
+  }
+
+  function normalizeData(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    const seen = new Set();
+    for (let i = 0; i < raw.length; i += 1) {
+      const it = raw[i];
+      if (!it || typeof it !== 'object') continue;
+      const w = typeof it.w === 'string' ? it.w.trim() : '';
+      const chars = Array.from(w);
+      if (chars.length !== 4 || !chars.every(isHanzi)) continue;
+      if (seen.has(w)) continue;
+      const m = typeof it.m === 'string' ? it.m.trim() : '';
+      if (!m) continue;
+      const e = typeof it.e === 'string' ? it.e.trim() : '';
+      const k = POLARITIES.indexOf(it.k) !== -1 ? it.k : '中性';
+      const g = typeof it.g === 'string' && it.g.trim() ? it.g.trim() : '未分类';
+      const y = typeof it.y === 'string' ? it.y.trim() : '';
+      seen.add(w);
+      out.push({ w: w, m: m, e: e, k: k, g: g, y: y, hasExample: !!e && e.indexOf(w) !== -1 });
+    }
+    return out;
+  }
+
+  function makeDeck(list) {
+    const byFirst = new Map();
+    const byLast = new Map();
+    const byGroup = new Map();
+    const byW = new Map();
+    for (let i = 0; i < list.length; i += 1) {
+      const it = list[i];
+      byW.set(it.w, it);
+      const f = firstChar(it.w);
+      const l = lastChar(it.w);
+      if (!byFirst.has(f)) byFirst.set(f, []);
+      byFirst.get(f).push(it);
+      if (!byLast.has(l)) byLast.set(l, []);
+      byLast.get(l).push(it);
+      if (!byGroup.has(it.g)) byGroup.set(it.g, []);
+      byGroup.get(it.g).push(it);
+    }
+    const startable = list.filter(function (it) {
+      const next = byFirst.get(lastChar(it.w)) || [];
+      return next.some(function (x) { return x.w !== it.w; });
+    });
+    return {
+      list: list,
+      size: list.length,
+      byFirst: byFirst,
+      byLast: byLast,
+      byGroup: byGroup,
+      byW: byW,
+      startable: startable,
+    };
+  }
+
+  function shuffleCopy(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function sample(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function takeDistinct(source, count, used) {
+    const out = [];
+    for (let i = 0; i < source.length && out.length < count; i += 1) {
+      const it = source[i];
+      if (used.has(it.w)) continue;
+      used.add(it.w);
+      out.push(it);
+    }
+    return out;
+  }
+
+  function poolOf(deck, opts) {
+    let pool = deck.list;
+    if (opts && Array.isArray(opts.pool) && opts.pool.length) {
+      pool = opts.pool.map(function (x) {
+        return typeof x === 'string' ? deck.byW.get(x) : x;
+      }).filter(function (x) {
+        return x && typeof x.w === 'string' && deck.byW.has(x.w);
+      });
+    }
+    if (!pool.length) pool = deck.list;
+    if (opts && opts.exclude) {
+      const ex = opts.exclude instanceof Set ? opts.exclude : new Set(opts.exclude);
+      const filtered = pool.filter(function (x) { return !ex.has(x.w); });
+      if (filtered.length) pool = filtered;
+    }
+    return pool;
+  }
+
+  function makeMeaning(deck, opts) {
+    if (!deck || deck.size < 4) return null;
+    const pool = poolOf(deck, opts);
+    if (!pool.length) return null;
+    const correct = sample(pool);
+    const used = new Set([correct.w]);
+    const others = deck.list.filter(function (x) { return x.w !== correct.w; });
+    const tol = Math.max(6, Math.round(correct.m.length * 0.45));
+    const near = others.filter(function (x) {
+      return Math.abs(x.m.length - correct.m.length) <= tol;
+    });
+    const distract = takeDistinct(shuffleCopy(near), 3, used);
+    if (distract.length < 3) {
+      const rest = shuffleCopy(others.filter(function (x) { return !used.has(x.w); }));
+      distract.push.apply(distract, takeDistinct(rest, 3 - distract.length, used));
+    }
+    if (distract.length < 3) return null;
+    const options = shuffleCopy([correct].concat(distract));
+    return {
+      kind: KIND.MEANING,
+      target: correct.w,
+      options: options.map(function (x) { return x.w; }),
+      answer: options.findIndex(function (x) { return x.w === correct.w; }),
+      from: null,
+      required: null,
+      restarted: false,
+    };
+  }
+
+  function makeCloze(deck, opts) {
+    if (!deck || deck.size < 4) return null;
+    const pool = poolOf(deck, opts).filter(function (x) { return x.hasExample; });
+    if (!pool.length) return null;
+    const correct = sample(pool);
+    const used = new Set([correct.w]);
+    const sameGroup = deck.list.filter(function (x) {
+      return x.g === correct.g && x.w !== correct.w;
+    });
+    const distract = takeDistinct(shuffleCopy(sameGroup), 3, used);
+    if (distract.length < 3) {
+      const rest = shuffleCopy(deck.list.filter(function (x) { return x.w !== correct.w; }));
+      distract.push.apply(distract, takeDistinct(rest, 3 - distract.length, used));
+    }
+    if (distract.length < 3) return null;
+    const options = shuffleCopy([correct].concat(distract));
+    return {
+      kind: KIND.CLOZE,
+      target: correct.w,
+      options: options.map(function (x) { return x.w; }),
+      answer: options.findIndex(function (x) { return x.w === correct.w; }),
+      from: null,
+      required: null,
+      restarted: false,
+    };
+  }
+
+  function makeChain(deck, fromW) {
+    if (!deck || deck.size < 5 || !deck.startable.length) return null;
+    let start = null;
+    let restarted = false;
+    if (fromW && deck.byW.has(fromW)) {
+      const prev = deck.byW.get(fromW);
+      const nexts = deck.byFirst.get(lastChar(prev.w)) || [];
+      if (nexts.some(function (x) { return x.w !== prev.w; })) start = prev;
+      else restarted = true;
+    }
+    if (!start) {
+      start = sample(deck.startable);
+      if (!start) return null;
+      if (fromW) restarted = true;
+    }
+    const last = lastChar(start.w);
+    const succ = (deck.byFirst.get(last) || []).filter(function (x) { return x.w !== start.w; });
+    if (!succ.length) return null;
+    const correct = sample(succ);
+    const used = new Set([start.w, correct.w]);
+    const others = deck.list.filter(function (x) { return firstChar(x.w) !== last; });
+    const distract = takeDistinct(shuffleCopy(others), 3, used);
+    if (distract.length < 3) return null;
+    const options = shuffleCopy([correct].concat(distract));
+    return {
+      kind: KIND.CHAIN,
+      target: correct.w,
+      options: options.map(function (x) { return x.w; }),
+      answer: options.findIndex(function (x) { return x.w === correct.w; }),
+      from: start.w,
+      required: last,
+      restarted: restarted,
+    };
+  }
+
+  function makePolar(deck, opts) {
+    if (!deck || !deck.size) return null;
+    const pool = poolOf(deck, opts);
+    if (!pool.length) return null;
+    const correct = sample(pool);
+    const options = shuffleCopy(POLARITIES);
+    return {
+      kind: KIND.POLAR,
+      target: correct.w,
+      options: options,
+      answer: options.indexOf(correct.k),
+      from: null,
+      required: null,
+      restarted: false,
+    };
+  }
+
+  function makeQuestion(kind, deck, opts) {
+    if (!deck || !deck.size) return null;
+    if (kind === KIND.MEANING) return makeMeaning(deck, opts);
+    if (kind === KIND.CLOZE) return makeCloze(deck, opts);
+    if (kind === KIND.CHAIN) return makeChain(deck, opts && opts.from);
+    if (kind === KIND.POLAR) return makePolar(deck, opts);
+    return null;
+  }
+
+  function isQuestionShape(q, deck) {
+    if (!q || typeof q !== 'object' || !deck) return false;
+    const kinds = [KIND.MEANING, KIND.CLOZE, KIND.CHAIN, KIND.POLAR];
+    if (kinds.indexOf(q.kind) === -1) return false;
+    if (typeof q.target !== 'string' || !deck.byW.has(q.target)) return false;
+    if (!Array.isArray(q.options) || !Number.isInteger(q.answer)) return false;
+    if (q.answer < 0 || q.answer >= q.options.length) return false;
+    if (q.options.some(function (o) { return typeof o !== 'string'; })) return false;
+    if (new Set(q.options).size !== q.options.length) return false;
+    if (q.kind === KIND.POLAR) {
+      if (q.options.length !== 3) return false;
+      if (POLARITIES.indexOf(q.options[q.answer]) === -1) return false;
+      return q.options[q.answer] === deck.byW.get(q.target).k;
+    }
+    if (q.options.length !== 4) return false;
+    if (q.options[q.answer] !== q.target) return false;
+    for (let i = 0; i < q.options.length; i += 1) {
+      if (!deck.byW.has(q.options[i])) return false;
+    }
+    if (q.kind === KIND.CHAIN) {
+      if (typeof q.from !== 'string' || !deck.byW.has(q.from)) return false;
+      if (q.required !== lastChar(q.from)) return false;
+      if (firstChar(q.target) !== q.required) return false;
+    }
+    return true;
+  }
+
+  function emptyProgress() {
+    return { seen: {}, wrong: [], learned: [] };
+  }
+
+  function normalizeProgress(raw, knownWords) {
+    const out = emptyProgress();
+    if (!raw || typeof raw !== 'object') return out;
+    const known = knownWords ? (knownWords instanceof Set ? knownWords : new Set(knownWords)) : null;
+    const src = raw.seen && typeof raw.seen === 'object' ? raw.seen : {};
+    Object.keys(src).forEach(function (w) {
+      if (known && !known.has(w)) return;
+      const e = src[w];
+      if (!e || typeof e !== 'object') return;
+      const r = Math.max(0, Math.floor(Number(e.r) || 0));
+      const wc = Math.max(0, Math.floor(Number(e.w) || 0));
+      const t = Number.isFinite(Number(e.t)) ? Number(e.t) : 0;
+      const f = Math.max(0, Math.floor(Number(e.f) || 0));
+      out.seen[w] = { r: r, w: wc, t: t, f: f };
+    });
+    if (Array.isArray(raw.wrong)) {
+      raw.wrong.forEach(function (w) {
+        if (typeof w !== 'string' || !out.seen[w]) return;
+        if (out.wrong.indexOf(w) === -1) out.wrong.push(w);
+      });
+    }
+    if (Array.isArray(raw.learned)) {
+      raw.learned.forEach(function (w) {
+        if (typeof w !== 'string' || !out.seen[w]) return;
+        if (out.learned.indexOf(w) === -1) out.learned.push(w);
+      });
+    }
+    Object.keys(out.seen).forEach(function (w) {
+      if (out.learned.indexOf(w) === -1) out.learned.push(w);
+    });
+    return out;
+  }
+
+  function statsOf(p) {
+    let mastered = 0;
+    const keys = Object.keys(p.seen);
+    for (let i = 0; i < keys.length; i += 1) {
+      const e = p.seen[keys[i]];
+      if (e.r >= 2 && e.w <= 1) mastered += 1;
+    }
+    return { learned: keys.length, mastered: mastered, wrong: p.wrong.length };
+  }
+
+  function recordAnswer(p, word, ok, now) {
+    if (!p || !word) return { isNew: false, cleared: false, mastered: false };
+    const isNew = !p.seen[word];
+    if (!p.seen[word]) p.seen[word] = { r: 0, w: 0, t: 0, f: 0 };
+    const e = p.seen[word];
+    if (ok) e.r += 1;
+    else e.w += 1;
+    e.t = now || Date.now();
+    if (p.learned.indexOf(word) === -1) p.learned.push(word);
+    let cleared = false;
+    if (ok) {
+      if (p.wrong.indexOf(word) !== -1) {
+        e.f = (e.f || 0) + 1;
+        if (e.f >= 2) {
+          p.wrong.splice(p.wrong.indexOf(word), 1);
+          e.f = 0;
+          cleared = true;
+        }
+      }
+    } else {
+      e.f = 0;
+      if (p.wrong.indexOf(word) === -1) p.wrong.push(word);
+    }
+    return { isNew: isNew, cleared: cleared, mastered: e.r >= 2 && e.w <= 1 };
+  }
+  /* ===== CORE:END ===== */
+
+  const { el, store, toast, countTo, qsa } = DSHG;
+
+  const MODE_INFO = {
+    meaning: {
+      name: '释义猜成语', no: '壹', badge: '10 题', go: '开始猜',
+      desc: '看一条释义，从四个成语里挑出对应的那一个。',
+    },
+    cloze: {
+      name: '语境填词', no: '贰', badge: '10 题', go: '开始填',
+      desc: '例句挖去成语，靠上下文把词填回去。',
+    },
+    chain: {
+      name: '接龙闯关', no: '叁', badge: '到错为止', go: '开始接',
+      desc: '末字接首字，连对越多分越高，答错即止。',
+    },
+    polar: {
+      name: '褒贬快判', no: '肆', badge: '60 秒', go: '开始快判',
+      desc: '一眼判断褒义、贬义还是中性，答对加一分，答错扣一分。',
+    },
+    wrong: {
+      name: '错题本', no: '补', badge: '只练错的', go: '练错题',
+      desc: '只出做错过的成语，答对两次才移出。',
+    },
+  };
+
+  const PAGE_SIZE = 30;
+  const stage = document.getElementById('stage');
+  const live = document.getElementById('live');
+  const state = {
+    view: 'home',
+    deck: null,
+    progress: emptyProgress(),
+    run: null,
+    resume: null,
+    summary: null,
+    cards: { q: '', group: '', polar: '', page: 1 },
+  };
+  let busy = false;
+  let timerId = 0;
+  let lastView = '';
+  let overlayEl = null;
+  let overlayReturn = null;
+  let overlayPrevOverflow = '';
+  let uid = 0;
+
+  /* ---------- 小工具 ---------- */
+  function fmtTime(ms) {
+    const total = Math.max(0, Math.round(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+
+  function unique(arr) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += 1) {
+      if (out.indexOf(arr[i]) === -1) out.push(arr[i]);
+    }
+    return out;
+  }
+
+  function clampInt(v, min, max, fallback) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(max, Math.max(min, Math.floor(n)));
+  }
+
+  function reduceMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function scrollTop() {
+    try { window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' }); }
+    catch (err) { window.scrollTo(0, 0); }
+  }
+
+  function tag(text, cls) {
+    return el('span', { class: 'tag' + (cls ? ' ' + cls : ''), text: text });
+  }
+
+  function polarTag(kind) {
+    if (kind === '褒义') return tag(kind, 'tag--jade');
+    if (kind === '贬义') return tag(kind, 'tag--cin');
+    return tag(kind, 'tag--dim');
+  }
+
+  function idiomTags(it, withGroup) {
+    const kids = [polarTag(it.k)];
+    if (withGroup) kids.push(tag(it.g, 'tag--dim'));
+    return el('div', { class: 'word__tags' }, kids);
+  }
+
+  function exampleNode(it, cls) {
+    const node = el('p', { class: cls || 'fb__e' });
+    if (!it.e) {
+      node.textContent = '（这条成语暂时没有例句）';
+      return node;
+    }
+    const parts = it.e.split(it.w);
+    for (let i = 0; i < parts.length; i += 1) {
+      if (i > 0) node.appendChild(el('span', { class: 'hit', text: it.w }));
+      if (parts[i]) node.appendChild(document.createTextNode(parts[i]));
+    }
+    return node;
+  }
+
+  function metric(value, label) {
+    return el('div', { class: 'metric' }, [
+      el('b', { class: 'num', text: value }),
+      el('span', { text: label }),
+    ]);
+  }
+
+  function statChip(label, value) {
+    return el('span', { class: 'chip' }, [
+      label, el('b', { text: String(value) }),
+    ]);
+  }
+
+  function emptyPanel(mark, title, text, actions, small) {
+    return el('div', { class: 'empty' + (small ? ' empty--sm' : '') }, [
+      el('div', { class: 'empty__mark', text: mark }),
+      el('h3', { text: title }),
+      el('p', { text: text }),
+      actions || null,
+    ]);
+  }
+
+  function announce(text) {
+    if (live) live.textContent = text;
+  }
+
+  /* ---------- 存档 ---------- */
+  function saveProgress() {
+    store.set('idiom.progress', state.progress);
+  }
+
+  function saveRun() {
+    const run = state.run;
+    if (!run || run.finished) {
+      store.del('idiom.run');
+      return;
+    }
+    const data = {
+      mode: run.mode,
+      total: run.total,
+      answered: run.answered,
+      correct: run.correct,
+      wrong: run.wrong,
+      streak: run.streak,
+      best: run.best,
+      score: run.score,
+      startedAt: run.startedAt,
+      elapsedMs: run.elapsedMs,
+      round: run.round,
+      newWords: run.newWords,
+      pool: run.pool,
+      q: run.q,
+      chosen: run.chosen,
+      lastOk: run.lastOk,
+      chainFrom: run.chainFrom,
+      remainMs: run.mode === 'polar' ? Math.max(0, run.deadline - Date.now()) : null,
+      savedAt: Date.now(),
+    };
+    store.set('idiom.run', data);
+  }
+
+  function loadRun() {
+    const raw = store.get('idiom.run', null);
+    if (!raw || typeof raw !== 'object' || raw.finished) return null;
+    const mode = raw.mode;
+    if (['meaning', 'cloze', 'chain', 'polar', 'wrong'].indexOf(mode) === -1) return null;
+    if (!state.deck || !state.deck.size) return null;
+    if (!isQuestionShape(raw.q, state.deck)) return null;
+    if (!Array.isArray(raw.round) || !Array.isArray(raw.newWords)) return null;
+    const kindOk = mode === 'chain' ? raw.q.kind === KIND.CHAIN
+      : mode === 'polar' ? raw.q.kind === KIND.POLAR
+        : (raw.q.kind === KIND.MEANING || raw.q.kind === KIND.CLOZE);
+    if (!kindOk) return null;
+    const pool = mode === 'wrong' && Array.isArray(raw.pool)
+      ? raw.pool.filter(function (w) { return state.deck.byW.has(w); })
+      : null;
+    if (mode === 'wrong' && (!pool || !pool.length)) return null;
+    const remain = Number(raw.remainMs);
+    if (mode === 'polar' && (!Number.isFinite(remain) || remain <= 0)) return null;
+    const total = mode === 'chain' || mode === 'polar' ? null : 10;
+    const run = {
+      mode: mode,
+      total: total,
+      answered: clampInt(raw.answered, 0, total || 100000, 0),
+      correct: clampInt(raw.correct, 0, 100000, 0),
+      wrong: clampInt(raw.wrong, 0, 100000, 0),
+      streak: clampInt(raw.streak, 0, 100000, 0),
+      best: clampInt(raw.best, 0, 100000, 0),
+      score: Number.isFinite(Number(raw.score)) ? Number(raw.score) : 0,
+      startedAt: Number(raw.startedAt) || Date.now(),
+      elapsedMs: Math.max(0, Number(raw.elapsedMs) || 0),
+      qShownAt: Date.now(),
+      round: raw.round.filter(function (r) {
+        return r && typeof r.w === 'string' && state.deck.byW.has(r.w);
+      }).map(function (r) { return { w: r.w, ok: !!r.ok }; }),
+      newWords: raw.newWords.filter(function (w) { return typeof w === 'string' && state.deck.byW.has(w); }),
+      pool: pool,
+      q: raw.q,
+      chosen: Number.isInteger(raw.chosen) && raw.chosen >= 0 && raw.chosen < raw.q.options.length ? raw.chosen : null,
+      lastOk: typeof raw.lastOk === 'boolean' ? raw.lastOk : null,
+      chainFrom: typeof raw.chainFrom === 'string' ? raw.chainFrom : null,
+      deadline: mode === 'polar' ? Date.now() + remain : 0,
+      finished: false,
+    };
+    if (run.total && run.answered > run.total) run.answered = run.total;
+    if (run.chosen !== null && run.lastOk === null) run.chosen = null;
+    if (run.chosen !== null && run.answered < 1) run.chosen = null;
+    return run;
+  }
+
+  /* ---------- 视图切换 ---------- */
+  function mount(node, opts) {
+    stage.replaceChildren(node);
+    const o = opts || {};
+    if (lastView !== state.view || o.animate !== false) {
+      node.classList.add('screen');
+    }
+    lastView = state.view;
+    if (o.scroll === 'feedback') {
+      const fb = node.querySelector('.fb');
+      if (fb) {
+        requestAnimationFrame(function () {
+          try { fb.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
+          catch (err) { fb.scrollIntoView(); }
+        });
+        return;
+      }
+    }
+    if (o.scroll !== 'keep') scrollTop();
+  }
+
+  /* ---------- 首页 ---------- */
+  function paintHome() {
+    state.view = 'home';
+    stopTimer();
+    if (state.run) state.resume = state.run;
+    else state.resume = loadRun();
+
+    const stats = statsOf(state.progress);
+    const total = state.deck.size;
+    const pct = total ? Math.min(100, (stats.learned / total) * 100) : 0;
+    const root = el('div', { class: 'home' });
+
+    root.appendChild(el('section', { class: 'home__head' }, [
+      el('div', { class: 'eyebrow', text: '成语闯关 · 考公 / 事业单位' }),
+      el('h1', { class: 'home__title' }, ['四道关，', el('em', { text: '一条一条' }), '记。']),
+      el('p', {
+        class: 'lede',
+        text: '不追求一次考倒你。每答一题，都把这条成语的释义、例句、感情色彩与易错字摊开看一遍。练得多了，自然就记住了。',
+      }),
+      el('p', {
+        class: 'lede lede--dim',
+        text: '四种题型全部由题库自动生成；进度只存在本机浏览器里，关掉页面也还在。',
+      }),
+    ]));
+
+    root.appendChild(el('section', { class: 'stats', 'aria-label': '学习统计' }, [
+      statCard('已学', stats.learned, '见过至少一次', ''),
+      statCard('掌握', stats.mastered, '对 ≥2 · 错 ≤1', 'stat--jade'),
+      statCard('错题', stats.wrong, '答对两次移出', 'stat--cin'),
+    ]));
+
+    const barFill = el('i', { id: 'homeBar' });
+    root.appendChild(el('div', { class: 'study' }, [
+      el('div', { class: 'study__row' }, [
+        el('span', { text: '题库覆盖' }),
+        el('span', { class: 'num', text: stats.learned + ' / ' + total }),
+      ]),
+      el('div', {
+        class: 'meter', role: 'progressbar',
+        'aria-valuemin': '0', 'aria-valuemax': String(total), 'aria-valuenow': String(stats.learned),
+        'aria-label': '题库覆盖进度',
+      }, barFill),
+    ]));
+
+    if (total === 0) {
+      root.appendChild(el('div', { class: 'notice' }, [
+        el('b', { text: '题库没有加载出来。' }),
+        ' 请确认 assets/idioms-data.js 正常引用了 window.IDIOM_DATA，然后刷新页面。学习卡暂时为空，其余入口会在数据恢复后自动可用。',
+      ]));
+    } else if (total < 4) {
+      root.appendChild(el('div', { class: 'notice' }, [
+        el('b', { text: '题库只有 ' + total + ' 条。' }),
+        ' 四选一至少需要 4 条成语，接龙还要首尾接得上（至少 5 条），现在暂时锁住；褒贬快判与学习卡可以先玩。',
+      ]));
+    }
+
+    root.appendChild(el('div', { class: 'section-head' }, [
+      el('h2', { text: '选一道关' }),
+      el('span', { text: 'FOUR MODES' }),
+    ]));
+
+    const modes = el('div', { class: 'modes' });
+    ['meaning', 'cloze', 'chain', 'polar'].forEach(function (key, i) {
+      modes.appendChild(buildModeCard(key, total, i));
+    });
+    root.appendChild(modes);
+
+    root.appendChild(el('div', { class: 'shelf' }, [
+      el('button', {
+        class: 'shelf__btn', type: 'button', onclick: paintCards,
+      }, [
+        el('b', { text: '学习卡' }),
+        el('span', { text: total + ' 条成语 · 可搜、可筛、每页 30 条' }),
+      ]),
+      el('button', {
+        class: 'shelf__btn', type: 'button', onclick: paintWrong,
+      }, [
+        el('b', { text: '错题本' }),
+        el('span', { text: stats.wrong ? stats.wrong + ' 条待巩固 · 答对两次移出' : '暂无错题，保持住' }),
+      ]),
+    ]));
+
+    if (state.resume) {
+      const r = state.resume;
+      const info = MODE_INFO[r.mode] || MODE_INFO.meaning;
+      let where = '';
+      if (r.mode === 'polar') where = '还剩约 ' + Math.ceil(Math.max(0, r.deadline - Date.now()) / 1000) + ' 秒';
+      else if (r.mode === 'chain') where = '已连对 ' + r.streak + ' 题 · 得分 ' + r.score;
+      else where = '第 ' + Math.min((r.answered || 0) + (r.chosen === null ? 1 : 0), r.total) + ' / ' + r.total + ' 题';
+      root.appendChild(el('div', { class: 'resume' }, [
+        el('div', { class: 'resume__txt' }, [
+          '上次停在 ', el('b', { text: info.name }), ' · ' + where + '。',
+        ]),
+        el('div', { class: 'resume__acts' }, [
+          el('button', { class: 'btn', type: 'button', onclick: resumeRun }, '继续上次'),
+          el('button', {
+            class: 'btn btn--ghost', type: 'button',
+            onclick: function () {
+              store.del('idiom.run');
+              state.run = null;
+              state.resume = null;
+              toast('已放弃上次的进度。');
+              paintHome();
+            },
+          }, '放弃'),
+        ]),
+      ]));
+    }
+
+    root.appendChild(el('div', { class: 'home__foot' }, [
+      el('button', { class: 'linkish', type: 'button', onclick: confirmClear }, '清空进度'),
+      el('span', { text: '掌握 = 答对 ≥2 次且答错 ≤1 次；错题答对 2 次后移出' }),
+    ]));
+
+    mount(root);
+    requestAnimationFrame(function () {
+      if (barFill) barFill.style.width = pct.toFixed(2) + '%';
+    });
+    qsa('[data-count]', root).forEach(function (node) {
+      const target = Number(node.getAttribute('data-count')) || 0;
+      if (reduceMotion()) { node.textContent = String(target); return; }
+      countTo(node, 0, target, 650);
+    });
+  }
+
+  function statCard(label, value, note, cls) {
+    return el('div', { class: 'stat' + (cls ? ' ' + cls : '') }, [
+      el('span', { class: 'stat__k', text: label }),
+      el('span', { class: 'stat__v num', 'data-count': String(value), text: '0' }),
+      el('span', { class: 'stat__n', text: note }),
+    ]);
+  }
+
+  function buildModeCard(key, total, index) {
+    const info = MODE_INFO[key];
+    let disabled = false;
+    let why = '';
+    if (key === 'polar') {
+      if (total < 1) { disabled = true; why = '题库还是空的'; }
+    } else if (key === 'chain') {
+      if (total < 5) { disabled = true; why = '题库需至少 5 条'; }
+      else if (!state.deck.startable.length) { disabled = true; why = '暂无可以接龙的组合'; }
+    } else if (total < 4) {
+      disabled = true;
+      why = '题库需至少 4 条';
+    }
+    const card = el('button', {
+      class: 'mode fade-up', type: 'button',
+      'aria-disabled': disabled ? 'true' : 'false',
+      onclick: function () {
+        if (disabled) { toast(why); return; }
+        startRun(key);
+      },
+    }, [
+      el('span', { class: 'mode__top' }, [
+        el('span', { class: 'mode__no', text: info.no }),
+        el('span', { class: 'mode__badge', text: disabled ? why : info.badge }),
+      ]),
+      el('span', { class: 'mode__title', text: info.name }),
+      el('span', { class: 'mode__desc', text: info.desc }),
+      el('span', { class: 'mode__go', text: disabled ? '暂不可用' : info.go }),
+    ]);
+    card.style.animationDelay = (index * 0.04).toFixed(2) + 's';
+    return card;
+  }
+
+  /* ---------- 答题 ---------- */
+  function startRun(mode) {
+    const deck = state.deck;
+    if (!deck || !deck.size) { toast('题库是空的，先检查数据文件。'); return; }
+    if (mode === 'polar') {
+      if (!deck.size) return;
+    } else if (mode === 'chain') {
+      if (deck.size < 5 || !deck.startable.length) { toast('接龙至少需要 5 条成语，且首尾能接上。'); return; }
+    } else if (deck.size < 4) {
+      toast('题库至少需要 4 条成语。');
+      return;
+    }
+    let pool = null;
+    let total = 10;
+    if (mode === 'wrong') {
+      pool = wrongWords();
+      if (!pool.length) { toast('错题本是空的，先去练几轮。'); return; }
+      total = Math.min(10, pool.length);
+    } else if (mode === 'chain' || mode === 'polar') {
+      total = null;
+    }
+    state.run = {
+      mode: mode,
+      total: total,
+      answered: 0,
+      correct: 0,
+      wrong: 0,
+      streak: 0,
+      best: 0,
+      score: 0,
+      startedAt: Date.now(),
+      elapsedMs: 0,
+      qShownAt: Date.now(),
+      round: [],
+      newWords: [],
+      pool: pool,
+      q: null,
+      chosen: null,
+      lastOk: null,
+      chainFrom: null,
+      deadline: mode === 'polar' ? Date.now() + 60000 : 0,
+      finished: false,
+    };
+    let kind = mode;
+    if (mode === 'wrong') kind = Math.random() < 0.5 ? 'cloze' : 'meaning';
+    let q = createQuestion(kind, null);
+    if (!q && mode === 'wrong') q = createQuestion('meaning', null);
+    if (!q) {
+      state.run = null;
+      toast('没能生成题目，题库可能不足。');
+      return;
+    }
+    state.run.q = q;
+    state.resume = null;
+    saveRun();
+    paintQuiz();
+    if (mode === 'polar') startTimer();
+  }
+
+  function wrongWords() {
+    return state.progress.wrong.filter(function (w) { return state.deck.byW.has(w); });
+  }
+
+  function createQuestion(kind, fromW) {
+    const run = state.run;
+    if (!run) return null;
+    const exclude = new Set();
+    for (let i = 0; i < run.round.length; i += 1) exclude.add(run.round[i].w);
+    const opts = { exclude: exclude };
+    if (run.mode === 'wrong' && run.pool && run.pool.length) {
+      opts.pool = run.pool.map(function (w) { return state.deck.byW.get(w); }).filter(Boolean);
+    }
+    if (kind === KIND.CHAIN) {
+      opts.from = fromW || null;
+      return makeQuestion(KIND.CHAIN, state.deck, opts);
+    }
+    let q = makeQuestion(kind, state.deck, opts);
+    if (!q && kind === KIND.CLOZE) q = makeQuestion(KIND.MEANING, state.deck, opts);
+    if (!q) {
+      const retry = { pool: opts.pool };
+      q = makeQuestion(kind, state.deck, retry);
+      if (!q) q = makeQuestion(KIND.MEANING, state.deck, retry);
+    }
+    return q;
+  }
+
+  function answer(choice) {
+    if (busy) return;
+    const run = state.run;
+    if (!run || run.finished || state.view !== 'quiz' || run.chosen !== null) return;
+    const q = run.q;
+    if (!q || !Number.isInteger(choice) || choice < 0 || choice >= q.options.length) return;
+
+    busy = true;
+    const ok = choice === q.answer;
+    const now = Date.now();
+    run.chosen = choice;
+    run.lastOk = ok;
+    run.answered += 1;
+    if (run.qShownAt) {
+      run.elapsedMs += Math.max(0, now - run.qShownAt);
+      run.qShownAt = 0;
+    }
+    if (ok) run.correct += 1;
+    else run.wrong += 1;
+
+    if (run.mode === 'chain') {
+      if (ok) {
+        run.streak += 1;
+        if (run.streak > run.best) run.best = run.streak;
+        run.score += run.streak;
+      } else {
+        run.streak = 0;
+      }
+    } else if (run.mode === 'polar') {
+      run.score += ok ? 1 : -1;
+    }
+
+    const rec = recordAnswer(state.progress, q.target, ok, now);
+    if (rec.isNew && run.newWords.indexOf(q.target) === -1) run.newWords.push(q.target);
+    run.round.push({ w: q.target, ok: ok });
+
+    const it = state.deck.byW.get(q.target);
+    const chosen = q.options[choice];
+    if (ok) {
+      announce('答对了。' + (it ? '正确答案：' + it.w + '。' + it.m : ''));
+    } else {
+      const chosenIt = q.kind === KIND.POLAR ? null : state.deck.byW.get(chosen);
+      announce('答错了。正确答案：' + (it ? it.w : '') + '。' +
+        (chosenIt ? '你选的是' + chosenIt.w + '，意思是' + chosenIt.m : ''));
+    }
+
+    saveProgress();
+    saveRun();
+    busy = false;
+    if (rec.cleared) toast('「' + q.target + '」已移出错题本。');
+    paintQuiz({ scroll: 'feedback' });
+  }
+
+  function isRoundOver() {
+    const run = state.run;
+    if (!run || run.chosen === null) return false;
+    if (run.mode === 'chain') return !run.lastOk;
+    if (run.mode === 'polar') return Date.now() >= run.deadline;
+    return run.answered >= run.total;
+  }
+
+  function nextStep() {
+    if (busy) return;
+    const run = state.run;
+    if (!run || run.chosen === null || run.finished) return;
+    busy = true;
+    if (run.mode === 'chain' && !run.lastOk) {
+      busy = false;
+      finishRun('fail');
+      return;
+    }
+    if (run.mode === 'polar') {
+      if (Date.now() >= run.deadline) { busy = false; finishRun('time'); return; }
+    } else if (run.mode !== 'chain' && run.answered >= run.total) {
+      busy = false;
+      finishRun('done');
+      return;
+    }
+
+    run.chosen = null;
+    run.lastOk = null;
+    let kind = run.mode;
+    if (run.mode === 'wrong') kind = Math.random() < 0.5 ? 'cloze' : 'meaning';
+    const fromW = run.mode === 'chain' ? run.q.target : null;
+    const q = createQuestion(kind, fromW);
+    if (!q) {
+      busy = false;
+      finishRun('empty');
+      return;
+    }
+    run.q = q;
+    run.chainFrom = fromW;
+    run.qShownAt = Date.now();
+    saveRun();
+    busy = false;
+    paintQuiz();
+  }
+
+  function paintQuiz(opts) {
+    state.view = 'quiz';
+    const run = state.run;
+    if (!run) { paintHome(); return; }
+    const q = run.q;
+    const it = state.deck.byW.get(q.target);
+    if (!it) { finishRun('empty'); return; }
+    const answered = run.chosen !== null;
+    const info = MODE_INFO[run.mode] || MODE_INFO.meaning;
+
+    const page = el('div', { class: 'quiz-page' });
+    page.appendChild(hudNode());
+    const panel = el('section', { class: 'panel quiz' });
+
+    const left = el('div', { class: 'qhead__left' }, [
+      tag(info.name, 'tag--dim'),
+      el('span', { class: 'hint' }, [info.badge]),
+    ]);
+    panel.appendChild(el('div', { class: 'qhead' }, [
+      left,
+      el('button', {
+        class: 'linkish qexit', type: 'button',
+        onclick: exitQuiz,
+      }, '退出本轮'),
+    ]));
+
+    panel.appendChild(promptNode(run, it));
+
+    const options = el('div', { class: 'opts', role: 'group', 'aria-label': '选项' });
+    q.options.forEach(function (label, i) {
+      const isRight = answered && i === q.answer;
+      const isWrong = answered && i === run.chosen && i !== q.answer;
+      let cls = 'opt';
+      if (isRight) cls += ' is-right';
+      else if (isWrong) cls += ' is-wrong';
+      else if (answered) cls += ' is-muted';
+      const plain = q.kind === KIND.POLAR;
+      const opt = el('button', {
+        class: cls, type: 'button',
+        'aria-label': '选项 ' + (i + 1) + '：' + label,
+        onclick: function () { answer(i); },
+      }, [
+        el('span', { class: 'opt__no num', text: String(i + 1) }),
+        el('span', { class: 'opt__t' + (plain ? ' opt__t--plain' : ''), text: label }),
+        el('span', { class: 'opt__mark', 'aria-hidden': 'true', text: isRight ? '✓' : isWrong ? '✕' : '' }),
+      ]);
+      if (answered) opt.disabled = true;
+      options.appendChild(opt);
+    });
+    panel.appendChild(options);
+
+    if (answered) {
+      panel.appendChild(feedbackNode(run, it));
+    } else {
+      panel.appendChild(el('div', { class: 'qfoot' }, [
+        el('span', { class: 'hint' }, [
+          '按 ', el('span', { class: 'kbd num', text: '1' }), ' – ',
+          el('span', { class: 'kbd num', text: String(q.options.length) }),
+          ' 选择，',
+          '答完 ', el('span', { class: 'kbd', text: 'Enter' }), ' 下一题',
+        ]),
+        el('button', { class: 'linkish', type: 'button', onclick: leaveToCards }, '不会？先看学习卡'),
+      ]));
+    }
+
+    page.appendChild(panel);
+    mount(page, opts);
+    if (run.mode === 'polar') updateTimerUI();
+  }
+
+  function hudNode() {
+    const run = state.run;
+    const info = MODE_INFO[run.mode] || MODE_INFO.meaning;
+    let text = '';
+    let pct = 0;
+    let min = 0;
+    let max = 1;
+    let now = 0;
+    if (run.mode === 'polar') {
+      const remain = Math.max(0, run.deadline - Date.now());
+      text = '剩 ' + Math.ceil(remain / 1000) + ' 秒 · 得分 ' + run.score;
+      pct = (remain / 60000) * 100;
+      min = 0; max = 60; now = Math.ceil(remain / 1000);
+    } else if (run.mode === 'chain') {
+      text = '连击 ' + run.streak + ' · 得分 ' + run.score;
+      pct = Math.min(100, run.streak * 10);
+      min = 0; max = 10; now = Math.min(10, run.streak);
+    } else {
+      const n = Math.min(run.answered + (run.chosen === null ? 1 : 0), run.total);
+      text = '第 ' + n + ' / ' + run.total + ' 题';
+      pct = run.total ? (run.answered / run.total) * 100 : 0;
+      min = 0; max = run.total; now = run.answered;
+    }
+
+    const stats = [];
+    if (run.mode === 'polar') {
+      stats.push(['已答', run.answered]);
+      stats.push(['命中率', (run.answered ? Math.round((run.correct / run.answered) * 100) : 0) + '%']);
+      stats.push(['答错', run.wrong]);
+    } else if (run.mode === 'chain') {
+      stats.push(['最长连击', run.best]);
+      stats.push(['已答', run.answered]);
+    } else {
+      stats.push(['答对', run.correct]);
+      stats.push(['答错', run.wrong]);
+      stats.push(['题库', state.deck.size]);
+    }
+    const statsNode = el('div', { class: 'hud__stats' }, stats.map(function (pair) {
+      return el('span', {}, [pair[0] + ' ', el('b', { text: String(pair[1]) })]);
+    }));
+
+    return el('section', { class: 'hud', 'aria-label': '本轮进度' }, [
+      el('div', { class: 'hud__row' }, [
+        el('span', { class: 'hud__k', text: info.name }),
+        el('span', { class: 'hud__v num', id: 'hudRight', text: text }),
+      ]),
+      el('div', {
+        class: 'meter', id: 'hudMeter', role: 'progressbar',
+        'aria-valuemin': String(min), 'aria-valuemax': String(max), 'aria-valuenow': String(now),
+        'aria-label': '本轮进度',
+      }, el('i', { id: 'hudBar', style: { width: pct.toFixed(2) + '%' } })),
+      statsNode,
+    ]);
+  }
+
+  function promptNode(run, it) {
+    const q = run.q;
+    if (q.kind === KIND.MEANING) {
+      return el('div', { class: 'qprompt' }, [
+        el('div', { class: 'q-label', text: '释义 · 猜成语' }),
+        el('p', { class: 'q-m', text: it.m }),
+      ]);
+    }
+    if (q.kind === KIND.CLOZE) {
+      const sentence = it.hasExample ? it.e.split(it.w).join('＿＿＿＿') : '（这条成语暂时没有例句）';
+      const node = el('div', { class: 'qprompt' }, [
+        el('div', { class: 'q-label', text: '语境 · 填词' }),
+      ]);
+      const p = el('p', { class: 'q-e' });
+      const parts = sentence.split('＿＿＿＿');
+      for (let i = 0; i < parts.length; i += 1) {
+        if (i > 0) p.appendChild(el('span', { class: 'blank', text: '＿＿＿＿' }));
+        if (parts[i]) p.appendChild(document.createTextNode(parts[i]));
+      }
+      node.appendChild(p);
+      return node;
+    }
+    if (q.kind === KIND.CHAIN) {
+      const fromIt = state.deck.byW.get(q.from);
+      const wordNode = el('div', { class: 'chain__word' });
+      const chars = Array.from(q.from || '');
+      chars.forEach(function (c, i) {
+        if (i === chars.length - 1) wordNode.appendChild(el('i', { text: c }));
+        else wordNode.appendChild(document.createTextNode(c));
+      });
+      const kids = [
+        el('div', { class: 'q-label', text: '接龙 · 第 ' + (run.answered + (run.chosen === null ? 1 : 0)) + ' 环' }),
+        el('div', { class: 'chain' }, [
+          wordNode,
+          el('div', { class: 'chain__arrow', text: '↓' }),
+          el('div', { class: 'chain__hint', text: '下一句要以「' + q.required + '」开头' }),
+          q.restarted ? el('div', { class: 'chain__note', text: '上一条接不下去，已自动换一条起始成语。' }) : null,
+        ]),
+      ];
+      if (fromIt) kids.push(el('p', { class: 'hint', text: '当前成语：' + fromIt.w + ' · ' + fromIt.m }));
+      return el('div', { class: 'qprompt' }, kids);
+    }
+    return el('div', { class: 'qprompt' }, [
+      el('div', { class: 'q-label', text: '感情色彩 · 快判' }),
+      el('div', { class: 'polar' }, [
+        el('div', { class: 'polar__word', text: it.w }),
+        el('div', { class: 'polar__ask', text: '这条成语是褒义、贬义，还是中性？' }),
+      ]),
+    ]);
+  }
+
+  function feedbackNode(run, it) {
+    const ok = run.lastOk === true;
+    const q = run.q;
+    const chosen = q.options[run.chosen];
+    const fb = el('div', { class: 'fb ' + (ok ? 'fb--ok' : 'fb--no') });
+
+    const verdict = el('div', { class: 'fb__verdict' }, [
+      el('span', { class: 'fb__icon', 'aria-hidden': 'true', text: ok ? '✓' : '✕' }),
+      el('span', { text: ok ? '答对了' : '答错了 · 正确答案是「' + it.w + '」' }),
+    ]);
+    if (run.mode === 'chain') {
+      verdict.appendChild(el('span', {
+        class: 'fb__combo',
+        text: ok ? '连击 ' + run.streak + ' · 得分 ' + run.score : '本轮结束',
+      }));
+    } else if (run.mode === 'polar') {
+      verdict.appendChild(el('span', { class: 'fb__combo', text: (ok ? '+1' : '−1') + ' · 当前 ' + run.score }));
+    }
+    fb.appendChild(verdict);
+
+    const word = el('div', { class: 'word' }, [
+      el('span', { class: 'word__w', text: it.w }),
+      idiomTags(it, true),
+    ]);
+    if (state.progress.seen[it.w] && state.progress.seen[it.w].r >= 2 && state.progress.seen[it.w].w <= 1) {
+      word.appendChild(tag('已掌握', 'tag--jade'));
+    }
+    fb.appendChild(word);
+    fb.appendChild(el('p', { class: 'fb__m', text: it.m }));
+    if (it.e) fb.appendChild(exampleNode(it));
+    if (it.y) {
+      fb.appendChild(el('p', { class: 'fb__y', text: '易错字 · ' + it.y + '：写的时候留意这一笔。' }));
+    }
+    if (q.kind === KIND.CHAIN) {
+      fb.appendChild(el('p', {
+        class: 'fb__link',
+        text: '接龙：「' + q.from + '」末字「' + q.required + '」→「' + it.w + '」首字「' + firstChar(it.w) + '」',
+      }));
+    }
+
+    if (!ok) {
+      const cmp = el('div', { class: 'fb__cmp' });
+      if (q.kind === KIND.POLAR) {
+        cmp.appendChild(el('p', {}, [
+          '你选的是「', el('b', { text: chosen }), '」，这条是「', el('b', { text: it.k }), '」。',
+        ]));
+      } else {
+        const chosenIt = state.deck.byW.get(chosen);
+        if (chosenIt && chosenIt.w !== it.w) {
+          cmp.appendChild(el('p', {}, [
+            '你选的是「', el('b', { text: chosenIt.w }), '」：', chosenIt.m,
+          ]));
+        }
+        if (q.kind === KIND.CHAIN) {
+          cmp.appendChild(el('p', {
+            text: '「' + q.from + '」的末字是「' + q.required + '」，所以要接一个以「' + q.required + '」开头的成语。',
+          }));
+        }
+      }
+      fb.appendChild(cmp);
+    }
+
+    const last = isRoundOver();
+    const acts = el('div', { class: 'fb__acts' });
+    let primaryText = '下一题';
+    if (run.mode === 'chain' && !ok) primaryText = '本轮结束 · 看结算';
+    else if (last) primaryText = '看结算';
+    acts.appendChild(el('button', {
+      class: 'btn', type: 'button', onclick: nextStep,
+    }, primaryText));
+    acts.appendChild(el('button', {
+      class: 'btn btn--ghost', type: 'button', onclick: leaveToCards,
+    }, '查看学习卡'));
+    if (run.mode === 'polar') {
+      acts.appendChild(el('span', { class: 'hint', text: '计时不停，答完就下一题' }));
+    } else {
+      acts.appendChild(el('span', { class: 'hint' }, [
+        el('span', { class: 'kbd', text: 'Enter' }), ' 继续',
+      ]));
+    }
+    fb.appendChild(acts);
+    return fb;
+  }
+
+  function exitQuiz() {
+    saveRun();
+    paintHome();
+    toast('已暂停，本轮进度留着。');
+  }
+
+  function leaveToCards() {
+    if (state.run) saveRun();
+    paintCards();
+  }
+
+  function resumeRun() {
+    const run = state.resume;
+    if (!run) { paintHome(); return; }
+    state.resume = null;
+    state.run = run;
+    if (run.mode === 'polar') {
+      if (Date.now() >= run.deadline) { finishRun('time'); return; }
+    }
+    paintQuiz();
+    if (run.mode === 'polar') startTimer();
+  }
+
+  /* ---------- 计时（褒贬快判） ---------- */
+  function stopTimer() {
+    if (timerId) {
+      clearInterval(timerId);
+      timerId = 0;
+    }
+  }
+
+  function startTimer() {
+    stopTimer();
+    if (!state.run || state.run.mode !== 'polar') return;
+    updateTimerUI();
+    timerId = setInterval(function () {
+      if (!state.run || state.run.finished || state.view !== 'quiz') {
+        stopTimer();
+        return;
+      }
+      if (Date.now() >= state.run.deadline) {
+        updateTimerUI();
+        finishRun('time');
+        return;
+      }
+      updateTimerUI();
+    }, 200);
+  }
+
+  function updateTimerUI() {
+    const run = state.run;
+    if (!run || run.mode !== 'polar') return;
+    const remain = Math.max(0, run.deadline - Date.now());
+    const right = document.getElementById('hudRight');
+    if (right) right.textContent = '剩 ' + Math.ceil(remain / 1000) + ' 秒 · 得分 ' + run.score;
+    const bar = document.getElementById('hudBar');
+    if (bar) bar.style.width = ((remain / 60000) * 100).toFixed(2) + '%';
+    const meter = document.getElementById('hudMeter');
+    if (meter) meter.setAttribute('aria-valuenow', String(Math.ceil(remain / 1000)));
+  }
+
+  /* ---------- 结算 ---------- */
+  function finishRun(reason) {
+    const run = state.run;
+    if (!run || run.finished) return;
+    run.finished = true;
+    stopTimer();
+    if (run.chosen === null && run.qShownAt) {
+      run.elapsedMs += Math.max(0, Date.now() - run.qShownAt);
+      run.qShownAt = 0;
+    }
+    const timeMs = run.mode === 'polar' ? 60000 : run.elapsedMs;
+    const words = unique(run.round.map(function (r) { return r.w; })).filter(function (w) {
+      return state.deck.byW.has(w);
+    });
+    state.summary = {
+      mode: run.mode,
+      correct: run.correct,
+      wrong: run.wrong,
+      answered: run.answered,
+      newWords: run.newWords.filter(function (w) { return state.deck.byW.has(w); }),
+      words: words,
+      timeMs: timeMs,
+      score: run.score,
+      best: run.best,
+      streak: run.streak,
+      reason: reason,
+    };
+    state.run = null;
+    state.resume = null;
+    store.del('idiom.run');
+    saveProgress();
+    paintResult();
+  }
+
+  function paintResult() {
+    state.view = 'result';
+    stopTimer();
+    const s = state.summary;
+    if (!s) { paintHome(); return; }
+    const info = MODE_INFO[s.mode] || MODE_INFO.meaning;
+    const stats = statsOf(state.progress);
+    const root = el('div', { class: 'result-page' });
+
+    let big;
+    if (s.mode === 'polar') {
+      const hit = s.answered ? Math.round((s.correct / s.answered) * 100) : 0;
+      big = el('div', { class: 'result__big' }, [String(hit) + '%', el('small', { text: '命中率' })]);
+    } else if (s.mode === 'chain') {
+      big = el('div', { class: 'result__big' }, [String(s.best), el('small', { text: '最长连击' })]);
+    } else {
+      big = el('div', { class: 'result__big' }, [
+        String(s.correct), el('small', { text: '/ ' + s.answered + ' 题答对' }),
+      ]);
+    }
+
+    let title = '';
+    if (s.reason === 'empty') title = '题库里没有可出的题了。';
+    else if (s.mode === 'polar') title = '六十秒到，收手。';
+    else if (s.mode === 'chain') title = s.reason === 'fail' ? '接不上了，到此为止。' : '这一轮接完了。';
+    else {
+      const rate = s.answered ? s.correct / s.answered : 0;
+      if (rate >= 0.8) title = '记得很牢，继续保持。';
+      else if (rate >= 0.5) title = '有印象了，再走一轮就稳。';
+      else title = '这几条，正好现在记住。';
+    }
+
+    const metrics = [
+      metric(fmtTime(s.timeMs), '用时'),
+      metric(s.answered ? Math.round((s.correct / s.answered) * 100) + '%' : '—', '正确率'),
+      metric(String(s.newWords.length), '本轮新学'),
+    ];
+    if (s.mode === 'chain' || s.mode === 'polar') metrics.push(metric(String(s.score), '得分'));
+
+    root.appendChild(el('section', { class: 'panel' }, [
+      el('div', { class: 'result__head' }, [
+        el('div', { class: 'eyebrow', text: info.name + ' · 本轮结算' }),
+        big,
+        el('h1', { class: 'result__title', text: title }),
+        el('div', { class: 'metrics' }, metrics),
+        el('div', { class: 'cum' }, [
+          el('span', { class: 'chip', text: '累计' }),
+          statChip('已学', stats.learned),
+          statChip('掌握', stats.mastered),
+          statChip('错题', stats.wrong),
+        ]),
+      ]),
+      el('hr', { class: 'rule' }),
+      el('div', { class: 'result__section' }, [
+        el('div', { class: 'section-head' }, [
+          el('h2', { text: s.newWords.length ? '本轮新学 · ' + s.newWords.length + ' 条' : '本轮练过 · ' + s.words.length + ' 条', }),
+          el('span', { text: s.newWords.length ? 'NEW WORDS' : 'REVIEW' }),
+        ]),
+        s.newWords.length || s.words.length
+          ? el('div', { class: 'learnlist' }, (s.newWords.length ? s.newWords : s.words).map(function (w) {
+            return learnRow(state.deck.byW.get(w));
+          }))
+          : el('p', { class: 'dim', text: '这一轮没有记下新的成语——下次可以试试别的模式。' }),
+      ]),
+      el('div', { class: 'result__acts' }, [
+        el('button', {
+          class: 'btn', type: 'button',
+          onclick: function () { startRun(s.mode); },
+        }, s.mode === 'wrong' ? '再练一轮错题' : '再来一轮'),
+        el('button', { class: 'btn btn--ghost', type: 'button', onclick: paintHome }, '换一道关'),
+        el('button', { class: 'btn btn--ghost', type: 'button', onclick: paintCards }, '学习卡'),
+        stats.wrong ? el('button', { class: 'btn btn--ghost', type: 'button', onclick: paintWrong }, '错题本') : null,
+      ]),
+      el('p', { class: 'result__fine', text: '进度已存到本机浏览器；换设备不会同步。' }),
+    ]));
+
+    mount(root);
+    announce('本轮结束。' + title);
+  }
+
+  function learnRow(it) {
+    if (!it) return null;
+    uid += 1;
+    const bodyId = 'learn-body-' + uid;
+    const row = el('div', { class: 'lrow' });
+    const body = el('div', { class: 'lrow__body', id: bodyId, hidden: true }, [
+      it.e ? exampleNode(it) : el('p', { class: 'dim', text: '（暂无例句）' }),
+      it.y ? el('p', { class: 'fb__y', text: '易错字 · ' + it.y }) : null,
+    ]);
+    const btn = el('button', {
+      class: 'lrow__btn', type: 'button',
+      'aria-expanded': 'false', 'aria-controls': bodyId,
+      onclick: function () {
+        const open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        body.hidden = open;
+        row.classList.toggle('is-open', !open);
+      },
+    }, [
+      el('span', { class: 'lrow__w', text: it.w }),
+      polarTag(it.k),
+      el('span', { class: 'lrow__m', text: it.m }),
+      el('span', { class: 'lrow__chan', 'aria-hidden': 'true', text: '⌄' }),
+    ]);
+    row.appendChild(btn);
+    row.appendChild(body);
+    return row;
+  }
+
+  /* ---------- 学习卡 ---------- */
+  function paintCards() {
+    state.view = 'cards';
+    stopTimer();
+    if (state.run) saveRun();
+    const stats = statsOf(state.progress);
+    const root = el('div', { class: 'cards-page' });
+
+    root.appendChild(el('div', { class: 'cards-head' }, [
+      el('div', {}, [
+        el('div', { class: 'eyebrow', text: '学习卡 · 全部成语' }),
+        el('h1', { text: '一条一条过。' }),
+        el('p', { class: 'dim', text: '共 ' + state.deck.size + ' 条 · 当前已学 ' + stats.learned + ' 条 · 点开可看释义与例句' }),
+      ]),
+      el('div', { class: 'cards-head__act' }, [
+        state.run ? el('button', { class: 'btn', type: 'button', onclick: resumeQuiz }, '回到本轮') : null,
+        el('button', { class: 'back', type: 'button', onclick: paintHome }, '← 回首页'),
+      ]),
+    ]));
+
+    const panel = el('section', { class: 'panel cards-panel' });
+    const listHost = el('div', { class: 'clist' });
+    const countHost = el('div', { class: 'count-line' });
+    const pagerHost = el('div', { class: 'pager' });
+
+    const searchInput = el('input', {
+      type: 'search', value: state.cards.q,
+      placeholder: '搜成语、释义、例句关键词…', 'aria-label': '搜索成语',
+      oninput: function () {
+        state.cards.q = searchInput.value;
+        state.cards.page = 1;
+        renderList();
+      },
+    });
+
+    const groups = Array.from(state.deck.byGroup.keys()).sort();
+    const groupSel = el('select', {
+      'aria-label': '按类别筛选',
+      onchange: function () {
+        state.cards.group = groupSel.value;
+        state.cards.page = 1;
+        renderList();
+      },
+    }, [el('option', { value: '' }, '全部类别')].concat(groups.map(function (g) {
+      return el('option', { value: g }, g);
+    })));
+    groupSel.value = state.cards.group;
+
+    const polarSel = el('select', {
+      'aria-label': '按感情色彩筛选',
+      onchange: function () {
+        state.cards.polar = polarSel.value;
+        state.cards.page = 1;
+        renderList();
+      },
+    }, [
+      el('option', { value: '' }, '全部感情色彩'),
+      el('option', { value: '褒义' }, '褒义'),
+      el('option', { value: '贬义' }, '贬义'),
+      el('option', { value: '中性' }, '中性'),
+    ]);
+    polarSel.value = state.cards.polar;
+
+    panel.appendChild(el('div', { class: 'toolbar' }, [
+      el('div', { class: 'search' }, searchInput),
+      el('div', { class: 'filters' }, [groupSel, polarSel]),
+    ]));
+    panel.appendChild(countHost);
+    panel.appendChild(listHost);
+    panel.appendChild(pagerHost);
+    root.appendChild(panel);
+
+    function filtered() {
+      let arr = state.deck.list;
+      const g = state.cards.group;
+      const k = state.cards.polar;
+      if (g) arr = arr.filter(function (x) { return x.g === g; });
+      if (k) arr = arr.filter(function (x) { return x.k === k; });
+      const q = state.cards.q.trim();
+      if (q) {
+        const terms = q.split(/\s+/).filter(Boolean);
+        arr = arr.filter(function (x) {
+          return terms.every(function (t) {
+            return x.w.indexOf(t) !== -1 || x.m.indexOf(t) !== -1 ||
+              (x.e && x.e.indexOf(t) !== -1) || (x.y && t === x.y);
+          });
+        });
+      }
+      return arr;
+    }
+
+    function renderList(jump) {
+      const list = filtered();
+      const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+      if (state.cards.page > pages) state.cards.page = pages;
+      if (state.cards.page < 1) state.cards.page = 1;
+      const page = state.cards.page;
+      const start = (page - 1) * PAGE_SIZE;
+      const slice = list.slice(start, start + PAGE_SIZE);
+      const filteredOn = !!(state.cards.q || state.cards.group || state.cards.polar);
+
+      const from = list.length ? start + 1 : 0;
+      const to = Math.min(list.length, start + PAGE_SIZE);
+      const countKids = [
+        el('span', { text: '共 ' + list.length + ' 条' + (filteredOn ? ' · 已筛选' : '') + ' · 显示 ' + from + '–' + to }),
+      ];
+      if (filteredOn) {
+        countKids.push(el('button', {
+          class: 'linkish', type: 'button',
+          onclick: function () {
+            state.cards.q = '';
+            state.cards.group = '';
+            state.cards.polar = '';
+            state.cards.page = 1;
+            paintCards();
+          },
+        }, '清除筛选'));
+      }
+      countHost.replaceChildren.apply(countHost, countKids);
+
+      if (!slice.length) {
+        listHost.replaceChildren(filteredOn
+          ? emptyPanel('空', '没有匹配的成语', '换个关键词，或把类别、感情色彩调回“全部”再试。', null, true)
+          : emptyPanel('空', '题库里还没有成语', '等 assets/idioms-data.js 写入数据后刷新页面即可。', null, true));
+      } else {
+        listHost.replaceChildren.apply(listHost, slice.map(cardRow));
+      }
+
+      const kids = [];
+      kids.push(el('button', {
+        class: 'pager__btn', type: 'button', disabled: page <= 1,
+        'aria-label': '上一页',
+        onclick: function () { state.cards.page = page - 1; renderList(true); },
+      }, '‹'));
+      pageWindow(page, pages).forEach(function (p) {
+        if (p === '…') { kids.push(el('span', { class: 'pager__dots', text: '…' })); return; }
+        kids.push(el('button', {
+          class: 'pager__btn' + (p === page ? ' is-on' : ''),
+          type: 'button', text: String(p),
+          'aria-label': '第 ' + p + ' 页',
+          'aria-current': p === page ? 'page' : null,
+          onclick: function () { state.cards.page = p; renderList(true); },
+        }));
+      });
+      kids.push(el('button', {
+        class: 'pager__btn', type: 'button', disabled: page >= pages,
+        'aria-label': '下一页',
+        onclick: function () { state.cards.page = page + 1; renderList(true); },
+      }, '›'));
+      kids.push(el('span', { class: 'pager__info', text: page + ' / ' + pages + ' 页' }));
+      pagerHost.replaceChildren.apply(pagerHost, kids);
+
+      if (jump) {
+        try { panel.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' }); }
+        catch (err) { panel.scrollIntoView(); }
+      }
+    }
+
+    mount(root);
+    renderList();
+  }
+
+  function resumeQuiz() {
+    if (!state.run) { paintHome(); return; }
+    state.view = 'quiz';
+    if (state.run.mode === 'polar') {
+      if (Date.now() >= state.run.deadline) { finishRun('time'); return; }
+    }
+    paintQuiz();
+    if (state.run && state.run.mode === 'polar') startTimer();
+  }
+
+  function pageWindow(current, pages) {
+    if (pages <= 7) {
+      const arr = [];
+      for (let i = 1; i <= pages; i += 1) arr.push(i);
+      return arr;
+    }
+    const set = new Set([1, pages, current - 1, current, current + 1]);
+    const arr = Array.from(set).filter(function (p) { return p >= 1 && p <= pages; }).sort(function (a, b) { return a - b; });
+    const out = [];
+    for (let i = 0; i < arr.length; i += 1) {
+      if (i > 0 && arr[i] - arr[i - 1] > 1) out.push('…');
+      out.push(arr[i]);
+    }
+    return out;
+  }
+
+  function cardRow(it) {
+    const rec = state.progress.seen[it.w];
+    const stat = rec
+      ? el('span', { class: 'crow__stat' }, ['对 ', el('b', { text: String(rec.r) }), ' · 错 ', el('b', { text: String(rec.w) })])
+      : el('span', { class: 'crow__stat', text: '未学' });
+    return el('button', {
+      class: 'crow', type: 'button',
+      'aria-label': '查看成语 ' + it.w,
+      onclick: function () { openIdiomDetail(it.w); },
+    }, [
+      el('span', { class: 'crow__w', text: it.w }),
+      el('span', { class: 'crow__mid' }, [
+        el('span', { class: 'crow__m', text: it.m }),
+        el('span', { class: 'crow__tags' }, [polarTag(it.k), tag(it.g, 'tag--dim')]),
+      ]),
+      stat,
+    ]);
+  }
+
+  /* ---------- 错题本 ---------- */
+  function paintWrong() {
+    state.view = 'wrong';
+    stopTimer();
+    if (state.run) saveRun();
+    const items = state.progress.wrong.map(function (w) {
+      return { it: state.deck.byW.get(w), rec: state.progress.seen[w] };
+    }).filter(function (x) { return x.it && x.rec; }).sort(function (a, b) {
+      return (b.rec.w - a.rec.w) || (b.rec.t - a.rec.t);
+    });
+
+    const root = el('div', { class: 'wrong-page' });
+    root.appendChild(el('div', { class: 'cards-head' }, [
+      el('div', {}, [
+        el('div', { class: 'eyebrow', text: '错题本 · 只练错的' }),
+        el('h1', { text: '把错的，练回来。' }),
+        el('p', { class: 'dim', text: '每条错题答对 2 次才会移出；答错一次重新计数。' }),
+      ]),
+      el('div', { class: 'cards-head__act' }, [
+        state.run ? el('button', { class: 'btn', type: 'button', onclick: resumeQuiz }, '回到本轮') : null,
+        el('button', { class: 'back', type: 'button', onclick: paintHome }, '← 回首页'),
+      ]),
+    ]));
+
+    const panel = el('section', { class: 'panel wrong-panel' });
+    if (!items.length) {
+      panel.appendChild(emptyPanel('净', '错题本是空的', '要么你还没做错过题，要么已经全部清出去了。先去随便练一轮吧。', el('button', {
+        class: 'btn btn--ghost', type: 'button', onclick: paintHome,
+      }, '去选一道关')));
+    } else {
+      panel.appendChild(el('div', { class: 'wrong-head' }, [
+        el('span', { class: 'wrong-head__count', text: '共 ' + items.length + ' 条 · 按错误次数从多到少' }),
+        el('button', {
+          class: 'btn', type: 'button',
+          onclick: function () { startRun('wrong'); },
+        }, '开始练错题（' + Math.min(10, items.length) + ' 题）'),
+      ]));
+      const list = el('div', { class: 'wrong-list' });
+      items.forEach(function (x, i) {
+        const f = x.rec.f || 0;
+        const need = Math.max(0, 2 - f);
+        list.appendChild(el('button', {
+          class: 'wrow', type: 'button',
+          'aria-label': '查看成语 ' + x.it.w,
+          onclick: function () { openIdiomDetail(x.it.w); },
+        }, [
+          el('span', { class: 'wrow__rank num', text: String(i + 1).padStart(2, '0') }),
+          el('span', { class: 'wrow__w', text: x.it.w }),
+          el('span', { class: 'wrow__meta' }, [
+            '错 ', el('b', { text: String(x.rec.w) }), ' · 对 ', el('b', { text: String(x.rec.r) }),
+            ' · 上次 ' + fmtDate(x.rec.t),
+          ]),
+          el('span', { class: 'wrow__need', text: need ? '再答对 ' + need + ' 次移出' : '即将移出' }),
+        ]));
+      });
+      panel.appendChild(list);
+    }
+    root.appendChild(panel);
+    mount(root);
+  }
+
+  /* ---------- 弹层：详情 / 清空确认 ---------- */
+  function closeOverlay(silent) {
+    if (!overlayEl) return;
+    const ret = overlayReturn;
+    overlayEl.remove();
+    overlayEl = null;
+    document.body.style.overflow = overlayPrevOverflow || '';
+    overlayPrevOverflow = '';
+    overlayReturn = null;
+    if (!silent && ret && ret.isConnected && typeof ret.focus === 'function') ret.focus();
+  }
+
+  function openOverlay(opt) {
+    closeOverlay(true);
+    overlayReturn = document.activeElement;
+    overlayPrevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const closeBtn = el('button', {
+      class: 'overlay__close', type: 'button', 'aria-label': '关闭',
+      onclick: function () { closeOverlay(); },
+    }, '×');
+
+    const panel = el('div', {
+      class: 'panel overlay__panel', role: 'dialog', 'aria-modal': 'true',
+      'aria-labelledby': 'overlay-title',
+    }, [
+      closeBtn,
+      el('div', { class: 'overlay__head' }, [
+        opt.eyebrow ? el('div', { class: 'eyebrow', text: opt.eyebrow }) : null,
+        el('h2', { id: 'overlay-title', text: opt.title || '' }),
+      ]),
+      el('div', { class: 'overlay__body' }, opt.body || []),
+      opt.actions ? el('div', { class: 'overlay__acts' }, opt.actions) : null,
+    ]);
+
+    overlayEl = el('div', {
+      class: 'overlay',
+      onclick: function (e) { if (e.target === overlayEl) closeOverlay(); },
+    }, panel);
+    document.body.appendChild(overlayEl);
+    closeBtn.focus();
+  }
+
+  function openIdiomDetail(word) {
+    const it = state.deck.byW.get(word);
+    if (!it) return;
+    const rec = state.progress.seen[word];
+    const learned = !!rec;
+    const mastered = !!rec && rec.r >= 2 && rec.w <= 1;
+    const f = rec ? (rec.f || 0) : 0;
+    const inWrong = state.progress.wrong.indexOf(word) !== -1;
+
+    const body = [
+      el('div', { class: 'word' }, [
+        el('span', { class: 'word__w', text: it.w }),
+        idiomTags(it, true),
+      ]),
+      el('p', { class: 'detail__m', text: it.m }),
+      it.e ? exampleNode(it) : el('p', { class: 'dim', text: '（这条成语暂时没有例句）' }),
+      it.y ? el('p', { class: 'fb__y', text: '易错字 · ' + it.y + '：写的时候留意这一笔。' }) : null,
+      el('div', { class: 'detail__stats' }, [
+        statChip('答对', learned ? rec.r : 0),
+        statChip('答错', learned ? rec.w : 0),
+        statChip('状态', !learned ? '未学' : mastered ? '已掌握' : '学习中'),
+      ]),
+      inWrong
+        ? el('p', { class: 'detail__hint', text: '在错题本中：再答对 ' + Math.max(0, 2 - f) + ' 次移出。' })
+        : el('p', { class: 'detail__hint', text: learned ? '已学过这条。' : '还没在题目里见过这条。' }),
+    ];
+
+    openOverlay({
+      eyebrow: '学习卡 · ' + it.g,
+      title: it.w,
+      body: body,
+      actions: [
+        el('button', { class: 'btn btn--ghost', type: 'button', onclick: function () { closeOverlay(); } }, '关闭'),
+      ],
+    });
+  }
+
+  function confirmClear() {
+    const stats = statsOf(state.progress);
+    openOverlay({
+      eyebrow: '清空进度',
+      title: '真的清零？',
+      body: [
+        el('p', { text: '已学 ' + stats.learned + ' 条、掌握 ' + stats.mastered + ' 条、错题 ' + stats.wrong + ' 条，以及未完成的一轮，都会被清掉。' }),
+        el('p', { text: '题库本身不受影响。此操作不可撤销。' }),
+      ],
+      actions: [
+        el('button', { class: 'btn btn--ghost', type: 'button', onclick: function () { closeOverlay(); } }, '取消'),
+        el('button', {
+          class: 'btn btn--cinnabar', type: 'button',
+          onclick: function () {
+            store.del('idiom.progress');
+            store.del('idiom.run');
+            state.progress = emptyProgress();
+            state.run = null;
+            state.resume = null;
+            state.summary = null;
+            closeOverlay();
+            toast('进度已清空。');
+            paintHome();
+          },
+        }, '确认清空'),
+      ],
+    });
+  }
+
+  /* ---------- 键盘 ---------- */
+  document.addEventListener('keydown', function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (overlayEl) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeOverlay();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const focusables = Array.from(overlayEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+          .filter(function (n) { return !n.disabled; });
+        if (focusables.length) {
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+      return;
+    }
+    if (state.view !== 'quiz' || !state.run) return;
+    if (state.run.chosen !== null) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        nextStep();
+      }
+      return;
+    }
+    if (e.key.length === 1) {
+      const idx = Number(e.key) - 1;
+      if (Number.isInteger(idx) && idx >= 0 && idx < state.run.q.options.length) {
+        e.preventDefault();
+        answer(idx);
+      }
+    }
+  });
+
+  window.addEventListener('pagehide', function () {
+    if (state.run && !state.run.finished) saveRun();
+    saveProgress();
+  });
+
+  /* ---------- 启动 ---------- */
+  const rawData = (typeof window !== 'undefined' && window.IDIOM_DATA) || [];
+  state.deck = makeDeck(normalizeData(rawData));
+  state.progress = normalizeProgress(
+    store.get('idiom.progress', null),
+    state.deck.size ? state.deck.list.map(function (x) { return x.w; }) : null
+  );
+
+  DSHG.mountChrome({ title: '成语闯关 · 考公', meta: 'IDIOMS · 800+' });
+  state.resume = loadRun();
+  paintHome();
+})();
+</script>
+</body>
+</html>

@@ -123,7 +123,7 @@
     if (foot) {
       foot.className = 'wrap foot';
       foot.innerHTML = '';
-      foot.appendChild(el('div', { text: o.footnote || '墨戏三卷 · 故事、五行、仙途 · 纯前端离线可玩' }));
+      foot.appendChild(el('div', { text: o.footnote || '墨戏五卷 · 故事三卷、题库两卷 · 纯前端离线可玩' }));
     }
   }
 
