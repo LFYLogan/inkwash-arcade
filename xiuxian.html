@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem('inkwash.theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>一念飞升 · 墨戏五卷</title>
 <meta name="description" content="快节奏中文修仙 Roguelite：九境之间，六十至一百息定生死。打坐、历练、炼丹、突破，转世传承再入山。">
@@ -94,7 +95,7 @@
     padding: 13px 15px 12px;
     border: 1px solid var(--line-soft);
     border-radius: var(--radius-sm);
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+    background: linear-gradient(165deg, var(--w-02), var(--w-01));
   }
   .stat__k { font-size: 10.5px; letter-spacing: 0.18em; color: var(--text-faint); margin-bottom: 5px; }
   .stat__v { font-family: var(--font-num); font-size: 19px; color: var(--text); line-height: 1.3; }
@@ -170,7 +171,7 @@
   .legacy__name { font-family: var(--font-serif); font-size: 16px; letter-spacing: 0.07em; }
   .legacy__effect { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
   .legacy__pips { display: flex; gap: 4px; margin-top: 6px; }
-  .pip { width: 13px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.09); }
+  .pip { width: 13px; height: 4px; border-radius: 2px; background: var(--w-06); }
   .pip.on { background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright)); }
   .legacy__buy { display: flex; align-items: center; gap: 8px; }
   .legacy__lvl { font-family: var(--font-num); font-size: 11.5px; color: var(--text-faint); }
@@ -252,7 +253,7 @@
     padding: 4px 10px;
     border: 1px solid var(--line-soft);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.022);
+    background: var(--w-01);
     font-size: 11.5px; color: var(--text-faint);
     letter-spacing: 0.03em;
   }
@@ -310,7 +311,7 @@
   .act--ten {
     min-height: 58px;
     border-style: dashed;
-    background: rgba(255, 255, 255, 0.018);
+    background: var(--w-01);
   }
   .act__key {
     flex: 0 0 26px;
@@ -380,7 +381,7 @@
     grid-template-columns: 30px minmax(0, 1fr);
     gap: 7px;
     padding: 7px 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.055);
+    border-bottom: 1px dashed var(--w-04);
     font-size: 12.6px;
     line-height: 1.55;
     color: var(--text-dim);
@@ -422,7 +423,7 @@
     padding: 20px;
     background:
       radial-gradient(680px 460px at 50% 42%, rgba(31, 42, 63, 0.5), transparent 72%),
-      rgba(4, 7, 11, 0.82);
+      var(--scrim);
     backdrop-filter: blur(5px);
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -462,7 +463,7 @@
     color: var(--text);
     border: 1px solid var(--line-soft);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.024);
+    background: var(--w-01);
     cursor: pointer;
     transition: border-color 0.18s ease, background 0.18s ease, transform 0.16s ease;
   }

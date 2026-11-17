@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem('inkwash.theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>墨戏五卷 · Inkwash Arcade</title>
 <meta name="description" content="三个纯前端中文小游戏：故事式 MBTI 性格测试、中医五行行医录、快节奏修仙。">
@@ -22,7 +23,7 @@
     padding: 26px 24px 22px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: linear-gradient(165deg, rgba(28, 36, 54, 0.9), rgba(10, 14, 21, 0.94));
+    background: linear-gradient(165deg, var(--surface), var(--surface-2));
     box-shadow: var(--shadow-1);
     overflow: hidden;
     transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.24s ease, box-shadow 0.24s ease;
@@ -85,7 +86,7 @@
   .section-head span { font-size: 12px; letter-spacing: 0.2em; color: var(--text-faint); }
 
   .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 22px; }
-  .note { padding: 18px 18px 16px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: rgba(255,255,255,0.02); }
+  .note { padding: 18px 18px 16px; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); background: var(--w-01); }
   .note h3 { font-size: 15px; margin-bottom: 6px; color: var(--gold); }
   .note p { font-size: 13.4px; margin: 0; color: var(--text-dim); }
 </style>

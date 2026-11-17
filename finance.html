@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
+<script>try{var t=localStorage.getItem('inkwash.theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>理财诊室 · 银行从业 · 墨戏五卷</title>
 <meta name="description" content="案例式决策训练：一位客户进门，分四步处理——了解客户、定级与事实判断、方案与产品、销售动作与后续。每选一步立刻反馈，走完给总分、评级、逐步复盘与知识要点。纯前端离线可玩。">
@@ -77,7 +78,7 @@
   .stat {
     min-width: 0; padding: 13px 14px 12px;
     border: 1px solid var(--line-soft); border-radius: var(--radius-sm);
-    background: linear-gradient(160deg, rgba(31, 41, 61, 0.62), rgba(12, 16, 24, 0.5));
+    background: linear-gradient(160deg, var(--surface), var(--surface-2));
     position: relative; overflow: hidden;
   }
   .stat::before {
@@ -105,7 +106,7 @@
     flex: 0 1 150px; min-width: 128px; min-height: 44px;
     padding: 8px 11px;
     font-family: inherit; font-size: 13px; color: var(--text);
-    background: rgba(18, 24, 36, 0.94);
+    background: var(--surface-2);
     border: 1px solid var(--line-soft); border-radius: 8px;
   }
   .search { flex: 1 1 220px; position: relative; min-width: 180px; }
@@ -113,7 +114,7 @@
     width: 100%; min-height: 44px;
     padding: 9px 13px 9px 40px;
     font-family: inherit; font-size: 13.5px; color: var(--text);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--w-01);
     border: 1px solid var(--line-soft); border-radius: 8px;
   }
   .search input::placeholder { color: var(--text-faint); }
@@ -138,7 +139,7 @@
     width: 100%; min-height: 152px; padding: 15px 16px 13px;
     text-align: left; font-family: var(--font-sans); color: inherit;
     border: 1px solid var(--line-soft); border-radius: 11px;
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+    background: linear-gradient(165deg, var(--w-02), var(--w-01));
     cursor: pointer;
     transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
   }
@@ -164,7 +165,7 @@
   .case-card__done { color: var(--jade-bright); }
   .case-card__done b { font-family: var(--font-num); font-size: 14px; font-weight: 400; }
   .case-card__best { color: var(--text-faint); }
-  .case-card__go { color: var(--gold-dim); letter-spacing: 0.08em; white-space: nowrap; }
+  .case-card__go { color: var(--gold); letter-spacing: 0.08em; white-space: nowrap; }
 
   .lv {
     flex: 0 0 auto; font-size: 10px; letter-spacing: 0.1em;
@@ -214,7 +215,7 @@
     border-left: 3px solid var(--gold);
     border-radius: 12px;
     background:
-      linear-gradient(150deg, rgba(201, 168, 106, 0.11), rgba(201, 168, 106, 0.028) 58%, rgba(11, 15, 22, 0.55));
+      linear-gradient(150deg, rgba(201, 168, 106, 0.11), rgba(201, 168, 106, 0.028) 58%, var(--surface-2));
     box-shadow: var(--shadow-1);
   }
   .client-card__head { display: flex; align-items: baseline; gap: 9px 11px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -233,7 +234,7 @@
     margin: 11px 0 0; padding: 9px 12px;
     border-left: 2px solid var(--line);
     border-radius: 0 8px 8px 0;
-    background: rgba(7, 10, 15, 0.45);
+    background: var(--surface-2);
     font-family: var(--font-serif); font-size: 13.8px; line-height: 1.85; color: var(--text);
   }
   .client-quote cite {
@@ -255,7 +256,7 @@
     position: relative; display: flex; gap: 12px;
     width: 100%; min-height: 56px; padding: 13px 15px;
     text-align: left; font-family: var(--font-sans); color: var(--text);
-    background: rgba(255, 255, 255, 0.025);
+    background: var(--w-01);
     border: 1px solid var(--line-soft);
     border-radius: 10px;
     cursor: pointer;
@@ -323,7 +324,7 @@
     font-family: var(--font-num); font-size: 10.5px; line-height: 1;
     color: var(--text-dim);
     border: 1px solid var(--line-soft); border-radius: 4px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--w-01);
   }
 
   .fb {
@@ -378,14 +379,14 @@
   }
   .rating--r4 { color: var(--jade-bright); border-color: rgba(148, 201, 186, 0.52); background: rgba(111, 168, 154, 0.12); }
   .rating--r3 { color: var(--gold-bright); border-color: rgba(201, 168, 106, 0.52); background: rgba(201, 168, 106, 0.11); }
-  .rating--r2 { color: var(--text-dim); border-color: var(--line); background: rgba(255, 255, 255, 0.03); }
+  .rating--r2 { color: var(--text-dim); border-color: var(--line); background: var(--w-01); }
   .rating--r1 { color: var(--cinnabar-bright); border-color: rgba(224, 96, 79, 0.52); background: rgba(184, 71, 60, 0.12); }
   .result-note { margin: 8px 0 0; font-size: 12.5px; color: var(--text-dim); }
   .metrics { display: flex; justify-content: center; gap: 9px; flex-wrap: wrap; margin-top: 18px; }
   .metric {
     min-width: 90px; padding: 9px 13px;
     border: 1px solid var(--line-soft); border-radius: 9px;
-    background: rgba(255, 255, 255, 0.022);
+    background: var(--w-01);
   }
   .metric b { display: block; font-family: var(--font-num); font-weight: 400; font-size: 18px; line-height: 1.35; color: var(--text); }
   .metric span { display: block; font-size: 10px; letter-spacing: 0.14em; color: var(--text-faint); }
@@ -396,7 +397,7 @@
   .review {
     padding: 14px 15px 12px;
     border: 1px solid var(--line-soft); border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--w-01);
   }
   .review + .review { margin-top: 9px; }
   .review__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -425,14 +426,14 @@
     display: flex; align-items: baseline; gap: 9px;
     padding: 9px 12px;
     border: 1px solid var(--line-soft); border-radius: 9px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--w-01);
     font-size: 13px; line-height: 1.8; color: var(--text-dim);
   }
   .lesson__no { flex: 0 0 auto; font-family: var(--font-num); font-size: 10.5px; color: var(--gold-dim); }
   .reg {
     margin-top: 11px; padding: 11px 13px;
     border: 1px solid var(--line-soft); border-radius: 9px;
-    background: rgba(255, 255, 255, 0.035);
+    background: var(--w-02);
     font-size: 12.8px; line-height: 1.82; color: var(--text-dim);
   }
   .reg b { display: block; margin-bottom: 2px; font-size: 9.5px; font-weight: 400; letter-spacing: 0.24em; color: var(--text-faint); }
@@ -456,11 +457,11 @@
     padding: 10px 13px;
     border: 1px solid var(--line-soft); border-left: 2px solid rgba(201, 168, 106, 0.38);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--w-01);
   }
   .kb-item--reg {
     border-left-color: rgba(230, 226, 216, 0.24);
-    background: rgba(255, 255, 255, 0.035);
+    background: var(--w-02);
   }
   .kb-item__text { margin: 0 0 6px; font-size: 13px; line-height: 1.82; color: var(--text); }
   .kb-item__meta { display: flex; align-items: baseline; gap: 5px 9px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-faint); }
@@ -478,7 +479,7 @@
   .overlay {
     position: fixed; inset: 0; z-index: 120;
     display: grid; place-items: center; padding: 18px;
-    background: rgba(4, 6, 10, 0.78);
+    background: var(--scrim);
     backdrop-filter: blur(5px);
     animation: overlayIn 0.2s ease both;
   }
@@ -500,7 +501,7 @@
     background: none; color: var(--text-dim);
     font-size: 20px; line-height: 1; cursor: pointer;
   }
-  .overlay__close:hover { color: var(--gold-bright); border-color: var(--line-soft); background: rgba(255, 255, 255, 0.04); }
+  .overlay__close:hover { color: var(--gold-bright); border-color: var(--line-soft); background: var(--w-02); }
   .overlay__head { padding-right: 34px; margin-bottom: 13px; }
   .overlay__head h2 { margin: 2px 0 0; font-family: var(--font-serif); font-size: clamp(24px, 5.4vw, 31px); letter-spacing: 0.1em; }
   .overlay__body p { font-size: 13.2px; line-height: 1.85; color: var(--text-dim); }
